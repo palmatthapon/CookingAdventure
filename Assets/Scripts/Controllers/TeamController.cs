@@ -37,7 +37,7 @@ namespace Controller
             transform.Find("Icon").GetComponentInChildren<Text>().text = "ทีม " + _core._currentTeamIsSelect.ToString();
             RefeshViewHeroInStore(true);
             LoadTeamIcon(false);
-            if(_core._gameMode == _GameStatus.LAND)
+            if(_core._gameMode == _GameStatus.LAND || _core._gameMode == _GameStatus.CAMP)
             {
                 _plyInfoPan = _core._playerInfoPanel.GetComponent<PlayerInfoPanel>();
                 _plyInfoPan.SetObjPanel(transform.gameObject);

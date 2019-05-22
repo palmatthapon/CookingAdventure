@@ -642,7 +642,7 @@ namespace Core
             Sprite[] loadSprite = null;
             string getSpriteSet = "";
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 1; i++)
             {
                 if (_teamSetup[_currentTeamIsSelect - 1].position[i].id == -1)
                 {
@@ -1178,6 +1178,7 @@ namespace Core
         {
             OpenObjInScene(_campObj);
             _campPanel.SetActive(true);
+            _playerInfoPanel.SetActive(true);
             //OpenActionPanel(_storyPanel);
             transform.position = _cameraMainPosition;
             //SetMenuPanel(_gameMode);
