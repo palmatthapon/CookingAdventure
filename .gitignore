@@ -88,3 +88,4 @@
 /Assets/Scripts/UI/Slots/HeroSlot.cs.meta
 /Assets/Scripts/UI/Slots/GateSlot.cs.meta
 /Assets/Scripts/UI/Slots/AttackSlot.cs.meta
+*.meta
