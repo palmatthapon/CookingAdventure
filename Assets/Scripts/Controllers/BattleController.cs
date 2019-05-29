@@ -50,7 +50,9 @@ namespace Controller
         public GameObject _hitEffect;
         public GameObject _defenseEffect;
         public Sprite[] _eventIcon;
-        
+        public GameObject _heroPanel;
+
+
         private void Awake()
         {
             _core = Camera.main.GetComponent<MainCore>();
@@ -87,13 +89,13 @@ namespace Controller
             {
                 if (_mapCon._teamList[i].id == -1)
                 {
-                    _heroCom._heroAvatarList[i].gameObject.SetActive(false);
+                    _heroCom._heroAvatar.gameObject.SetActive(false);
                 }
                 else
                 {
                     Hero newHero = new Hero(i);
                     newHero.hero = _mapCon._teamList[i];
-                    newHero._icon = _heroCom.LoadHeroIcon(newHero.hero);
+                    newHero._icon = _heroPanel;
                     _hero.Add(newHero);
                 }
             }
@@ -119,7 +121,7 @@ namespace Controller
             transform.Find("BGLeft").GetComponent<SpriteRenderer>().sprite = _bgSprite;
             transform.Find("BGRight").GetComponent<SpriteRenderer>().sprite = _bgSprite;
             _battleState = _BattleState.Start;
-            _core._heroPanel.SetActive(true);
+            _core._heroInfoPanel.SetActive(true);
             _isEscape = false;
             _roundBattle = _RoundBattle.PLAYER;
             _monsterList = _core._currentMonsterBattle;
@@ -210,17 +212,10 @@ namespace Controller
             }
             set
             {
-                foreach (Hero h in _hero.ToList())
-                {
-                    h._icon.transform.localScale = new Vector3(1, 1, 1);
-                    h._icon.transform.Find("IconImage").GetComponent<Image>().color = new Color32(255, 255, 255, 150);
-                }
                 if (value >= _hero.ToList().Count)
                     this.heroFocus = 0;
                 else
                     this.heroFocus = value;
-                GetHeroFocus()._icon.transform.localScale = new Vector3(1.25f, 1.25f, 1);
-                GetHeroFocus()._icon.transform.Find("IconImage").GetComponent<Image>().color = new Color32(255, 255, 255, 255);
             }
         }
 
@@ -834,10 +829,6 @@ namespace Controller
             {
                 Destroy(tran.gameObject);
             }
-            foreach (Transform tran in _core._heroPanel.transform.Find("GridView"))
-            {
-                Destroy(tran.gameObject);
-            }
             
             _waitEndTurn = false;
             SetPanel(false);
@@ -847,7 +838,7 @@ namespace Controller
             _selectATKCon.ClearAttackList();
             _buffCon._defenseList.Clear();
             
-            _core._heroPanel.SetActive(false);
+            _core._heroInfoPanel.SetActive(false);
             
         }
 

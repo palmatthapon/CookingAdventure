@@ -25,7 +25,7 @@ namespace CollectionData
             _heroCom = _core._heroCom;
             _buffCon = _core._buffCon;
             _selectATKCon = _core._selectATKCon;
-            _avatar = _heroCom._heroAvatarList[index];
+            _avatar = _heroCom._heroAvatar;
             _anim = _avatar.GetComponent<Animator>();
             slotId = index;
         }
@@ -125,8 +125,6 @@ namespace CollectionData
             _avatar.transform.parent.localScale = _originalSize;
             hero.hpMax = _originalHPMax;
             Hate = 0;
-            _icon.transform.localScale = new Vector3(1, 1, 1);
-            _icon.transform.Find("IconImage").GetComponent<Image>().color = new Color32(46, 46, 46, 150);
             _battleCon._hero.Remove(this);
             if (_battleCon._hero.ToList().Count == 0)
             {

@@ -32,7 +32,7 @@ namespace Controller
             {
                 if (_core._gameMode == _GameStatus.LAND)
                 {
-                    if (!_core._shopPanel.activeSelf && !_core._gatePanel.activeSelf && !_core._teamPanel.activeSelf && !_core._subMenuPanel.activeSelf)
+                    if (!_core._shopPanel.activeSelf && !_core._gatePanel.activeSelf && !_core._CharacterPanel.activeSelf && !_core._subMenuPanel.activeSelf)
                     {
                         CameraMove();
                     }
@@ -50,8 +50,6 @@ namespace Controller
 
         void SetPanel(bool set)
         {
-            _core._playerInfoPanel.SetActive(set);
-            _core._playerInfoPanel.transform.Find("GridView").Find("Money").GetComponent<Text>().text = _core._currentMoney.ToString();
             _landPanel.SetActive(set);
             
             if (set)
@@ -173,7 +171,7 @@ namespace Controller
                         }
                     }else if (tag == "CampHero")
                     {
-                        _core._teamPanel.SetActive(true);
+                        _core._CharacterPanel.SetActive(true);
                     }
                        
                     currentTimeClick = 0;
@@ -201,7 +199,7 @@ namespace Controller
             //FocusPosition(_warpObj.transform);
             _core._talkPanel.SetActive(false);
             _core._gatePanel.SetActive(true);
-            _core._teamPanel.SetActive(false);
+            _core._CharacterPanel.SetActive(false);
             _core._shopPanel.SetActive(false);
         }
 
@@ -214,7 +212,7 @@ namespace Controller
             StartMoveCameraSmooth = true;
             //FocusPosition(_campfireObj.transform);
             _core._talkPanel.SetActive(false);
-            _core._teamPanel.SetActive(true);
+            _core._CharacterPanel.SetActive(true);
             _core._gatePanel.SetActive(false);
             _core._shopPanel.SetActive(false);
         }
@@ -229,7 +227,7 @@ namespace Controller
             //FocusPosition(_shopObj.transform);
             _core._talkPanel.SetActive(false);
             _core._shopPanel.SetActive(true);
-            _core._teamPanel.SetActive(false);
+            _core._CharacterPanel.SetActive(false);
             _core._gatePanel.SetActive(false);
         }
         Vector3 startMarker;

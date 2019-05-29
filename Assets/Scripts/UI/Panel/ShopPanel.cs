@@ -14,7 +14,6 @@ namespace UI
         MainCore _core;
         LandController _landCon;
         Calculate _cal;
-        PlayerInfoPanel _plyInfoPan;
 
         public GameObject _shop,_item;
         public GameObject _itemSlot;
@@ -26,8 +25,6 @@ namespace UI
             _cal = new Calculate();
             ViewItem();
             LoadShop();
-            _plyInfoPan = _core._playerInfoPanel.GetComponent<PlayerInfoPanel>();
-            _plyInfoPan.SetObjPanel(transform.gameObject);
 
         }
 
@@ -145,7 +142,6 @@ namespace UI
                 {
                     item.amount += - 1;
                     _core._currentMoney += (item.item.price / 2);
-                    _core._playerInfoPanel.transform.Find("GridView").Find("Money").GetComponent<Text>().text = _core._currentMoney.ToString();
                     _core.SubMenuCancelBtn();
                     foreach (ItemShop itemShop in _itemShopList)
                     {
@@ -204,7 +200,6 @@ namespace UI
                         return;
                     }
                     _core._currentMoney += -totalPrice;
-                    _core._playerInfoPanel.transform.Find("GridView").Find("Money").GetComponent<Text>().text = _core._currentMoney.ToString();
                     itemShop.buyCount++;
                     ViewShop();
                     break;
@@ -241,6 +236,11 @@ namespace UI
                 _core.SubMenuCancelBtn();
             }
             _itemShopIsSelect = null;
+        }
+
+        public void Close()
+        {
+            this.gameObject.SetActive(false);
         }
     }
 }

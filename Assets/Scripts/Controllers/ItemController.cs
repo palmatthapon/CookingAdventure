@@ -16,8 +16,7 @@ namespace Controller
         
         public GameObject _itemSlot;
         public Text _money;
-
-        PlayerInfoPanel _plyInfoPan;
+        
 
         private void Awake()
         {
@@ -28,8 +27,6 @@ namespace Controller
         {
             //_core._storyPanelTxt.text = "ลองค้นกระเป๋าดูดีๆ อาจจะเจอของที่เจ้าตามหา!";
             _money.text = _core._currentMoney.ToString();
-            _plyInfoPan = _core._playerInfoPanel.GetComponent<PlayerInfoPanel>();
-            _plyInfoPan.SetObjPanel(transform.gameObject);
             ViewItem();
         }
 
@@ -91,8 +88,9 @@ namespace Controller
             _core.SubMenuCancelBtn();
         }
         
-        private void OnDisable()
+        public void Close()
         {
+            this.gameObject.SetActive(false);
         }
     }
 

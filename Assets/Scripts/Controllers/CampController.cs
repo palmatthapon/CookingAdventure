@@ -88,7 +88,7 @@ namespace Controller
                     }
                     else if (tag == "Hero")
                     {
-                        _core._teamPanel.SetActive(true);
+                        _core._CharacterPanel.SetActive(true);
                     }
 
                     currentTimeClick = 0;

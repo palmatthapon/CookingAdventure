@@ -11,7 +11,6 @@ namespace UI {
     public class GatePanel : MonoBehaviour
     {
         MainCore _core;
-        PlayerInfoPanel _plyInfoPan;
         Calculate _cal;
 
         public GameObject _gateSlot;
@@ -19,8 +18,6 @@ namespace UI {
         void OnEnable()
         {
             _core = Camera.main.GetComponent<MainCore>();
-            _plyInfoPan = _core._playerInfoPanel.GetComponent<PlayerInfoPanel>();
-            _plyInfoPan.SetObjPanel(transform.gameObject);
             _cal = new Calculate();
             OpenGate();
         }

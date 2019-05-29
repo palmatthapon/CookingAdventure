@@ -54,7 +54,6 @@ public class GateSlot : EventTrigger
             }
             _core.LoadScene(_GameStatus.MAP);
             _core._gatePanel.SetActive(false);
-            _core._playerInfoPanel.SetActive(false);
             _core._talkPanel.SetActive(false);
         }
         lastTimeClick = currentTimeClick;

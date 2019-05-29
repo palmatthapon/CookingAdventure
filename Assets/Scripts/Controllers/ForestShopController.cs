@@ -42,7 +42,6 @@ namespace Controller
 
         void SetPanel(bool set)
         {
-            _core._playerInfoPanel.SetActive(set);
             _forestShopPanel.SetActive(set);
         }
 

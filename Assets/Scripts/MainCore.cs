@@ -65,7 +65,7 @@ namespace Core
         //public GameObject _playerPanel;
         public GameObject _eventPanel;
         public GameObject _mapPanel;
-        public GameObject _teamPanel;
+        public GameObject _CharacterPanel;
         public GameObject _itemPanel;
         public GameObject _changeTeamPanel;
         public GameObject _manageHeroPanel;
@@ -73,7 +73,6 @@ namespace Core
         public GameObject _actionPointPanel;
         public GameObject _rewardPanel;
         public GameObject _shopPanel;
-        public GameObject _playerInfoPanel;
         public GameObject _talkPanel;
         public GameObject _infoPanel;
         public GameObject _monTalkPanel;
@@ -82,7 +81,7 @@ namespace Core
         public GameObject _confirmNotify;
         public GameObject _cutscenePanel;
         public GameObject _tutorialPanel;
-        public GameObject _heroPanel;
+        public GameObject _heroInfoPanel;
         public GameObject _campPanel;
 
         /// -----End Panel Zone
@@ -197,7 +196,7 @@ namespace Core
             _mapCon = _mapObj.GetComponent<MapController>();
             _buffCon = _buffPanel.GetComponent<BuffController>();
             _monCom = _monPanel.GetComponent<MonPanel>();
-            _heroCom = _heroPanel.GetComponent<HeroPanel>();
+            _heroCom = _heroInfoPanel.GetComponent<HeroPanel>();
             _selectATKCon = _attackPanel.GetComponent<SelectAttackController>();
         }
         
@@ -337,7 +336,6 @@ namespace Core
             _miniGameMenu.SetActive(false);
             _mainMenuBG.SetActive(false);
             _tutorialPanel.SetActive(false);
-            _playerInfoPanel.SetActive(false);
             _playerHPBar.SetActive(false);
             OpenActionPanel();
         }
@@ -385,7 +383,7 @@ namespace Core
         {
             _manageHeroPanel.SetActive(obj == _manageHeroPanel ? true : false);
             _itemPanel.SetActive(obj == _itemPanel ? true : false);
-            _teamPanel.SetActive(obj == _teamPanel ? true : false);
+            _CharacterPanel.SetActive(obj == _CharacterPanel ? true : false);
             _attackPanel.SetActive(obj == _attackPanel ? true : false);
             //_defensePanel.SetActive(obj == _defensePanel ? true : false);
             //if (obj == _teamPanel || obj == _itemPanel)
@@ -637,7 +635,7 @@ namespace Core
             }
         }
         
-        public void LoadCampAvatar(GameObject[] obj = null)
+        public void LoadCampAvatar(GameObject obj = null)
         {
             Sprite[] loadSprite = null;
             string getSpriteSet = "";
@@ -992,12 +990,12 @@ namespace Core
             }
             else
             {
-                if (_teamPanel.activeSelf)
+                if (_CharacterPanel.activeSelf)
                 {
-                    _teamPanel.SetActive(false);
+                    _CharacterPanel.SetActive(false);
                 }
                 else
-                    OpenActionPanel(_teamPanel);
+                    OpenActionPanel(_CharacterPanel);
             }
         }
         
@@ -1013,7 +1011,6 @@ namespace Core
                 _currentRoomPosition = _dungeon[_currentDungeonLayer - 1].dungeon.startRoom;
                 LoadScene(_GameStatus.MAP);
                 _gatePanel.SetActive(false);
-                _playerInfoPanel.SetActive(false);
                 _talkPanel.SetActive(false);
             }else if (_subMenuMode == _SubMenu.BattleEnd)
             {
@@ -1079,7 +1076,7 @@ namespace Core
             }
             else
             {
-                _teamPanel.SetActive(false);
+                _CharacterPanel.SetActive(false);
                 _itemPanel.SetActive(false);
                 LoadScene(_GameStatus.MAP);
             }
@@ -1178,7 +1175,6 @@ namespace Core
         {
             OpenObjInScene(_campObj);
             _campPanel.SetActive(true);
-            _playerInfoPanel.SetActive(true);
             //OpenActionPanel(_storyPanel);
             transform.position = _cameraMainPosition;
             //SetMenuPanel(_gameMode);
@@ -1242,7 +1238,7 @@ namespace Core
             Text talk = _talkPanel.GetComponentInChildren<Text>();
             talk.text = txt;
             RectTransform parentRect = _talkPanel.GetComponent<RectTransform>();
-            if (_teamPanel.activeSelf)
+            if (_CharacterPanel.activeSelf)
             {
                 parentRect.sizeDelta = new Vector2(Screen.width, 260);
             }else

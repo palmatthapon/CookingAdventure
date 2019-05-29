@@ -6,24 +6,25 @@ using Controller;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using CharacterController = Controller.CharacterController;
 
 namespace UI
 {
     public class ShadowSlot : EventTrigger
     {
         public HeroStore _hero;
-        TeamController _teamCon;
+        CharacterController _teamCon;
         MainCore _core;
 
         void Start()
         {
             _core = Camera.main.GetComponent<MainCore>();
-            _teamCon = _core._teamPanel.GetComponent<TeamController>();
+            _teamCon = _core._CharacterPanel.GetComponent<CharacterController>();
         }
 
         public override void OnPointerClick(PointerEventData data)
         {
-            _teamCon._heroSwapIsSelect = _hero;
+            //_teamCon._heroSwapIsSelect = _hero;
             //Debug.Log("hero is " + mHeroId);
             if (_core._gameMode == _GameStatus.LAND)
             {
@@ -48,7 +49,7 @@ namespace UI
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, -Vector3.up);
             if (!(hit.transform != null && hit.transform.tag == "IconTeam"))
             {
-                _teamCon._heroSwapIsSelect = null;
+                //_teamCon._heroSwapIsSelect = null;
             }
 
         }
