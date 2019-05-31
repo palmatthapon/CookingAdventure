@@ -12,7 +12,7 @@ namespace CollectionData
     {
         public Setting[] ReadSetting(Setting[] dataSetting)
         {
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/W3AFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
             string filePath = folderPath + "Setting.json";
             if (File.Exists(filePath))
             {
@@ -22,7 +22,7 @@ namespace CollectionData
             }
             else
             {
-                TextAsset loadedLog = Resources.Load<TextAsset>("JsonDataNew/Setting_default");
+                TextAsset loadedLog = Resources.Load<TextAsset>("JsonDatabase/Setting_default");
                 dataSetting = JsonHelper.FromJson<Setting>(loadedLog.text);
                 print("load " + dataSetting.Length + " settings.");
             }
@@ -34,7 +34,7 @@ namespace CollectionData
             /*---android can't load
             string reader = File.ReadAllText(Application.dataPath + "/Resources/PlayerLog.json");
             dataPlayerLog = JsonHelper.FromJson<PlayerLog>(reader);*/
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/W3AFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
             string filePath = folderPath + "PlayerLog.json";
             if (File.Exists(filePath))
             {
@@ -45,7 +45,7 @@ namespace CollectionData
             else
             {
                 Camera.main.GetComponent<MainCore>()._loadNewGame = true;
-                TextAsset loadedLog = Resources.Load<TextAsset>("JsonDataNew/PlayerLog_default");
+                TextAsset loadedLog = Resources.Load<TextAsset>("JsonDatabase/PlayerLog_default");
                 dataPlayerLog = JsonHelper.FromJson<PlayerLog>(loadedLog.text);
                 print("load " + dataPlayerLog.Length + " playerLogs.");
             }
@@ -131,7 +131,7 @@ namespace CollectionData
 
         void WriteJson(string text, string fileName = "PlayerLog.json")
         {
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/W3AFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
             string filePath = folderPath + fileName;
             if (!Directory.Exists(folderPath))
             {

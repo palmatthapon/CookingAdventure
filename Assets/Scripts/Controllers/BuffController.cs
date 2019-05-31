@@ -52,7 +52,7 @@ public class BuffController : MonoBehaviour
                     break;
                 }
             }
-            trans = _core._actionPointPanel.transform.Find("BuffPanel").Find("GridView");
+            trans = _core._playerLifePanel.transform.Find("BuffPanel").Find("GridView");
             EulerZ = -180;
             targetPlayer = true;
         }
@@ -93,7 +93,7 @@ public class BuffController : MonoBehaviour
         data.id = _defenseList.Count;
         data.crystal = crystal;
         GameObject slot = Instantiate(_defenseSlot);
-        slot.transform.SetParent(_core._actionPointPanel.transform.Find("DefensePanel").Find("GridView"));
+        slot.transform.SetParent(_core._playerLifePanel.transform.Find("DefensePanel").Find("GridView"));
         slot.transform.localScale = new Vector3(1, 1, 1);
         slot.GetComponent<Image>().sprite = loadSpriteBuff.Single(s => s.name == "buff_0");
         slot.transform.Find("Text").GetComponent<Text>().text = crystal + "";
@@ -116,7 +116,7 @@ public class BuffController : MonoBehaviour
 
     public void ClearDefense()
     {
-        foreach (Transform tran in _core._actionPointPanel.transform.Find("DefensePanel").Find("GridView"))
+        foreach (Transform tran in _core._playerLifePanel.transform.Find("DefensePanel").Find("GridView"))
         {
             Destroy(tran.gameObject);
         }

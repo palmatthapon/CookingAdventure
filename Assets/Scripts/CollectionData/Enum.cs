@@ -81,7 +81,8 @@ namespace CollectionData
         Defense,
         Item,
         Team,
-        Map
+        Map,
+        Cook
     }
 
     public enum _SubMenu

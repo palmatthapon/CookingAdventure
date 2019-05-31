@@ -11,7 +11,6 @@ using UnityEngine.UI;
 public class ShopSlot : EventTrigger
 {
     MainCore _core;
-    ItemController _itemCon;
     ShopPanel _shopPan;
 
     public ItemStore _item;

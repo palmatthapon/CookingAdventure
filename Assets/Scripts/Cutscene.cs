@@ -148,9 +148,9 @@ namespace Core
             }
             yield return new WaitForSeconds(1f);
             AudioListener.volume = _core.dataSetting[0].soundValue;
-
-            if(_bg.gameObject.activeSelf)
-                TutorialPlay(_core._landObj.GetComponent<LandController>()._landPanel.transform.Find("GridView").Find("CampButton"), true, "เจ้าลองจิ้มตามแสงกระพริบๆในหน้าจอของเจ้าดู มันจะสอนให้เจ้าเข้าใจการเล่นเบื้องต้น");
+                
+            //if(_bg.gameObject.activeSelf)
+                //TutorialPlay(_core._landObj.GetComponent<LandController>()._landPanel.transform.Find("GridView").Find("CampButton"), true, "เจ้าลองจิ้มตามแสงกระพริบๆในหน้าจอของเจ้าดู มันจะสอนให้เจ้าเข้าใจการเล่นเบื้องต้น");
             _bg.gameObject.SetActive(false);
             _cutsceneTalk.SetActive(false);
         }

@@ -21,7 +21,6 @@ namespace Controller
         MapController _mapCon;
         BuffController _buffCon;
         MonPanel _monCom;
-        HeroPanel _heroCom;
         int _answerCorrect;
 
         public PopupText _showDamage;
@@ -50,7 +49,7 @@ namespace Controller
         public GameObject _hitEffect;
         public GameObject _defenseEffect;
         public Sprite[] _eventIcon;
-        public GameObject _heroPanel;
+        public GameObject _playerLifePanel;
 
 
         private void Awake()
@@ -59,7 +58,6 @@ namespace Controller
             _cal = _core._cal;
             _mapCon = _core._mapCon;
             _monCom = _core._monCom;
-            _heroCom = _core._heroCom;
             _buffCon = _core._buffCon;
             _selectATKCon = _core._selectATKCon;
             _buffCon._buffListPlayer = new List<Buff>();
@@ -89,13 +87,13 @@ namespace Controller
             {
                 if (_mapCon._teamList[i].id == -1)
                 {
-                    _heroCom._heroAvatar.gameObject.SetActive(false);
+
                 }
                 else
                 {
                     Hero newHero = new Hero(i);
                     newHero.hero = _mapCon._teamList[i];
-                    newHero._icon = _heroPanel;
+                    newHero._icon = _playerLifePanel;
                     _hero.Add(newHero);
                 }
             }
@@ -114,14 +112,13 @@ namespace Controller
                 _hero[i].LoadSprite();
                 _heroData[i] = _hero[i];
             }
-            
+            _core._playerSoulBar.transform.Find("ActionPointText").gameObject.SetActive(true);
             UpdateMonsterHP();
             _bgSprite = _core._bgList[Random.Range(0, _core._bgList.Length)];
             transform.Find("BG").GetComponent<SpriteRenderer>().sprite = _bgSprite;
             transform.Find("BGLeft").GetComponent<SpriteRenderer>().sprite = _bgSprite;
             transform.Find("BGRight").GetComponent<SpriteRenderer>().sprite = _bgSprite;
             _battleState = _BattleState.Start;
-            _core._heroInfoPanel.SetActive(true);
             _isEscape = false;
             _roundBattle = _RoundBattle.PLAYER;
             _monsterList = _core._currentMonsterBattle;
@@ -254,12 +251,11 @@ namespace Controller
 
         void SetPanel(bool set)
         {
-            _core._actionPointPanel.SetActive(set);
             _core._eventPanel.SetActive(set);
             _core._monPanel.SetActive(set);
-            _core._mainMenuBG.SetActive(set);
+            //_core._mainMenuBG.SetActive(set);
             //_core._menuPanel.transform.parent.gameObject.SetActive(set);
-            _core._actionPointPanel.transform.Find("EndTurnButton").gameObject.SetActive(true);
+            _core._playerLifePanel.transform.Find("EndTurnButton").gameObject.SetActive(true);
         }
         
         public void RunCounterAttack()
@@ -341,7 +337,7 @@ namespace Controller
         
         void AnswerClick(int ans)
         {
-            _core._mainMenuBG.SetActive(true);
+            //_core._mainMenuBG.SetActive(true);
             Camera.main.orthographicSize = 1f;
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x,
                     0f,
@@ -358,7 +354,7 @@ namespace Controller
             _heroIsQuesttion = hero;
             _isUltimate = ultimate;
             blockStack = stack;
-            _core._mainMenuBG.SetActive(false);
+            //_core._mainMenuBG.SetActive(false);
             Camera.main.orthographicSize = 0.5f;
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x,
                 0.15f,
@@ -482,15 +478,15 @@ namespace Controller
 
             if (_roundBattle == _RoundBattle.PLAYER)
             {
-                popup.SetNotifyText("รอบของผู้เล่น");
+                popup.SetNotifyText("Player phase");
                 popup.mPopupTurnBattleAnim.SetTrigger("IsTurnPlayer");
             }
             else
             {
-                popup.SetNotifyText("รอบของศัตรู");
+                popup.SetNotifyText("Enemy phase");
             }
 
-            popup.SetTurnText("รอบที่ " + _turnAround);
+            popup.SetTurnText("round " + _turnAround);
         }
         GameObject[] loadEffectPlayer;
         GameObject[] loadEffectMonster;
@@ -604,7 +600,7 @@ namespace Controller
                 EndTurnSetting();
                 yield return new WaitForSeconds(1);
                 ShowTurnBattleNotify();
-                _core._actionPointPanel.transform.Find("EndTurnButton").gameObject.SetActive(true);
+                _core._playerLifePanel.transform.Find("EndTurnButton").gameObject.SetActive(true);
                 _core.OpenActionPanel(_core._attackPanel);
                 _isEscape = false;
                 Crystal = _turnAround;
@@ -662,7 +658,7 @@ namespace Controller
         public void EndTurnSpeed()
         {
             Crystal = 0;
-            _core._actionPointPanel.transform.Find("EndTurnButton").gameObject.SetActive(false);
+            _core._playerLifePanel.transform.Find("EndTurnButton").gameObject.SetActive(false);
             Debug.Log("end 5");
             _waitEndTurn = true;
         }
@@ -691,7 +687,7 @@ namespace Controller
                     effect.transform.localScale = new Vector3(1, 1, 1);
                     effect.transform.localPosition = new Vector3(0, 0.5f, 0);
                     yield return new WaitForSeconds(1.5f);
-                    ShowAction("-1", _core._playerHPBar.transform.position);
+                    ShowAction("-1", _core._playerSoulBar.transform.position);
                     _core._playerHP -= 1;
                 }
             }
@@ -762,7 +758,7 @@ namespace Controller
         public void AddCrystal(int point)
         {
             _crystalTotal +=  point;
-            _core._actionPointPanel.GetComponentInChildren<Text>().text = _crystalTotal.ToString();
+            _core._playerLifePanel.GetComponentInChildren<Text>().text = _crystalTotal.ToString();
         }
         public int _crystalMon;
 
@@ -779,7 +775,7 @@ namespace Controller
                     value = 10;
                 }
                 this._crystalTotal = value;
-                _core._actionPointPanel.GetComponentInChildren<Text>().text = _crystalTotal.ToString();
+                _core._playerSoulBar.transform.Find("ActionPointText").GetComponent<Text>().text = _crystalTotal.ToString();
             }
         }
 
@@ -838,8 +834,8 @@ namespace Controller
             _selectATKCon.ClearAttackList();
             _buffCon._defenseList.Clear();
             
-            _core._heroInfoPanel.SetActive(false);
-            
+            _core._playerSoulBar.transform.Find("ActionPointText").gameObject.SetActive(false);
+
         }
 
     }

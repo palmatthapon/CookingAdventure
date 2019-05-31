@@ -27,16 +27,15 @@ namespace Controller
         {
             //_core._storyPanelTxt.text = "ลองค้นกระเป๋าดูดีๆ อาจจะเจอของที่เจ้าตามหา!";
             _money.text = _core._currentMoney.ToString();
-            ViewItem();
         }
 
         private void LateUpdate()
         {
         }
 
-        void ViewItem()
+        public void ViewItem(GameObject obj)
         {
-            Transform trans = _core._itemPanel.transform.Find("ItemMask").Find("GridView");
+            Transform trans = obj.transform.Find("ItemMask").Find("GridView");
             foreach (Transform child in trans)
             {
                 GameObject.Destroy(child.gameObject);
@@ -59,23 +58,14 @@ namespace Controller
                     nameSpriteSet = item.item.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("ItemImage").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
+                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
                 item.obj = itemSlot;
-                if (_core._cutscene != null)
-                {
-                    if(item.itemId == 2)
-                    _core._cutscene.GetComponent<Cutscene>().TutorialPlay(itemSlot.transform);
-
-                }
+                
             }
         }
 
         public void UseBtn()
         {
-            if (_core._cutscene != null)
-            {
-                 _core._cutscene.GetComponent<Cutscene>().TutorialPlay(_core._manageHeroPanel.transform.Find("ConfirmButton"));
-            }
             UseItem();
         }
 
@@ -88,10 +78,7 @@ namespace Controller
             _core.SubMenuCancelBtn();
         }
         
-        public void Close()
-        {
-            this.gameObject.SetActive(false);
-        }
+        
     }
 
 }

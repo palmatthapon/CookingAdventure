@@ -12,7 +12,6 @@ namespace CollectionData
     {
         MainCore _core;
         BattleController _battleCon;
-        ItemController _itemCon;
         SelectAttackController _selectATKCon;
 
         void Run()
@@ -21,8 +20,6 @@ namespace CollectionData
                 _core = Camera.main.GetComponent<MainCore>();
             if (_battleCon == null)
                 _battleCon = _core._battleObj.GetComponent<BattleController>();
-            if (_itemCon == null)
-                _itemCon = _core._itemPanel.GetComponent<ItemController>();
             if(_selectATKCon == null)
                 _selectATKCon = _core._attackPanel.GetComponent<SelectAttackController>();
         }

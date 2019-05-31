@@ -15,17 +15,15 @@ namespace CollectionData
         MainCore _core;
         BattleController _battleCon;
         BuffController _buffCon;
-        HeroPanel _heroCom;
         SelectAttackController _selectATKCon;
 
         public Hero(int index)
         {
             _core = Camera.main.GetComponent<MainCore>();
             _battleCon = _core._battleCon;
-            _heroCom = _core._heroCom;
             _buffCon = _core._buffCon;
             _selectATKCon = _core._selectATKCon;
-            _avatar = _heroCom._heroAvatar;
+            _avatar = _core._heroAvatar;
             _anim = _avatar.GetComponent<Animator>();
             slotId = index;
         }

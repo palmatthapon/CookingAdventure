@@ -44,7 +44,7 @@ public class CreateJsonFile : MonoBehaviour {
 
     void WriteJson(string text, string fileName = "CreateDungeon.json")
     {
-        string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/W3AFile/";
+        string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
         string filePath = folderPath + fileName;
         if (!Directory.Exists(folderPath))
         {

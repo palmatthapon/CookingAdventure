@@ -16,7 +16,6 @@ namespace UI
 
         MainCore _core;
         BattleController _battleCon;
-        ItemController _itemCon;
 
         int _heroIsSelect;
         float _spacing;
@@ -30,7 +29,6 @@ namespace UI
         {
             _core = Camera.main.GetComponent<MainCore>();
             _battleCon = _core._battleObj.GetComponent<BattleController>();
-            _itemCon = _core._itemPanel.GetComponent<ItemController>();
             smoothTime = 0.05f;
             _manageMask = transform.Find("ManageMask").Find("GridView");
             _recManageTeamSlot = _ManageTeamSlot.GetComponent<RectTransform>();
@@ -46,8 +44,6 @@ namespace UI
             LoadHeroIcon();
             ShowInfoHero(_teamList[_heroIsSelect]);
             
-            if(_core._gameMode == _GameStatus.BATTLE)
-                transform.Find("SelectEffect").localScale = new Vector3(1.2f, 1.2f, 1);
                 
         }
         List<HeroStore> _teamList;
@@ -151,6 +147,7 @@ namespace UI
         public void PrevHero()
         {
             if (_heroIsSelect <= 0) return;
+            _teamList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
             _heroIsSelect--;
             if (_core._ActionMode == _ActionStatus.Item || _teamList[_heroIsSelect].id != -1 && 0 != _heroIsSelect && _teamList[_heroIsSelect].hp >0)
             {
@@ -169,6 +166,7 @@ namespace UI
         public void NextHero()
         {
             if (_heroIsSelect >= _teamList.Count - 1) return;
+            _teamList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
             _heroIsSelect++;
             if (_core._ActionMode == _ActionStatus.Item || _teamList[_heroIsSelect].id != -1 && 0 != _heroIsSelect && _teamList[_heroIsSelect].hp >0)
             {
@@ -219,7 +217,8 @@ namespace UI
                 _core._infoPanel.SetActive(false);
                 return;
             }
-                _core.SetInfo(_hero.hero.name + " เลเวล " + _hero.level
+            _hero.obj.transform.Find("SelectEffect").gameObject.SetActive(true);
+                _core.SetInfo(_hero.hero.name + " Lv. " + _hero.level
                     +(_hero.hp < _hero.hpMax / 2 ? "<color=#ff0000><เลือด " : "<color=#01b140><เลือด ") + _hero.hp + " </color><color=#01b140>/" + _hero.hpMax + "></color>"
                     + "\n<โจมตี " + _hero.ATK+">"
                     + "<โจมตีเวทย์ " + _hero.MATK + ">"
@@ -244,9 +243,9 @@ namespace UI
                 {
                     foreach (ItemStore item in _core._itemStore.ToList())
                     {
-                        if (_itemCon._itemStoreIdSelect.id == item.id)
+                        if (_core._itemCon._itemStoreIdSelect.id == item.id)
                         {
-                            if (CallItemFunction((_item)_itemCon._itemStoreIdSelect.itemId, _teamList[_heroIsSelect]))
+                            if (CallItemFunction((_item)_core._itemCon._itemStoreIdSelect.itemId, _teamList[_heroIsSelect]))
                             {
                                 if (_core._cutscene != null)
                                 {
@@ -300,9 +299,8 @@ namespace UI
         {
             if (_core._ActionMode == _ActionStatus.Item)
             {
-                _itemCon._itemStoreIdSelect.obj.transform.Find("Select").gameObject.SetActive(false);
-                _itemCon._itemStoreIdSelect = null;
-                _core._manageHeroPanel.SetActive(false);
+                _core._itemCon._itemStoreIdSelect.obj.transform.Find("Select").gameObject.SetActive(false);
+                _core._itemCon._itemStoreIdSelect = null;
                 if(_core._gameMode == _GameStatus.BATTLE)
                 {
                     _core._itemPanel.SetActive(false);
@@ -312,6 +310,7 @@ namespace UI
             else
             {
             }
+            _core._manageHeroPanel.SetActive(false);
             _core._infoPanel.SetActive(false);
         }
 
@@ -327,7 +326,6 @@ namespace UI
 
         private void OnDisable()
         {
-            transform.Find("SelectEffect").localScale = new Vector3(1, 1, 1);
             _nextCheck = false;
             _prevCheck = false;
             _newPosition = Vector3.zero;

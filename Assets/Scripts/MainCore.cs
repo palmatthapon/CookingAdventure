@@ -22,7 +22,6 @@ namespace Core
         public BuffController _buffCon;
         public Calculate _cal;
         public MonPanel _monCom;
-        public HeroPanel _heroCom;
         public SelectAttackController _selectATKCon;
 
 
@@ -57,12 +56,9 @@ namespace Core
         public GameObject _gameMenu, _miniGameMenu;
         public GameObject _settingPanel;
         public GameObject _mainMenuBG;
-        //public GameObject _menuPanel;
-        public GameObject _attackPanel/*, _storyPanel*/, _questionPanel/*,_defensePanel, _skillPanel*/;
-        //public Text _storyPanelTxt;
+        public GameObject _attackPanel, _questionPanel;
         public Text _questionPanelTxt;
         public GameObject _monPanel;
-        //public GameObject _playerPanel;
         public GameObject _eventPanel;
         public GameObject _mapPanel;
         public GameObject _CharacterPanel;
@@ -70,7 +66,7 @@ namespace Core
         public GameObject _changeTeamPanel;
         public GameObject _manageHeroPanel;
         public GameObject _subMenuPanel;
-        public GameObject _actionPointPanel;
+        public GameObject _playerLifePanel;
         public GameObject _rewardPanel;
         public GameObject _shopPanel;
         public GameObject _talkPanel;
@@ -81,8 +77,8 @@ namespace Core
         public GameObject _confirmNotify;
         public GameObject _cutscenePanel;
         public GameObject _tutorialPanel;
-        public GameObject _heroInfoPanel;
-        public GameObject _campPanel;
+        public GameObject _heroAvatar;
+        public GameObject _cookMenu;
 
         /// -----End Panel Zone
 
@@ -91,7 +87,7 @@ namespace Core
         public GameObject _loadingNotify;
         public GameObject[] _campHeroSprite;
         public Sprite[] _typeSprite;
-        public GameObject _playerHPBar;
+        public GameObject _playerSoulBar;
         ///------ End import object by scene-----------
 
         public Dungeon[] _dungeon;
@@ -99,6 +95,8 @@ namespace Core
         public List<HeroStore> _heroStore;
         public List<HeroInTeam> _teamSetup;
         public List<ItemShop> _landShopList;
+
+        public ItemController _itemCon;
 
         public string _questionUrl;
         public string[,] _questionList;
@@ -114,8 +112,6 @@ namespace Core
         public _GameStatus _gameMode;
         Vector3 _cameraMainPosition;
         
-        //public Text _playerHp;
-        //public Text _playerName;
         Material[] _mats;
         public string[] _passiveDatail;
         public Sprite[] _bgList;
@@ -139,8 +135,8 @@ namespace Core
                     value = 100;
                 }
                 this.playerHP = value;
-                _playerHPBar.GetComponent<ControlSlider>().AddFill((float)playerHP * 1 / 100);
-                _playerHPBar.transform.Find("Text").GetComponent<Text>().text = playerHP + "/100";
+                _playerSoulBar.GetComponent<PlayerSoul>().AddFill(playerHP);
+                _playerSoulBar.transform.Find("SoulText").GetComponent<Text>().text = playerHP + "/100";
             }
         }
         
@@ -196,7 +192,6 @@ namespace Core
             _mapCon = _mapObj.GetComponent<MapController>();
             _buffCon = _buffPanel.GetComponent<BuffController>();
             _monCom = _monPanel.GetComponent<MonPanel>();
-            _heroCom = _heroInfoPanel.GetComponent<HeroPanel>();
             _selectATKCon = _attackPanel.GetComponent<SelectAttackController>();
         }
         
@@ -336,7 +331,8 @@ namespace Core
             _miniGameMenu.SetActive(false);
             _mainMenuBG.SetActive(false);
             _tutorialPanel.SetActive(false);
-            _playerHPBar.SetActive(false);
+            _playerSoulBar.SetActive(false);
+            _cookMenu.SetActive(false);
             OpenActionPanel();
         }
         GameObject _uiCanvas;
@@ -356,7 +352,7 @@ namespace Core
         void LoadStartScene()
         {
             _gameMode = _GameStatus.START;
-            Camera.main.orthographicSize = 0.9f;
+            Camera.main.orthographicSize = 0.8f;
             Camera.main.transform.position = new Vector3(0, 0f, Camera.main.transform.position.z);
             _cameraMainPosition = transform.position;
             _questionUrl = dataSetting[0].questionLink;
@@ -367,7 +363,8 @@ namespace Core
             LoadCampAvatar();
             _gameMenu.SetActive(false);
             _miniGameMenu.SetActive(true);
-            _playerHPBar.SetActive(true);
+            _playerSoulBar.SetActive(true);
+            _mainMenuBG.SetActive(true);
             if (dataPlayerLog[0].landScene)
             {
                 StartCoroutine(LoadingScene(_GameStatus.LAND, false));
@@ -396,23 +393,23 @@ namespace Core
 
         void ReadDataAll()
         {
-            TextAsset loadedDungeon = Resources.Load<TextAsset>("JsonDataNew/DungeonList");
+            TextAsset loadedDungeon = Resources.Load<TextAsset>("JsonDatabase/DungeonList");
             dataDungeonList = JsonHelper.FromJson<DungeonDataSet>(loadedDungeon.text);
             print("load " + dataDungeonList.Length + " dungeons.");
 
-            TextAsset loadedMonster = Resources.Load<TextAsset>("JsonDataNew/MonsterList");
+            TextAsset loadedMonster = Resources.Load<TextAsset>("JsonDatabase/MonsterList");
             dataMonsterList = JsonHelper.FromJson<MonsterDataSet>(loadedMonster.text);
             print("load " + dataMonsterList.Length + " monsters.");
 
-            TextAsset loadedHero = Resources.Load<TextAsset>("JsonDataNew/HeroList");
+            TextAsset loadedHero = Resources.Load<TextAsset>("JsonDatabase/HeroList");
             dataHeroList = JsonHelper.FromJson<HeroDataSet>(loadedHero.text);
             print("load " + dataHeroList.Length + " heroes.");
 
-            TextAsset loadedItem = Resources.Load<TextAsset>("JsonDataNew/ItemList");
+            TextAsset loadedItem = Resources.Load<TextAsset>("JsonDatabase/ItemList");
             dataItemList = JsonHelper.FromJson<ItemDataSet>(loadedItem.text);
             print("load " + dataItemList.Length + " items.");
 
-            TextAsset loadedUlti = Resources.Load<TextAsset>("JsonDataNew/SkillList");
+            TextAsset loadedUlti = Resources.Load<TextAsset>("JsonDatabase/SkillList");
             dataSkillList = JsonHelper.FromJson<SkillDataSet>(loadedUlti.text);
             print("load " + dataSkillList.Length + " skills.");
             
@@ -1138,7 +1135,7 @@ namespace Core
 
         void DeleteFile(string fileName = "PlayerLog.json")
         {
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/W3AFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
             string filePath = folderPath + fileName;
             File.Delete(filePath);
             RefreshEditorProjectWindow();
@@ -1174,7 +1171,6 @@ namespace Core
         void OpenCampScene()
         {
             OpenObjInScene(_campObj);
-            _campPanel.SetActive(true);
             //OpenActionPanel(_storyPanel);
             transform.position = _cameraMainPosition;
             //SetMenuPanel(_gameMode);

@@ -22,7 +22,7 @@ namespace Controller
 
         void OnEnable()
         {
-            
+            Camera.main.orthographicSize = 0.8f;
             SetPanel(true);
         }
 
@@ -54,8 +54,7 @@ namespace Controller
             
             if (set)
             {
-                _core._campPanel.SetActive(false);
-                _core._mainMenuBG.SetActive(false);
+                //_core._mainMenuBG.SetActive(false);
             }
                 
         }

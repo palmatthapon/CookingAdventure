@@ -5,7 +5,7 @@ using UnityEngine;
 public class ControlSlider : MonoBehaviour
 {
     public RectTransform fill;
-
+    
     public void AddFill(float input)
     {
         RectTransform rt = fill;

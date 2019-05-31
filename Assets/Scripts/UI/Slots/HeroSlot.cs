@@ -29,7 +29,7 @@ namespace UI
             string[] passive = _core._passiveDatail[(int)_hero.passive - 1].Split(':');
             
 
-            _core.SetTalk(_hero.hero.name + " เลเวล " + _hero.level + " <color=#01b140><เลือด "+ _hero.hpMax + "></color>\n<color=#ff0000><โจมตี " + _hero.ATK + "></color><color=#1876d2><โจมตีเวทย์ " + _hero.MATK + "></color><color=#ff0000><เกาะ " + _hero.DEF + "></color><color=#1876d2><เกาะเวทย์ " + _hero.MDEF + "></color>"
+            _core.SetTalk(_hero.hero.name + " Lv. " + _hero.level + " <color=#01b140><เลือด "+ _hero.hpMax + "></color>\n<color=#ff0000><โจมตี " + _hero.ATK + "></color><color=#1876d2><โจมตีเวทย์ " + _hero.MATK + "></color><color=#ff0000><เกาะ " + _hero.DEF + "></color><color=#1876d2><เกาะเวทย์ " + _hero.MDEF + "></color>"
             + "\n[โจมตีทั่วไป] " + _hero.attack[0].skill.name + "(" + (_hero.attack[0].skill.type == _Attack.PHYSICAL ? "กายภาพ" : "เวทย์") + ")" + "(" + _hero.attack[0].skill.bonusDmg * 100 + "%)"
                 + " [ท่าไม้ตาย] " + _hero.attack[1].skill.name + "(" + (_hero.attack[1].skill.type == _Attack.PHYSICAL ? "กายภาพ" : "เวทย์") + ")" + "(" + _hero.attack[1].skill.bonusDmg * 100 + "%)"
                 + "\n[ความสามารถติดตัว] " + passive[1]);

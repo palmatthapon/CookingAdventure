@@ -17,7 +17,7 @@ namespace Controller
 
         void OnEnable()
         {
-            //_core._storyPanelTxt.text = "รอบๆแถวนี้เหมาะที่จะตั้งแคมป์เจ้าเห็นด้วยไหม?";
+            Camera.main.orthographicSize = 0.8f;
             if (!_core.isPaused)
             {
                 _core._campfireObj.transform.Find("Point Light").gameObject.SetActive(true);
@@ -32,7 +32,7 @@ namespace Controller
         {
             if (!_core.isPaused)
             {
-                if (_core._gameMode == _GameStatus.CAMP)
+                if (_core._gameMode == _GameStatus.CAMP || _core._gameMode == _GameStatus.LAND)
                 {
                     OnTouch();
                 }
@@ -84,7 +84,7 @@ namespace Controller
                     }
                     else if (tag == "Cook")
                     {
-                        Debug.Log("Open Cook function");
+                        _core._cookMenu.SetActive(true);
                     }
                     else if (tag == "Hero")
                     {
@@ -101,8 +101,7 @@ namespace Controller
 
         void SetPanel(bool set)
         {
-            _core._mainMenuBG.SetActive(set);
-            _core._campPanel.SetActive(set);
+            //_core._mainMenuBG.SetActive(set);
             //_core._menuPanel.transform.parent.gameObject.SetActive(set);
         }
 
@@ -110,6 +109,8 @@ namespace Controller
         {
             SetPanel(false);
         }
+
+        
 
 
     }

@@ -83,7 +83,7 @@ namespace UI
                         loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
                     }
                     slot.transform.Find("Hero").Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + hero.hero.spriteName);
-                    slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "เลเวล" + hero.level;
+                    slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + hero.level;
                     slot.transform.Find("Name").GetComponent<Text>().text = hero.hero.name;
                     _core.SetSpriteType(slot.transform.Find("Hero").Find("Type").GetComponent<Image>(), hero.hero.type);
                     _heroList[count] = slot;
@@ -190,7 +190,7 @@ namespace UI
                     nameSpriteSet = item.item.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("ItemImage").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
+                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
             }
 
             ViewMoneyDrop();
@@ -207,7 +207,7 @@ namespace UI
             money.transform.localScale = new Vector3(1, 1, 1);
             money.transform.Find("Count").GetComponent<Text>().text = "X " + moneyDropTotal;
             Sprite[] loadMoneySprite = Resources.LoadAll<Sprite>("Sprites/UI/ui");
-            money.transform.Find("ItemImage").GetComponent<Image>().sprite = loadMoneySprite.Single(s => s.name == "ui_27");
+            money.transform.Find("Icon").GetComponent<Image>().sprite = loadMoneySprite.Single(s => s.name == "ui_27");
             _core._currentMoney += moneyDropTotal;
             moneyDropTotal = 0;
         }
@@ -271,7 +271,7 @@ namespace UI
                 if(_teamList[i].level != newLevel)
                 {
                     _teamList[i].level = newLevel;
-                    _heroList[i].transform.Find("Hero").Find("Level").GetComponent<Text>().text = "เลเวล" + newLevel;
+                    _heroList[i].transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + newLevel;
                 }
                 
             }

@@ -47,5 +47,10 @@ public class ButtonColor : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
     }
 
-    
+    public void OnDisable()
+    {
+        theText.color = oldColor;
+    }
+
+
 }

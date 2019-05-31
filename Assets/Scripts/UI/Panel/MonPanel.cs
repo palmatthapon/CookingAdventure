@@ -52,7 +52,7 @@ namespace UI
                 }
             }
             slot.transform.Find("IconImage").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + mon.spriteName);
-            slot.transform.Find("Level").GetComponent<Text>().text = "เลเวล" + mon.level;
+            slot.transform.Find("Level").GetComponent<Text>().text = "Lv. " + mon.level;
             if (_core == null)
                 _core = Camera.main.GetComponent<MainCore>();
             _core.SetSpriteType(slot.transform.Find("TypeImage").GetComponent<Image>(), mon.type);

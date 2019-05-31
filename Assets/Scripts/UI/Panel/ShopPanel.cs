@@ -19,11 +19,15 @@ namespace UI
         public GameObject _itemSlot;
         public GameObject _shopSlot;
 
-        void OnEnable()
+        private void Awake()
         {
             _core = Camera.main.GetComponent<MainCore>();
             _cal = new Calculate();
-            ViewItem();
+        }
+
+        void OnEnable()
+        {
+            _core._itemCon.ViewItem(_item);
             LoadShop();
 
         }
@@ -51,7 +55,7 @@ namespace UI
                     nameSpriteSet = item.item.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("ItemImage").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
+                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
                 item.obj = itemSlot;
             }
         }
@@ -118,7 +122,7 @@ namespace UI
                     nameSpriteSet = _itemShopList[a].item.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("ItemImage").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == _itemShopList[a].item.spriteName);
+                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == _itemShopList[a].item.spriteName);
                 if (_core._cutscene != null)
                 {
                     if (a == 1)
@@ -232,7 +236,7 @@ namespace UI
                 //Debug.Log("add newitem id : " + _itemShopIsSelect.id);
                 _itemShopIsSelect.amount = 1;
                 _core._itemStore.Add(_itemShopIsSelect);
-                ViewItem();
+                _core._itemCon.ViewItem(_item);
                 _core.SubMenuCancelBtn();
             }
             _itemShopIsSelect = null;
