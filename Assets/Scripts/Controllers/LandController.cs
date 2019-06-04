@@ -1,15 +1,16 @@
-﻿using CollectionData;
+﻿using model;
+using Model;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Core;
+
 using UnityEngine.UI;
 
-namespace Controller
+namespace controller
 {
     public class LandController : MonoBehaviour
     {
-        MainCore _core;
+        GameCore _core;
         MapController _mapCon;
 
         public GameObject _warpObj,_campfireObj,_shopObj;
@@ -17,7 +18,7 @@ namespace Controller
 
         private void Awake()
         {
-            _core = Camera.main.GetComponent<MainCore>();
+            _core = Camera.main.GetComponent<GameCore>();
         }
 
         void OnEnable()
@@ -51,13 +52,9 @@ namespace Controller
         void SetPanel(bool set)
         {
             _landPanel.SetActive(set);
-            
-            if (set)
-            {
-                //_core._mainMenuBG.SetActive(false);
-            }
                 
         }
+
         public float speed = 0.005F;
         Vector3 delta = Vector3.zero;
         Vector3 lastPos = Vector3.zero;

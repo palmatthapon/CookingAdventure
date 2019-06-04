@@ -1,21 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Core;
+
 using UnityEngine.UI;
-using CollectionData;
+using Model;
 using System;
 using System.Linq;
 using Random = UnityEngine.Random;
 using Json;
 using System.Reflection;
 using UI;
+using monster;
+using player;
+using model;
 
-namespace Controller
+namespace controller
 {
     public class BattleController : MonoBehaviour
     {
-        MainCore _core;
+        GameCore _core;
         Calculate _cal;
         SelectAttackController _selectATKCon;
         MapController _mapCon;
@@ -54,7 +57,7 @@ namespace Controller
 
         private void Awake()
         {
-            _core = Camera.main.GetComponent<MainCore>();
+            _core = Camera.main.GetComponent<GameCore>();
             _cal = _core._cal;
             _mapCon = _core._mapCon;
             _monCom = _core._monCom;
@@ -112,7 +115,7 @@ namespace Controller
                 _hero[i].LoadSprite();
                 _heroData[i] = _hero[i];
             }
-            _core._playerSoulBar.transform.Find("ActionPointText").gameObject.SetActive(true);
+            _core._playerLifePanel.transform.Find("Crystal").gameObject.SetActive(true);
             UpdateMonsterHP();
             _bgSprite = _core._bgList[Random.Range(0, _core._bgList.Length)];
             transform.Find("BG").GetComponent<SpriteRenderer>().sprite = _bgSprite;
@@ -134,11 +137,7 @@ namespace Controller
             LoadEvent();
             CreateFocusEffect(GetMonFocus()._avatar.transform);
             ShowTurnBattleNotify();
-            if (_core._cutscene != null)
-            {
-                _core._cutscene.GetComponent<Cutscene>().TutorialPlay(_core._attackPanel.transform.Find("ActionMask").Find("GridView").GetChild(0), true,
-                           "ในโหมดต่อสู้นี้ถ้าเจ้ากำจัดมอนสเตอร์หมดก็จะชนะ_แต่ถ้าทีมเจ้าแพ้จะโดนดาเมจตามจำนวนมอนสเตอร์ที่เหลืออยู่บนสนาม_หากหลอดเลือดที่มุมล่างจอเหลือศูนย์เจ้าคงรู้นะว่าจะเกิดอะไรขึ้น!");
-            }
+            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.GetComponent<Image>().sprite = _core._mainMenu.GetComponent<MainMenu>()._mapIcon[0];
 
         }
         public float timeLeft = 3;
@@ -253,9 +252,7 @@ namespace Controller
         {
             _core._eventPanel.SetActive(set);
             _core._monPanel.SetActive(set);
-            //_core._mainMenuBG.SetActive(set);
-            //_core._menuPanel.transform.parent.gameObject.SetActive(set);
-            _core._playerLifePanel.transform.Find("EndTurnButton").gameObject.SetActive(true);
+            _core._mainMenu.transform.Find("MenuMask").Find("GridView").Find("EndTurnButton").gameObject.SetActive(true);
         }
         
         public void RunCounterAttack()
@@ -288,7 +285,7 @@ namespace Controller
         }
         int _eventStart=0;
         int _eventAround=0;
-        public _event _currentEvent;
+        public _Event _currentEvent;
         int eventRan;
         public float _evenAttack;
         string[] _eventNamePlay;
@@ -301,19 +298,19 @@ namespace Controller
                 _eventStart = _turnAround;
                 _eventAround = Random.Range(1, 4);
                 _evenAttack = 1;
-                _currentEvent = (_event)Random.Range(0, 3);
+                _currentEvent = (_Event)Random.Range(0, 3);
                 Debug.Log("New event is " + _currentEvent);
-                if (_currentEvent == _event.Sunshine)
+                if (_currentEvent == _Event.Sunshine)
                 {
                     _core._eventPanel.GetComponent<Image>().sprite = _eventIcon[0];
                     _core._environment[0].SetActive(false);
                 }
-                else if (_currentEvent == _event.Rain)
+                else if (_currentEvent == _Event.Rain)
                 {
                     _core._environment[0].SetActive(true);
                     _core._eventPanel.GetComponent<Image>().sprite = _eventIcon[1];
                 }
-                else if(_currentEvent == _event.Wind)
+                else if(_currentEvent == _Event.Wind)
                 {
                     _core._eventPanel.GetComponent<Image>().sprite = _eventIcon[2];
                     _core._environment[0].SetActive(false);
@@ -337,7 +334,6 @@ namespace Controller
         
         void AnswerClick(int ans)
         {
-            //_core._mainMenuBG.SetActive(true);
             Camera.main.orthographicSize = 1f;
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x,
                     0f,
@@ -354,7 +350,6 @@ namespace Controller
             _heroIsQuesttion = hero;
             _isUltimate = ultimate;
             blockStack = stack;
-            //_core._mainMenuBG.SetActive(false);
             Camera.main.orthographicSize = 0.5f;
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x,
                 0.15f,
@@ -464,7 +459,7 @@ namespace Controller
         void ShowPopupText(string dmg, Vector3 pos, PopupText obj)
         {
             PopupText damage = Instantiate(obj);
-            damage.transform.SetParent(GameObject.Find("Canvas").transform, false);
+            damage.transform.SetParent(GameObject.Find("FrontCanvas").transform, false);
             damage.transform.localScale = new Vector3(1, 1, 1);
             damage.SetPopupText(dmg.ToString());
             damage.transform.position = new Vector3(pos.x, pos.y+0.25f, pos.z);
@@ -474,7 +469,7 @@ namespace Controller
         void ShowTurnBattleNotify()
         {
             PopupTurnBattleNotify popup = Instantiate(_showTurnBattle);
-            popup.transform.SetParent(GameObject.Find("Canvas").transform, false);
+            popup.transform.SetParent(GameObject.Find("FrontCanvas").transform, false);
 
             if (_roundBattle == _RoundBattle.PLAYER)
             {
@@ -600,20 +595,12 @@ namespace Controller
                 EndTurnSetting();
                 yield return new WaitForSeconds(1);
                 ShowTurnBattleNotify();
-                _core._playerLifePanel.transform.Find("EndTurnButton").gameObject.SetActive(true);
+                _core._mainMenu.transform.Find("MenuMask").Find("GridView").Find("EndTurnButton").gameObject.SetActive(true);
                 _core.OpenActionPanel(_core._attackPanel);
                 _isEscape = false;
                 Crystal = _turnAround;
                 _crystalMon = _turnAround;
-                if (_core._cutscene != null)
-                {
-                    if (_turnAround == 2)
-                        _core._cutscene.GetComponent<Cutscene>().TutorialPlay(_core._mainMenuBG.transform.Find("ItemButton"), true,
-                               "ดูเหมือนฮีโร่จะได้รับบาดเจ็บ ไหนลองใช้ยาฟื้นฟูเลือดดูซิ..");
-                    if (_turnAround == 3)
-                        _core._cutscene.GetComponent<Cutscene>().TutorialPlay(_core._miniGameMenu.transform.Find("TutorialButton"), true,
-                               "และในรอบต่อๆไปเจ้าจะได้คริสตัลเพิ่มขึ้น ข้าหวังว่าตอนนี้เจ้าคงพอจะเข้าใจระบบการต่อสู้ขึ้นมาบ้างแล้วซินะ หากอยากรู้อะไรเพิ่มเติมก็ลองเปิดคู่มือนักผจญภัยดูนะ");
-                }
+                
             }
             else
             {
@@ -658,7 +645,7 @@ namespace Controller
         public void EndTurnSpeed()
         {
             Crystal = 0;
-            _core._playerLifePanel.transform.Find("EndTurnButton").gameObject.SetActive(false);
+            _core._mainMenu.transform.Find("MenuMask").Find("GridView").Find("EndTurnButton").gameObject.SetActive(false);
             Debug.Log("end 5");
             _waitEndTurn = true;
         }
@@ -775,7 +762,7 @@ namespace Controller
                     value = 10;
                 }
                 this._crystalTotal = value;
-                _core._playerSoulBar.transform.Find("ActionPointText").GetComponent<Text>().text = _crystalTotal.ToString();
+                _core._playerLifePanel.transform.Find("Crystal").GetComponentInChildren<Text>().text = "x"+_crystalTotal.ToString();
             }
         }
 
@@ -834,7 +821,8 @@ namespace Controller
             _selectATKCon.ClearAttackList();
             _buffCon._defenseList.Clear();
             
-            _core._playerSoulBar.transform.Find("ActionPointText").gameObject.SetActive(false);
+            _core._playerLifePanel.transform.Find("Crystal").gameObject.SetActive(false);
+            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.GetComponent<Image>().sprite = _core._mainMenu.GetComponent<MainMenu>()._mapIcon[1];
 
         }
 

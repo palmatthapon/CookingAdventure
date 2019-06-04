@@ -1,19 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using CollectionData;
+using Model;
 using System;
 using Random = UnityEngine.Random;
 using UnityEngine.UI;
 using System.Linq;
-using Core;
-using UI;
 
-namespace Controller
+using UI;
+using monster;
+using model;
+
+namespace controller
 {
     public class MapController : MonoBehaviour {
 
-        MainCore _core;
+        GameCore _core;
         Calculate _cal;
         MonPanel _monCom;
 
@@ -21,7 +23,7 @@ namespace Controller
         public GameObject _monsterSlot;
         public GameObject _roomSlot,_blackFog;
         public Sprite[] _roomIcon;
-        public GameObject _warpBtn, _bossRoomBtn;
+        public GameObject _warpBtn, _bossRoomBtn,_campBtn;
         public Sprite[] _dunBlack,_dunWhite;
 
 
@@ -43,25 +45,21 @@ namespace Controller
 
         private void Awake()
         {
-            _core = Camera.main.GetComponent<MainCore>();
+            _core = Camera.main.GetComponent<GameCore>();
             _cal = _core._cal;
             _monCom = _core._monCom;
             speed = 0.005F;
             mapSize = _core._mapObj.GetComponent<SpriteRenderer>().bounds.size;
             mapPos = _core._mapObj.transform.position;
         }
-
-        private void Start()
-        {
-
-        }
+        
 
         void OnEnable() {
             Camera.main.orthographicSize = 0.9f;
             SelectTeamAndLoadData();
             SetPanel(true);
             LoadMap();
-            
+            //_core.LoadScene(_GameStatus.FORESTSHOP);
         }
 
         void LoadData()
@@ -95,6 +93,7 @@ namespace Controller
             _blackFog.SetActive(set);
             _core._mapPanel.transform.Find("DunNameText").GetComponent<Text>().text = _dungeon.dungeon.name;
             _core._mapPanel.SetActive(set);
+            _campBtn.SetActive(set);
 
         }
 
@@ -161,13 +160,7 @@ namespace Controller
                         room.GetComponent<SpriteRenderer>().sprite = SetRoomIconBlack(pos);
                         room.transform.Find("LightMask").gameObject.SetActive(false);
                         _roomList[pos] = room;
-                        if (_core._cutscene != null)
-                        {
-                            if(pos == 1)
-                                _core._cutscene.GetComponent<Cutscene>().TutorialPlay(room.transform, true,
-                                    "ตอนนี้เจ้าก็เข้ามาสู่เขาวงกตที่อันตรายแล้ว_หน้าที่ของเจ้าคือการตามหาห้องบอสให้เจอเพื่อเคลียร์เขาวงกตแต่ละชั้น_หลังจากกำจัดบอสสำเร็จทางขึ้นสู่ชั้นถัดไปจะเปิด");
-
-                        }
+                        
                     }
                 }
                 foreach (Room room in _dungeon.roomIsPass)

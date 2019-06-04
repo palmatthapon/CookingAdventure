@@ -1,14 +1,21 @@
 ﻿using model;
+using Model;
+
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-namespace controller
+namespace shop
 {
-    public class CampController : MonoBehaviour
+    public class ForestShopPanel : MonoBehaviour
     {
         GameCore _core;
+
+        public GameObject _forestShopNpc;
+        public GameObject _forestShopPanel;
         
+
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
@@ -16,29 +23,22 @@ namespace controller
 
         void OnEnable()
         {
-            Camera.main.orthographicSize = 0.8f;
-            if (!_core.isPaused)
-            {
-                _core._campfireObj.transform.Find("Point Light").gameObject.SetActive(true);
-                foreach (Transform child in _core._campfireObj.transform.Find("Fire"))
-                {
-                    child.gameObject.SetActive(true);
-                }
-            }
+            Camera.main.transform.position = new Vector3(_forestShopNpc.transform.position.x, -0.1f, Camera.main.transform.position.z);
+            SetPanel(true);
         }
 
         void Update()
         {
-            if (!_core.isPaused)
+            if (_core._gameMode == _GameStatus.FORESTSHOP)
             {
-                if (_core._gameMode == _GameStatus.CAMP || _core._gameMode == _GameStatus.LAND)
-                {
-                    OnTouch();
-                }
-                
+                OnTouch();
             }
         }
 
+        void SetPanel(bool set)
+        {
+            _forestShopPanel.SetActive(set);
+        }
 
         void OnTouch()
         {
@@ -47,11 +47,7 @@ namespace controller
             {
                 if (!_find)
                 {
-                    _find = true;
-                    OnTouchFindTag("Item");
-                    OnTouchFindTag("Cook");
-                    OnTouchFindTag("Hero");
-                    OnTouchFindTag("Farm");
+                    OnTouchFindTag("Shop");
                 }
             }
             else
@@ -60,12 +56,12 @@ namespace controller
             }
         }
         bool _find = false;
-        float lastTimeClick = 0;
+        float lastTimeClick;
 
         public void OnTouchFindTag(string tag)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-#if (UNITY_ANDROID || UNITY_IPHONE)
+#if (UNITY_ANDROID || UNITY_IPHONE || UNITY_WP8)
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
             {
                 ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
@@ -75,26 +71,15 @@ namespace controller
             if (hit.transform != null && hit.transform.tag == tag)
             {
                 float currentTimeClick = Time.time;
+                _core.SetTalk("ยินดีต้อนรับสู่ร้านค้ากลางป่า เจ้าจะซื้ออะไรควรคิดให้ดีๆก่อน เพราะของๆข้ามันราคาแพง!!");
                 //Debug.Log("Time " + currentTimeClick);
                 if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
                 {
-                    if (tag == "Item")
+                    _find = true;
+                    if (tag == "Shop")
                     {
-                        _core._itemPanel.SetActive(true);
+                        _core._shopPanel.SetActive(true);
                     }
-                    else if (tag == "Cook")
-                    {
-                        _core._cookMenu.SetActive(true);
-                    }
-                    else if (tag == "Hero")
-                    {
-                        _core._CharacterPanel.SetActive(true);
-                    }
-                    else if (tag == "Farm")
-                    {
-                        _core._farmMenu.SetActive(true);
-                    }
-
                     currentTimeClick = 0;
                 }
                 lastTimeClick = currentTimeClick;
@@ -103,19 +88,18 @@ namespace controller
 
         }
 
-        void SetPanel(bool set)
+        public void OpenShop()
         {
-
+            _core.SetTalk("ยินดีต้อนรับสู่ร้านค้ากลางป่า เจ้าจะซื้ออะไรควรคิดให้ดีๆก่อน เพราะของๆข้ามันราคาแพง!!");
+            _core._shopPanel.SetActive(true);
         }
 
         private void OnDisable()
         {
+            _core._talkPanel.SetActive(false);
+            _core._shopPanel.SetActive(false);
             SetPanel(false);
         }
-
-        
-
-
     }
-
 }
+

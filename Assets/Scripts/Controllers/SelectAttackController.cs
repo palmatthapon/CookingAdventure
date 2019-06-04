@@ -1,5 +1,6 @@
-﻿using CollectionData;
-using Core;
+﻿using model;
+using Model;
+using player;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +8,11 @@ using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Controller
+namespace controller
 {
     public class SelectAttackController : MonoBehaviour
     {
-        MainCore _core;
+        GameCore _core;
         BattleController _battleCon;
         List<SkillBlock> _attackList = new List<SkillBlock>();
         public GameObject _attackSlot;
@@ -22,7 +23,7 @@ namespace Controller
 
         private void Awake()
         {
-            _core = Camera.main.GetComponent<MainCore>();
+            _core = Camera.main.GetComponent<GameCore>();
             _battleCon = _core._battleCon;
         }
 
@@ -133,7 +134,7 @@ namespace Controller
         public void LoadAttack()
         {
             if(_core ==null)
-                _core = Camera.main.GetComponent<MainCore>();
+                _core = Camera.main.GetComponent<GameCore>();
             if (_battleCon==null)
                 _battleCon = _core._battleCon;
             
@@ -206,7 +207,7 @@ namespace Controller
         public void LoadUltimate(int slotId)
         {
             if (_core == null)
-                _core = Camera.main.GetComponent<MainCore>();
+                _core = Camera.main.GetComponent<GameCore>();
             if (_battleCon == null)
                 _battleCon = _core._battleCon;
             

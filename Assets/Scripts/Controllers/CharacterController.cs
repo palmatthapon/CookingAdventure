@@ -1,5 +1,5 @@
-﻿using Core;
-using CollectionData;
+﻿
+using Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,12 +7,13 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UI;
+using model;
 
-namespace Controller
+namespace controller
 {
     public class CharacterController : MonoBehaviour
     {
-        MainCore _core;
+        GameCore _core;
 
         public GameObject _heroSlot;
         public GameObject _shadowSlot;
@@ -24,7 +25,7 @@ namespace Controller
 
         private void Awake()
         {
-            _core = Camera.main.GetComponent<MainCore>();
+            _core = Camera.main.GetComponent<GameCore>();
         }
         
         void OnEnable()

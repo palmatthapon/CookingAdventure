@@ -89,6 +89,7 @@
 /Assets/Scripts/UI/Slots/GateSlot.cs.meta
 /Assets/Scripts/UI/Slots/AttackSlot.cs.meta
 *.meta
+*.xsd
 /.vs/hydra2_CookAdventure/v15
 /obj/Debug
 /Assembly-CSharp.csproj

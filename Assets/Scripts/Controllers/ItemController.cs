@@ -1,18 +1,18 @@
-﻿using UI;
-using Core;
-using CollectionData;
+﻿
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using model;
+using item;
 
-namespace Controller
+namespace controller
 {
     public class ItemController : MonoBehaviour
     {
-        MainCore _core;
+        GameCore _core;
         
         public GameObject _itemSlot;
         public Text _money;
@@ -20,7 +20,7 @@ namespace Controller
 
         private void Awake()
         {
-            _core = Camera.main.GetComponent<MainCore>();
+            _core = Camera.main.GetComponent<GameCore>();
         }
 
         void OnEnable()
