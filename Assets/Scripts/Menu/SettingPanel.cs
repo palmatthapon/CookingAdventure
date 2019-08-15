@@ -37,13 +37,7 @@ namespace menu
         {
             AudioListener.volume = _soundValue.value;
             _core.dataSetting[0].soundValue = AudioListener.volume;
-            _core.dataSetting[0].question = _question.value==1?true:false;
-            _core.dataSetting[0].questionLink = _questionLink.GetComponentInChildren<InputField>().text;
-            if(_core._questionUrl != _core.dataSetting[0].questionLink)
-            {
-                _core._questionUrl = _core.dataSetting[0].questionLink;
-                _core.LoadQuestion();
-            }
+            
             _json.WriteSetting(_core.dataSetting); 
         }
 

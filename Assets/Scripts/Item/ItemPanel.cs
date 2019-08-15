@@ -28,7 +28,7 @@ public class ItemPanel : MonoBehaviour
 
     public void Close()
     {
-        _core._itemBtn.GetComponent<Image>().sprite = _core._BagIcon[0];
+        _core._itemBtn.GetComponent<Image>().sprite = _core._bagIcon[0];
         this.gameObject.SetActive(false);
     }
 }

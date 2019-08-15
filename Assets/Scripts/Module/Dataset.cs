@@ -33,7 +33,7 @@ namespace model
     }
 
     [System.Serializable]
-    public class MonsterDataSet
+    public class MonsterDataList
     {
         public int id;
         public string name;
@@ -45,9 +45,9 @@ namespace model
         public string baseINT;
         public string attackPattern;
     }
-
+    
     [System.Serializable]
-    public class HeroDataSet
+    public class ModelDataSet
     {
         public int id;
         public string name;
@@ -118,83 +118,12 @@ namespace model
         public int money;
         public string itemStore;
         public string heroStore;
-        public int teamSelected;
-        public string teamSetup;
+        public int heroIsPlay;
         public string dungeonIsPass;
         public bool landScene;
         public string shopList;
     }
-
-    [System.Serializable]
-    public class HeroInTeam
-    {
-        public List<HeroStore> position = new List<HeroStore>();
-    }
-
-    [System.Serializable]
-    public class HeroStore
-    {
-        public int id;
-        public int heroId;
-        public double exp;
-        int Level;
-        public int STR;
-        public int AGI;
-        public int INT;
-        public int hpMax;
-        private int HP;
-        public int ATK;
-        public int MATK;
-        public int DEF;
-        public int MDEF;
-        public Skill[] attack = new Skill[2];
-        public _Passive passive;
-        public HeroDataSet hero;
-        public GameObject obj;
-        GameCore _core;
-        BattleController _battle;
-        Calculate _cal;
-
-        public int hp
-        {
-            get
-            {
-                return this.HP;
-            }
-            set
-            {
-                if(value<0)
-                    this.HP = 0;
-                else if (value > hpMax)
-                    this.HP = hpMax;
-                else
-                    this.HP = value;
-                
-            }
-        }
-
-        public int level
-        {
-            get
-            {
-                return this.Level;
-            }
-            set
-            {
-                this.Level = value;
-                if (_cal == null)
-                    _cal = new Calculate();
-                STR = _cal.CalculateSTR(hero.baseSTR,hero.baseAGI,hero.baseINT,Level);
-                AGI = _cal.CalculateAGI(hero.baseSTR, hero.baseAGI, hero.baseINT, Level);
-                INT = _cal.CalculateINT(hero.baseSTR, hero.baseAGI, hero.baseINT, Level);
-                hpMax = _cal.CalculateHpMax(STR,AGI,INT);
-                hp = hpMax;
-            }
-        }
-
-
-    }
-
+    
     [System.Serializable]
     public class ItemStore
     {

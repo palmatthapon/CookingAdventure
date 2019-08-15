@@ -1,14 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Model;
 using System;
 using Random = UnityEngine.Random;
 using UnityEngine.UI;
 using System.Linq;
-
-using UI;
-using monster;
 using model;
 
 namespace controller
@@ -41,7 +37,6 @@ namespace controller
         public GameObject[] _roomList;
         public GameObject _roomLoad;
         Dungeon _dungeon;
-        public List<HeroStore> _teamList;
 
         private void Awake()
         {
@@ -56,7 +51,8 @@ namespace controller
 
         void OnEnable() {
             Camera.main.orthographicSize = 0.9f;
-            SelectTeamAndLoadData();
+            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.SetActive(false);
+            LoadData();
             SetPanel(true);
             LoadMap();
             //_core.LoadScene(_GameStatus.FORESTSHOP);
@@ -64,9 +60,7 @@ namespace controller
 
         void LoadData()
         {
-            TeamIsSelect = _core._currentTeamIsSelect;
             _dungeon = _core._dungeon[_core._currentDungeonLayer - 1];
-            _teamList = _core._teamSetup[_core._currentTeamIsSelect - 1].position;
             
         }
         
@@ -96,32 +90,7 @@ namespace controller
             _campBtn.SetActive(set);
 
         }
-
-        void SelectTeamAndLoadData()
-        {
-            TeamIsSelect = _core._currentTeamIsSelect;
-            bool haveLeader = false;
-            int countError = 0;
-            while (!haveLeader)
-            {
-                if (countError > _core._teamSetup.Count) break;
-                for (int m = 0; m < 5; m++)
-                {
-                    if (_core._teamSetup[TeamIsSelect - 1].position[m].id != -1)
-                    {
-                        haveLeader = true;
-                        break;
-                    }
-                    
-                }
-                if(!haveLeader)
-                    TeamIsSelect++;
-                countError++;
-            }
-            _core._currentTeamIsSelect = TeamIsSelect;
-            LoadData();
-        }
-
+        
         Vector2 mapSize;
         Vector2 roomSize;
         Vector3 mapPos;
@@ -191,21 +160,19 @@ namespace controller
         }
         Sprite[] loadSprite = null;
         string getSpriteSet = "";
-        HeroDataSet heroLeader;
 
         public void ChangePlayerIconMap(int pos,int posNew=-1)
         {
-            heroLeader = _core.GetLeader().hero;
 
-            if (getSpriteSet != heroLeader.spriteSet)
+            if (getSpriteSet != _core._heroIsPlaying.GetData().spriteSet)
             {
-                getSpriteSet = heroLeader.spriteSet;
+                getSpriteSet = _core._heroIsPlaying.GetData().spriteSet;
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
             if (posNew == -1)
             {
                 _roomList[pos].transform.Find("Player").gameObject.SetActive(true);
-                _roomList[pos].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_"+ heroLeader.spriteName);
+                _roomList[pos].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_"+ _core._heroIsPlaying.GetData().spriteName);
             }
             else
             {
@@ -225,7 +192,7 @@ namespace controller
                 }
                 _roomList[pos].transform.Find("LightMask").gameObject.SetActive(false);
                 _roomList[posNew].transform.Find("Player").gameObject.SetActive(true);
-                _roomList[posNew].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_" + heroLeader.spriteName);
+                _roomList[posNew].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_" + _core._heroIsPlaying.GetData().spriteName);
                 _roomList[posNew].transform.Find("LightMask").gameObject.SetActive(true);
             }
             
@@ -595,23 +562,22 @@ namespace controller
                     
                     int MaxLevel = maxPos * _dungeon.dungeon.levelMax / sizeY;
                     Debug.Log("Monster have " + _core._currentMonsterBattle.Length+" lvl max "+ MaxLevel+" dun lvl max "+ _dungeon.dungeon.levelMax);
-                    foreach (MonsterDataSet data in _core.dataMonsterList)
+                    foreach (MonsterDataList dataList in _core.dataMonsterList)
                     {
-                        if (data.id == _dungeon.dungeon.monsterSetId)
+                        if (dataList.id == _dungeon.dungeon.monsterSetId)
                         {
-                            string[] monsList = data.name.Split(',');
+                            string[] monsList = dataList.name.Split(',');
                             for (int i = 0; i < _core._currentMonsterBattle.Length; i++)
                             {
-                                Monster monster = new Monster(i);
                                 int id = Random.Range(0, monsList.Length);
-                                monster.name = monsList[id];
-                                monster.spriteSet = data.spriteSet;
-                                monster.spriteName = data.spriteSet + "_" + id;
-                                string[] type = data.type.Split(',');
-                                monster.type = (_Character)_cal.IntParseFast(type[id]);
-                                
-                                monster.level = Random.Range(0, MaxLevel)+_dungeon.dungeon.levelMin;
-                                
+
+                                ModelDataSet addData = new ModelDataSet();
+                                addData.name = monsList[id];
+                                addData.spriteSet = dataList.spriteSet;
+                                addData.spriteName = dataList.spriteSet + "_" + id;
+                                string[] type = dataList.type.Split(',');
+                                addData.type = (_Character)_cal.IntParseFast(type[id]);
+
                                 float[] statusBonus = new float[3];
                                 for (int p = 1; p <= _roomPassCount; p++)
                                 {
@@ -623,21 +589,16 @@ namespace controller
                                     int ranStatus = Random.Range(0, 3);
                                     statusBonus[ranStatus] = statusBonus[ranStatus] + 2.5f;
                                 }
-                                string[] baseSTR = data.baseSTR.Split(',');
-                                string[] baseAGI = data.baseAGI.Split(',');
-                                string[] baseINT = data.baseINT.Split(',');
-                                int[] statusAll = _cal.CalculateAllStatus(_cal.IntParseFast(baseSTR[id]), _cal.IntParseFast(baseAGI[id]), _cal.IntParseFast(baseINT[id]), monster.level);
-                                monster.STR = (statusAll[0] + statusBonus[0]) * bonusBoss;
-                                monster.AGI = (statusAll[1] + statusBonus[1]) * bonusBoss;
-                                monster.INT = (statusAll[2] + statusBonus[2]) * bonusBoss;
-                                monster.hpMax = _cal.CalculateHpMax(monster);
-                                monster.hp = monster.hpMax;
-                                monster.ATK = _cal.CalculateATK(monster);
-                                monster.MATK = _cal.CalculateMATK(monster);
-                                monster.DEF = _cal.CalculateDEF(monster);
-                                monster.MDEF = _cal.CalculateMDEF(monster);
-                                monster.expDrop = 50 + (monster.STR - monster.AGI);
-                                string[] sk = data.skillList.Split(',');
+                                string[] baseSTR = dataList.baseSTR.Split(',');
+                                string[] baseAGI = dataList.baseAGI.Split(',');
+                                string[] baseINT = dataList.baseINT.Split(',');
+                                addData.baseSTR = _cal.IntParseFast(baseSTR[id]);
+                                addData.baseAGI = _cal.IntParseFast(baseAGI[id]);
+                                addData.baseINT = _cal.IntParseFast(baseINT[id]);
+
+                                Monster monster = new Monster(i, Random.Range(0, MaxLevel) + _dungeon.dungeon.levelMin, addData);
+                                
+                                string[] sk = dataList.skillList.Split(',');
                                 string[] skillList = sk[id].Split(':');
                                 for (int c = 0; c < skillList.Length; c++)
                                 {
@@ -660,12 +621,12 @@ namespace controller
                                             }
                                             attack.hate = (int)skill.bonusDmg * 20;
                                             attack.skill = skill;
-                                            monster.attack[c] = attack;
+                                            monster.GetStatus().attack[c] = attack;
                                             break;
                                         }
                                     }
                                 }
-                                string[] attackp = data.attackPattern.Split(',');
+                                string[] attackp = dataList.attackPattern.Split(',');
                                 monster.attackPattern = attackp;
                                 _core._currentMonsterBattle[i] = monster;
                                 monsterList = _core._currentMonsterBattle;
@@ -686,16 +647,11 @@ namespace controller
             _core._currentMonsterBattle = new Monster[monsterListId.Length];
             for (int i = 0; i < monsterListId.Length; i++)
             {
-                foreach (HeroDataSet boss in _core.dataHeroList)
+                foreach (ModelDataSet boss in _core.dataHeroList)
                 {
                     if (boss.id != monsterListId[i]) continue;
-                    Monster monster = new Monster(i);
-                    monster.name = boss.name;
-                    monster.spriteSet = boss.spriteSet;
-                    monster.spriteName = boss.spriteName;
-                    monster.type = boss.type;
-                    monster.level = bossLvl[i];
-
+                    Monster monster = new Monster(i, bossLvl[i], boss);
+                    
                     float[] statusBonus = new float[3];
                     for (int p = 1; p <= _roomPassCount; p++)
                     {
@@ -707,17 +663,6 @@ namespace controller
                         int ranStatus = Random.Range(0, 3);
                         statusBonus[ranStatus] = statusBonus[ranStatus] + 2.5f;
                     }
-                    int[] statusAll = _cal.CalculateAllStatus(boss.baseSTR, boss.baseAGI, boss.baseINT, monster.level);
-                    monster.STR = (statusAll[0] + statusBonus[0]) * bonusBoss;
-                    monster.AGI = (statusAll[1] + statusBonus[1]) * bonusBoss;
-                    monster.INT = (statusAll[2] + statusBonus[2]) * bonusBoss;
-                    monster.hpMax = _cal.CalculateHpMax(monster);
-                    monster.hp = monster.hpMax;
-                    monster.ATK = _cal.CalculateATK(monster);
-                    monster.MATK = _cal.CalculateMATK(monster);
-                    monster.DEF = _cal.CalculateDEF(monster);
-                    monster.MDEF = _cal.CalculateMDEF(monster);
-                    monster.expDrop = 400 + (monster.STR - monster.AGI);
                     string[] skillList = boss.skillList.Split(':');
                     for (int c = 0; c < skillList.Length; c++)
                     {
@@ -740,7 +685,7 @@ namespace controller
                                 }
                                 attack.hate = (int)skill.bonusDmg * 20;
                                 attack.skill = skill;
-                                monster.attack[c] = attack;
+                                monster.GetStatus().attack[c] = attack;
                                 break;
                             }
                         }
@@ -756,26 +701,6 @@ namespace controller
         }
         
         int teamIsSelect;
-
-        public int TeamIsSelect
-        {
-            get
-            {
-                return this.teamIsSelect;
-            }
-            set
-            {
-                if (value < 1) {
-                    this.teamIsSelect = _core._teamSetup.Count;
-                }
-                else if(value > _core._teamSetup.Count)
-                    this.teamIsSelect = 1;
-                else
-                    this.teamIsSelect = value;
-
-            }
-        }
-        
         
         public void BossRoomBtn()
         {
@@ -792,25 +717,6 @@ namespace controller
             _core.LoadScene(_GameStatus.LAND);
         }
         
-        public void ReviveHero()
-        {
-            for (int a = 0; a < 5; a++)
-            {
-                if (_teamList[a].id == -1)
-                {
-
-                }
-                else
-                {
-                    if (_teamList[a].hp == 0)
-                    {
-                        _teamList[a].hp = 1;
-                        return;
-                    }
-                }
-            }
-        }
-        
         public float _escapeRate;
         
         public void OnDisable()
@@ -821,6 +727,7 @@ namespace controller
                 _roomList[_core._currentRoomPosition].transform.Find("Player").gameObject.SetActive(false);
                 Navigate(_core._currentRoomPosition, false);
             }
+            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.SetActive(true);
             SetPanel(false);
         }
     }

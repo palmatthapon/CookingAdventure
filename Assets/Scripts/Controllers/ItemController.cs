@@ -28,12 +28,11 @@ namespace controller
             //_core._storyPanelTxt.text = "ลองค้นกระเป๋าดูดีๆ อาจจะเจอของที่เจ้าตามหา!";
             _money.text = _core._currentMoney.ToString();
         }
+        
+        Sprite[] loadSprite = null;
+        string getSpriteSet = "";
 
-        private void LateUpdate()
-        {
-        }
-
-        public void ViewItem(GameObject obj)
+        public void ViewItem(GameObject obj,string group="item")
         {
             Transform trans = obj.transform.Find("ItemMask").Find("GridView");
             foreach (Transform child in trans)
@@ -41,26 +40,27 @@ namespace controller
                 GameObject.Destroy(child.gameObject);
             }
             
-            Sprite[] loadSprite =null;
-            string nameSpriteSet="";
             foreach (ItemStore item in _core._itemStore)
             {
-                GameObject itemSlot = Instantiate(_itemSlot);
-                itemSlot.transform.SetParent(trans);
-                itemSlot.transform.localScale = new Vector3(1, 1, 1);
-                ItemSlot itemComp = itemSlot.GetComponent<ItemSlot>();
-                itemComp._item = item;
-                itemSlot.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                if (_core._gameMode == _GameStatus.BATTLE)
-                    itemSlot.transform.Find("Select").localScale = new Vector3(1.2f, 1.2f, 1);
-                if (nameSpriteSet != item.item.spriteSet)
+                if (group == item.item.spriteSet|| group == "item")
                 {
-                    nameSpriteSet = item.item.spriteSet;
-                    loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
+                    GameObject itemSlot = Instantiate(_itemSlot);
+                    itemSlot.transform.SetParent(trans);
+                    itemSlot.transform.localScale = new Vector3(1, 1, 1);
+                    ItemSlot itemComp = itemSlot.GetComponent<ItemSlot>();
+                    itemComp._item = item;
+                    itemSlot.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
+                    if (_core._gameMode == _GameStatus.BATTLE)
+                        itemSlot.transform.Find("Select").localScale = new Vector3(1.2f, 1.2f, 1);
+                    if (getSpriteSet != item.item.spriteSet)
+                    {
+                        getSpriteSet = item.item.spriteSet;
+
+                        loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + getSpriteSet);
+                    }
+                    itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
+                    item.obj = itemSlot;
                 }
-                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
-                item.obj = itemSlot;
-                
             }
         }
 

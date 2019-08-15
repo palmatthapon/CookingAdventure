@@ -12,17 +12,18 @@ namespace UI
     {
         public SkillBlock _skill;
         GameCore _core;
-        SelectAttackController _selectAtkCon;
+        AttackController _attackCon;
 
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _selectAtkCon = _core._attackPanel.GetComponent<SelectAttackController>();
+            _attackCon = _core._attackPanel.GetComponent<AttackController>();
         }
 
         public override void OnPointerClick(PointerEventData data)
         {
-            _selectAtkCon.UseAttack(_skill);
+            Debug.Log("attack clicked");
+            _attackCon.UseAttack(_skill);
         }
 
         public override void OnDeselect(BaseEventData data)

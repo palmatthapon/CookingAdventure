@@ -1,4 +1,5 @@
-﻿using model;
+﻿using controller;
+using model;
 using Model;
 
 using System.Collections;
@@ -24,10 +25,10 @@ public class MainMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        if(_core._gameMode == _GameStatus.BATTLE)
-            _mapBtn.GetComponent<Image>().sprite = _mapIcon[0];
-        else
-            _mapBtn.GetComponent<Image>().sprite = _mapIcon[1];
+        if(_core._gameMode != _GameStatus.BATTLE)
+            _mapBtn.GetComponent<Image>().sprite = _mapIcon[2];
+
+        transform.GetComponent<PlayerController>().LoadCampAvatar();
     }
 
     bool _switchOff=false;

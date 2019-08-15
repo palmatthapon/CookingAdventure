@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using monster;
 using model;
 using controller;
 
@@ -16,7 +15,6 @@ namespace menu
         Calculate _cal;
         BattleController _battleCon;
         public Transform _gridViewHero;
-        GameObject[] _heroList = new GameObject[5];
         List<ItemStore> _itemDropList;
         public GameObject _itemDropSlot;
         public GameObject _heroRewardSlot;
@@ -27,14 +25,12 @@ namespace menu
             _cal = new Calculate();
             _battleCon = _core._battleObj.GetComponent<BattleController>();
         }
-        List<HeroStore> _teamList;
+
         Monster[] _monsterList;
         Dungeon _dungeon;
 
         private void OnEnable()
         {
-            _heroList = new GameObject[5];
-            //transform.Find("Head").GetComponent<Text>().text = "คุณเป็นฝ่ายชนะ";
             LoadData();
             LoadHeroIcon();
             DropItem();
@@ -44,7 +40,6 @@ namespace menu
 
         void LoadData()
         {
-            _teamList = _core._teamSetup[_core._currentTeamIsSelect - 1].position;
             _monsterList = _core._currentMonsterBattle;
             _dungeon = _core._dungeon[_core._currentDungeonLayer - 1];
 
@@ -61,37 +56,27 @@ namespace menu
                 }
             }
         }
-        int _heroCount;
+        int _heroCount=1;
+        GameObject _heroRewardIcon;
 
         void LoadHeroIcon()
         {
             Sprite[] loadSprite = null;
             string getSpriteSet = "";
             
-            int count = 0;
-            foreach(HeroStore hero in _teamList)
-            {
-                if (hero.id != -1)
-                {
-                    _heroCount++;
-                    GameObject slot = Instantiate(_heroRewardSlot);
-                    slot.transform.SetParent(_gridViewHero);
-                    slot.transform.localScale = new Vector3(1, 1, 1);
+            GameObject slot = Instantiate(_heroRewardSlot);
+            slot.transform.SetParent(_gridViewHero);
+            slot.transform.localScale = new Vector3(1, 1, 1);
 
-                    if (getSpriteSet != hero.hero.spriteSet)
-                    {
-                        getSpriteSet = hero.hero.spriteSet;
-                        loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
-                    }
-                    slot.transform.Find("Hero").Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + hero.hero.spriteName);
-                    slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + hero.level;
-                    slot.transform.Find("Name").GetComponent<Text>().text = hero.hero.name;
-                    _core.SetSpriteType(slot.transform.Find("Hero").Find("Type").GetComponent<Image>(), hero.hero.type);
-                    _heroList[count] = slot;
-                }
-                
-                count++;
+            if (getSpriteSet != _core._heroIsPlaying.GetData().spriteSet)
+            {
+                getSpriteSet = _core._heroIsPlaying.GetData().spriteSet;
+                loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
+            slot.transform.Find("Hero").Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _core._heroIsPlaying.GetData().spriteName);
+            slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + _core._heroIsPlaying.GetStatus().level;
+            slot.transform.Find("Name").GetComponent<Text>().text = _core._heroIsPlaying.GetStatus().name;
+            _heroRewardIcon = slot;
         }
         int moneyDropTotal;
 
@@ -235,11 +220,11 @@ namespace menu
                 
                 for (int heroCount=0; heroCount < _battleCon._damage_of_each_hero.GetLength(1); heroCount++)
                 {
-                    int betweenLvl = Mathf.Abs(_teamList[heroCount].level - _monsterList[monCount].level);
+                    int betweenLvl = Mathf.Abs(_core._heroIsPlaying.GetStatus().level - _monsterList[monCount].GetStatus().level);
                     //Debug.Log("betweenLvl" + betweenLvl);
                     if (betweenLvl < 6)
                     {
-                        expForHero[heroCount] += ((_battleCon._damage_of_each_hero[monCount, heroCount] / 100.00) * (_monsterList[monCount].expDrop + roomPassCount) / (total_damage / 100.00))* ((6-betweenLvl)/6.00);
+                        expForHero[heroCount] += ((_battleCon._damage_of_each_hero[monCount, heroCount] / 100.00) * (_monsterList[monCount].GetExpDrop() + roomPassCount) / (total_damage / 100.00))* ((6-betweenLvl)/6.00);
                         Debug.Log("hero "+ heroCount + " exp A "+ expForHero[heroCount]);
                     }
                     else
@@ -250,31 +235,27 @@ namespace menu
                     
                 }
             }
-            for(int i = 0; i < _heroList.Length; i++)
+
+            _heroRewardIcon.transform.Find("ExpAdd").GetComponent<Text>().text = "+" + expForHero[0];
+            double expAdd = _core._heroIsPlaying.GetExp() + expForHero[0];
+            int levelAdd = _cal.CalculateLevel(expAdd);
+            double expMin = _cal.CalculateExp(levelAdd);
+            double expMax = _cal.CalculateExp(levelAdd + 1);
+            int newLevel = _cal.CalculateLevel(expAdd);
+
+            double expBetween = _core._heroIsPlaying.GetExp() - expMin;
+            double expExcess = expAdd - expMin;
+
+            float fillExp = levelAdd > _core._heroIsPlaying.GetStatus().level ? 0 : (float)(expBetween / (expMax - expMin));
+            float fillExpAdd = (float)(expExcess / (expMax - expMin));
+            _heroRewardIcon.transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExp(fillExp);
+            _heroRewardIcon.transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExpAdd(fillExpAdd);
+
+            _core._heroIsPlaying.SetExp(expAdd);
+            if (_core._heroIsPlaying.GetStatus().level != newLevel)
             {
-                if (_heroList[i] == null) continue;
-                _heroList[i].transform.Find("ExpAdd").GetComponent<Text>().text = "+" + expForHero[i];
-                double expAdd = _teamList[i].exp + expForHero[i];
-                int levelAdd = _cal.CalculateLevel(expAdd);
-                double expMin = _cal.CalculateExp(levelAdd);
-                double expMax = _cal.CalculateExp(levelAdd+1);
-                int newLevel = _cal.CalculateLevel(expAdd);
-
-                double expBetween = _teamList[i].exp - expMin;
-                double expExcess = expAdd - expMin;
-                
-                float fillExp = levelAdd > _teamList[i].level?0:(float)(expBetween / (expMax - expMin));
-                float fillExpAdd = (float)(expExcess / (expMax - expMin));
-                _heroList[i].transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExp(fillExp);
-                _heroList[i].transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExpAdd(fillExpAdd);
-
-                _teamList[i].exp = expAdd;
-                if(_teamList[i].level != newLevel)
-                {
-                    _teamList[i].level = newLevel;
-                    _heroList[i].transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + newLevel;
-                }
-                
+                _core._heroIsPlaying.GetStatus().level = newLevel;
+                _heroRewardIcon.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + newLevel;
             }
         }
 

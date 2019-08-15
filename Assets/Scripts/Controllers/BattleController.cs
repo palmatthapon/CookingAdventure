@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 using UnityEngine.UI;
 using Model;
 using System;
@@ -10,8 +9,7 @@ using Random = UnityEngine.Random;
 using Json;
 using System.Reflection;
 using UI;
-using monster;
-using player;
+using character;
 using model;
 
 namespace controller
@@ -20,17 +18,15 @@ namespace controller
     {
         GameCore _core;
         Calculate _cal;
-        SelectAttackController _selectATKCon;
+        AttackController _attackCon;
         MapController _mapCon;
         BuffController _buffCon;
         MonPanel _monCom;
-        int _answerCorrect;
 
         public PopupText _showDamage;
         public PopupText _showAction;
         public PopupText _showPassive;
         public PopupTurnBattleNotify _showTurnBattle;
-        public GameObject _answerSlot;
         
         _RoundBattle _roundBattle;
 
@@ -48,12 +44,13 @@ namespace controller
         public Sprite[] _skillSlot;
         
         public GameObject _monHpBar;
-        int monFocus, heroFocus;
+        int IsFocusMonster, IsFocusHero;
         public GameObject _hitEffect;
         public GameObject _defenseEffect;
         public Sprite[] _eventIcon;
         public GameObject _playerLifePanel;
 
+        public Material _injuryMat;
 
         private void Awake()
         {
@@ -62,16 +59,14 @@ namespace controller
             _mapCon = _core._mapCon;
             _monCom = _core._monCom;
             _buffCon = _core._buffCon;
-            _selectATKCon = _core._selectATKCon;
+            _attackCon = _core._attackCon;
             _buffCon._buffListPlayer = new List<Buff>();
             _buffCon._buffListMonster = new List<Buff>();
         }
 
         public Monster[] _monsterList;
-        public HeroInTeam _teamList;
         Sprite _bgSprite;
         
-
         void OnEnable()
         {
             Camera.main.orthographicSize = 1f;
@@ -86,22 +81,13 @@ namespace controller
                 _monCom._monAvatarList[i].gameObject.SetActive(false);
             }
             _hero = new List<Hero>();
-            for( int i= 0;i< _mapCon._teamList.Count;i++)
+            for( int i= 0;i< _core._heroStore.Count; i++)
             {
-                if (_mapCon._teamList[i].id == -1)
-                {
-
-                }
-                else
-                {
-                    Hero newHero = new Hero(i);
-                    newHero.hero = _mapCon._teamList[i];
-                    newHero._icon = _playerLifePanel;
-                    _hero.Add(newHero);
-                }
+                _core._heroStore[i]._icon = _playerLifePanel;
+                _hero.Add(_core._heroStore[i]);
             }
-            _heroFocus = 0;
-            _monFocus = 0;
+            _focusHero = 0;
+            _focusMonster = 0;
 
             _monData = new Monster[_monster.Count];
             for (int i = 0; i < _monster.Count; i++)
@@ -125,17 +111,16 @@ namespace controller
             _isEscape = false;
             _roundBattle = _RoundBattle.PLAYER;
             _monsterList = _core._currentMonsterBattle;
-            _teamList = _core._teamSetup[_core._currentTeamIsSelect - 1];
             _turnAround = 0;
             _eventAround = 0;
-            _selectATKCon._blockCount = 0;
+            _attackCon._blockCount = 0;
             Crystal = 1;
             _crystalMon = 1;
             SetPanel(true);
-            _selectATKCon.UpdateAttackSlot();
+            _attackCon.UpdateAttackSlot();
             _damage_of_each_hero = new int[_monData.Length, _heroData.Length];
             LoadEvent();
-            CreateFocusEffect(GetMonFocus()._avatar.transform);
+            CreateFocusEffect(FocusMonster().GetAvatar().transform);
             ShowTurnBattleNotify();
             _core._mainMenu.GetComponent<MainMenu>()._mapBtn.GetComponent<Image>().sprite = _core._mainMenu.GetComponent<MainMenu>()._mapIcon[0];
 
@@ -150,11 +135,11 @@ namespace controller
 
                 foreach(Monster mon in _monster)
                 {
-                    mon.CheckInjurious();
+                    mon.CheckInjury();
                 }
                 foreach (Hero hero in _hero)
                 {
-                    hero.CheckInjurious();
+                    hero.CheckInjury();
                 }
 
                 if (_core._monTalkPanel.activeSelf)
@@ -177,11 +162,11 @@ namespace controller
             
         }
 
-        public int _monFocus
+        public int _focusMonster
         {
             get
             {
-                return this.monFocus;
+                return this.IsFocusMonster;
             }
             set
             {
@@ -191,27 +176,27 @@ namespace controller
                     m._icon.transform.Find("IconImage").GetComponent<Image>().color = new Color32(255, 255, 255, 150);
                 }
                 if (value >= _monster.ToList().Count)
-                    this.monFocus = 0;
+                    this.IsFocusMonster = 0;
                 else
-                    this.monFocus = value;
-                CreateFocusEffect(GetMonFocus()._avatar.transform);
-                GetMonFocus()._icon.transform.localScale = new Vector3(1.25f, 1.25f, 1);
-                GetMonFocus()._icon.transform.Find("IconImage").GetComponent<Image>().color = new Color32(255, 255, 255, 255);
+                    this.IsFocusMonster = value;
+                CreateFocusEffect(FocusMonster().GetAvatar().transform);
+                FocusMonster()._icon.transform.localScale = new Vector3(1.25f, 1.25f, 1);
+                FocusMonster()._icon.transform.Find("IconImage").GetComponent<Image>().color = new Color32(255, 255, 255, 255);
             }
         }
 
-        public int _heroFocus
+        public int _focusHero
         {
             get
             {
-                return this.heroFocus;
+                return this.IsFocusHero;
             }
             set
             {
                 if (value >= _hero.ToList().Count)
-                    this.heroFocus = 0;
+                    this.IsFocusHero = 0;
                 else
-                    this.heroFocus = value;
+                    this.IsFocusHero = value;
             }
         }
 
@@ -221,8 +206,8 @@ namespace controller
             int hpMax = 0;
             for (int i =0;i< _monData.Length; i++)
             {
-                hp += _monData[i].hp;
-                hpMax+= _monData[i].hpMax;
+                hp += _monData[i].GetStatus().currentHP;
+                hpMax+= _monData[i].GetStatus().currentHPMax;
             }
             _monHpBar.GetComponent<ControlSlider>().AddFill((float)hp * 1 / hpMax);
         }
@@ -242,8 +227,8 @@ namespace controller
             //Debug.Log("hero count " + _hero.Count+" focus "+_heroFocus);
             if(_monster.ToList().Count > 0 && _hero.ToList().Count > 0)
             {
-                _monFocus = Random.Range(0, _monster.ToList().Count);
-                GetMonFocus().Attack(GetHeroFocus());
+                _focusMonster = Random.Range(0, _monster.ToList().Count);
+                FocusMonster().Attack(FocusHero());
             }
             
         }
@@ -266,22 +251,24 @@ namespace controller
 
         IEnumerator CounterAttack()
         {
+            Hero heroTarget = FocusHero();
+            Transform getAvatarTrans = heroTarget.GetAvatar().transform;
             GameObject effect = Instantiate(_defenseEffect);
-            effect.transform.SetParent(GetHeroFocus()._avatar.transform.parent);
-            effect.transform.localPosition = new Vector3(GetHeroFocus()._avatar.transform.localPosition.x-0.25f, GetHeroFocus()._avatar.transform.localPosition.y+0.45f, GetHeroFocus()._avatar.transform.localPosition.z);
+            effect.transform.SetParent(getAvatarTrans.parent);
+            effect.transform.localPosition = new Vector3(getAvatarTrans.localPosition.x-0.25f, getAvatarTrans.localPosition.y+0.45f, getAvatarTrans.localPosition.z);
             effect.AddComponent<ParticleDestroy>();
             
             yield return new WaitForSeconds(1f);
             _counterATKSuccess = true;
-            GetHeroFocus().PlayInjurious(0);
+            heroTarget.PlayInjury(0);
             yield return new WaitForSeconds(1f);
             
-            ShowAction("โจมตีสวนกลับ", GetHeroFocus()._avatar.transform.position);
+            ShowAction("โจมตีสวนกลับ", getAvatarTrans.position);
 
             yield return new WaitForSeconds(1f);
             
-            _counterATKDamage = GetHeroFocus().CalDamageCounterAttack(GetMonFocus());
-            AttackEffect(GetHeroFocus().hero.attack[0], _counterATKDamage,_Model.MONSTER);
+            _counterATKDamage = heroTarget.CalDamageCounterAttack(FocusMonster());
+            AttackEffect(heroTarget.GetStatus().attack[0], _counterATKDamage,_Model.MONSTER);
         }
         int _eventStart=0;
         int _eventAround=0;
@@ -332,101 +319,11 @@ namespace controller
                 method.Invoke(EventFunction, parameter);
         }
         
-        void AnswerClick(int ans)
-        {
-            Camera.main.orthographicSize = 1f;
-            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x,
-                    0f,
-                    Camera.main.transform.position.z);
-            _core.OpenActionPanel(_core._attackPanel);
-            OnCheckAnswer(ans);
-        }
         Hero _heroIsQuesttion;
         bool _isUltimate;
         int blockStack;
-
-        public void OpenQuestion(Hero hero,bool ultimate,int stack)
-        {
-            _heroIsQuesttion = hero;
-            _isUltimate = ultimate;
-            blockStack = stack;
-            Camera.main.orthographicSize = 0.5f;
-            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x,
-                0.15f,
-                Camera.main.transform.position.z);
-            _core.OpenActionPanel(_core._questionPanel);
-            int ran;
-            int errorLoop = 0;
-            do
-            {
-                ran = Random.Range(0, _core._questionLoadComplete);
-                errorLoop++;
-            } while (ran == _questionRandom || ran == _questionRandom && errorLoop < 20);
-            _questionRandom = ran;
-            GetQuestion(_questionRandom);
-
-        }
-        int _questionRandom = 0;
         
         int _slotIsSelect;
-        
-        void OnCheckAnswer(int ans)
-        {
-            if (ans == _answerCorrect)
-            {
-                _core.OpenTrueNotify("เป็นคำตอบที่ถูกต้อง");
-
-                if (_core._ActionMode == _ActionStatus.Attack)
-                {
-                    StartCoroutine(QuestionIsAttack(false));
-                }
-            }
-            else
-            {
-                _core.OpenErrorNotify("เป็นคำตอบที่ผิด");
-                _core.SetMonTalk("<color=#418d29>เฉลยคือ " + _answerList[_answerCorrect - 1].GetComponentInChildren<Text>().text+"</color>");
-                
-                if (_core._ActionMode == _ActionStatus.Attack)
-                {
-                    StartCoroutine(QuestionIsAttack(true));
-                }
-            }
-        }
-
-        public IEnumerator QuestionIsAttack(bool questionFail)
-        {
-            yield return new WaitForSeconds(1);
-            _heroIsQuesttion.Attack(_isUltimate, questionFail, blockStack);
-        }
-
-        GameObject[] _answerList;
-
-        void GetQuestion(int row)
-        {
-            Transform trans = _core._questionPanel.transform.Find("Answer").Find("GridView");
-            if (_answerList == null)
-            {
-                _answerList = new GameObject[_core._columnQuestionMax - 2];
-                for (int i = 2; i < _core._questionList.GetLength(1); i++)
-                {
-                    GameObject slot = Instantiate(_answerSlot);
-                    slot.transform.SetParent(trans);
-                    slot.transform.localScale = new Vector3(1, 1, 1);
-                    slot.name = (i-1).ToString();
-                    Button b = slot.transform.Find("AnswerButton").GetComponent<Button>();
-                    b.onClick.AddListener(delegate () { AnswerClick(_cal.IntParseFast(slot.name)); });
-                    _answerList[i - 2] = slot;
-                }
-            }
-            
-            _core._questionPanelTxt.text = _core._questionList[row, 0];
-            for(int i=0;i< _answerList.Length; i++)
-            {
-                _answerList[i].transform.Find("AnswerButton").GetComponentInChildren<ScrollRect>().content.GetComponentInChildren<Text>().text = _core._questionList[row, i+2];
-            }
-            //Debug.Log(_core._questionList[row, 1]);
-            _answerCorrect = Int32.Parse(_core._questionList[row, 1]);
-        }
         
         public void ShowDamage(int dmg, Vector3 pos)
         {
@@ -502,8 +399,8 @@ namespace controller
                         GameObject effect = Instantiate(loadEffectPlayer[i]);
                         if(skill.skill.effect == "Slash")
                         {
-                            effect.transform.SetParent(GetMonFocus()._avatar.transform.parent);
-                            effect.transform.localPosition = new Vector3(GetMonFocus()._avatar.transform.localPosition.x, GetMonFocus()._avatar.transform.localPosition.y + 0.25f, GetMonFocus()._avatar.transform.localPosition.z);
+                            effect.transform.SetParent(FocusMonster().GetAvatar().transform.parent);
+                            effect.transform.localPosition = new Vector3(FocusMonster().GetAvatar().transform.localPosition.x, FocusMonster().GetAvatar().transform.localPosition.y + 0.25f, FocusMonster().GetAvatar().transform.localPosition.z);
                             
                         }
                         effect.AddComponent<ParticleDestroy>();
@@ -534,8 +431,8 @@ namespace controller
                         GameObject effect = Instantiate(loadEffectMonster[i]);
                         if (skill.skill.effect == "Slash")
                         {
-                            effect.transform.SetParent(GetHeroFocus()._avatar.transform.parent);
-                            effect.transform.localPosition = new Vector3(GetHeroFocus()._avatar.transform.localPosition.x, GetHeroFocus()._avatar.transform.localPosition.y + 0.25f, GetHeroFocus()._avatar.transform.localPosition.z);
+                            effect.transform.SetParent(FocusHero().GetAvatar().transform.parent);
+                            effect.transform.localPosition = new Vector3(FocusHero().GetAvatar().transform.localPosition.x, FocusHero().GetAvatar().transform.localPosition.y + 0.25f, FocusHero().GetAvatar().transform.localPosition.z);
                             
                         }
                         effect.AddComponent<ParticleDestroy>();
@@ -562,11 +459,11 @@ namespace controller
             yield return new WaitForSeconds(delay);
             if (target == _Model.PLAYER)
             {
-                GetHeroFocus().PlayInjurious(damage);
+                FocusHero().PlayInjury(damage);
             }
             else
             {
-                GetMonFocus().PlayInjurious(damage);
+                FocusMonster().PlayInjury(damage);
             }
         }
         public bool _waitEndTurn = false;
@@ -584,14 +481,14 @@ namespace controller
         IEnumerator EndTurn(int dalay=1)
         {
             yield return new WaitForSeconds(dalay);
-            _monFocus = 0;
-            _heroFocus = 0;
+            _focusMonster = 0;
+            _focusHero = 0;
             if (_roundBattle == _RoundBattle.ENEMY)
             {
                 _roundBattle = _RoundBattle.PLAYER;
                 _effectFocus.SetActive(true);
                 LoadEvent();
-                _selectATKCon.UpdateAttackSlot();
+                _attackCon.UpdateAttackSlot();
                 EndTurnSetting();
                 yield return new WaitForSeconds(1);
                 ShowTurnBattleNotify();
@@ -663,14 +560,14 @@ namespace controller
             for(int i = 0; i < _monster.Count; i++)
             {
                 int damage = 1;
-                if (_monster[i].spriteSet.Contains("hero"))
+                if (_monster[i].GetData().spriteSet.Contains("hero"))
                 {
                     damage = 5;
                 }
                 for(int a=0; a< damage; a++)
                 {
                     GameObject effect = Instantiate(_hitEffect);
-                    effect.transform.SetParent(_monster[i]._avatar.transform);
+                    effect.transform.SetParent(_monster[i].GetAvatar().transform);
                     effect.transform.localScale = new Vector3(1, 1, 1);
                     effect.transform.localPosition = new Vector3(0, 0.5f, 0);
                     yield return new WaitForSeconds(1.5f);
@@ -710,27 +607,27 @@ namespace controller
         {
             for (int i = 0; i < _monsterList.Length; i++)
             {
-                if (_monsterList[i].spriteSet.Contains("hero"))
+                if (_monsterList[i].GetData().spriteSet.Contains("hero"))
                 {
                     if (_core._unlockHeroList == null)
                     {
                         _core._unlockHeroList = new List<string>();
                     }
                     int row = 0;
-                    foreach (HeroStore h in _core._heroStore)
+                    foreach (Hero h in _core._heroStore)
                     {
                         row++;
-                        if (h.hero.spriteName == _monsterList[i].spriteName)
+                        if (h.GetData().spriteName == _monsterList[i].GetData().spriteName)
                         {
                             if (Random.Range(0f, 1f) < 0.1f)
                             {
-                                _core._unlockHeroList.Add(_monsterList[i].spriteName);
+                                _core._unlockHeroList.Add(_monsterList[i].GetData().spriteName);
                             }
                             break;
                         }
                         if (row == _core._heroStore.Count)
                         {
-                            _core._unlockHeroList.Add(_monsterList[i].spriteName);
+                            _core._unlockHeroList.Add(_monsterList[i].GetData().spriteName);
                         }
                     }
                 }
@@ -766,31 +663,45 @@ namespace controller
             }
         }
 
-        public Hero GetHeroFocus()
+        public Character GetTargetFocus()
+        {
+            Character _char;
+            if (_roundBattle == _RoundBattle.PLAYER)
+            {
+                _char = new Character(FocusMonster());
+            }
+            else
+            {
+                _char = new Character(FocusHero());
+            }
+            return _char;
+        }
+
+        public Hero FocusHero()
         {
             try
             {
-                return _hero[_heroFocus];
+                return _hero[_focusHero];
             }
             catch (ArgumentOutOfRangeException e)
             {
                 Debug.Log(e);
                 _waitEndTurn = false;
-                return _heroData[_heroFocus];
+                return _heroData[_focusHero];
             }
         }
 
-        public Monster GetMonFocus()
+        public Monster FocusMonster()
         {
             try
             {
-                return _monster[_monFocus];
+                return _monster[_focusMonster];
             }
             catch (ArgumentOutOfRangeException e)
             {
                 Debug.Log(e);
                 _waitEndTurn = false;
-                return _monData[_monFocus];
+                return _monData[_focusMonster];
             }
         }
         public GameObject _focusEffect;
@@ -818,11 +729,11 @@ namespace controller
             _buffCon.ClearBuffAll(_Model.PLAYER);
             _buffCon.ClearBuffAll(_Model.MONSTER);
             _buffCon.ClearDefense();
-            _selectATKCon.ClearAttackList();
+            _attackCon.ClearAttackList();
             _buffCon._defenseList.Clear();
             
             _core._playerLifePanel.transform.Find("Crystal").gameObject.SetActive(false);
-            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.GetComponent<Image>().sprite = _core._mainMenu.GetComponent<MainMenu>()._mapIcon[1];
+            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.GetComponent<Image>().sprite = _core._mainMenu.GetComponent<MainMenu>()._mapIcon[2];
 
         }
 

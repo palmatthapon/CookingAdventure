@@ -67,24 +67,13 @@ namespace item
             base.OnPointerDown(eventData);
             if (_core._ActionMode == _ActionStatus.Cook)
             {
-                _cookCon.GetRawMaterial(this.transform.Find("Icon").GetComponent<Image>().sprite);
-
+                if (_item.amount == 0) return;
+                _item.obj.transform.Find("Count").GetComponent<Text>().text = (--_item.amount).ToString();
+                _cookCon.GetRawMaterial(this.transform.Find("Icon").GetComponent<Image>().sprite, _item);
+                
             }
 
         }
-
-        public override void OnPointerUp(PointerEventData eventData)
-        {
-            base.OnPointerUp(eventData);
-            if (_core._ActionMode == _ActionStatus.Cook)
-            {
-                _cookCon.PutRawMaterial();
-
-            }
-            
-        }
-
         
-
     }
 }

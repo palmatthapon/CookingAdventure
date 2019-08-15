@@ -1,7 +1,6 @@
 ﻿
 using controller;
 using model;
-using player;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace item
     {
         GameCore _core;
         BattleController _battleCon;
-        SelectAttackController _selectATKCon;
+        AttackController _attackCon;
 
         void Run()
         {
@@ -22,24 +21,24 @@ namespace item
                 _core = Camera.main.GetComponent<GameCore>();
             if (_battleCon == null)
                 _battleCon = _core._battleObj.GetComponent<BattleController>();
-            if(_selectATKCon == null)
-                _selectATKCon = _core._attackPanel.GetComponent<SelectAttackController>();
+            if(_attackCon == null)
+                _attackCon = _core._attackPanel.GetComponent<AttackController>();
         }
         
         //how to name for HeroPassiveAbility Method, Use all caps e.g. HELLOWORLD 
-        public bool SmallPosion(HeroStore hero)
+        public bool SmallPosion(Hero hero)
         {
             Run();
-            if (hero.hp > 0)
+            if (hero.GetStatus().currentHP > 0)
             {
-                hero.hp = hero.hp + 20;
+                hero.GetStatus().currentHP = hero.GetStatus().currentHP + 20;
                 if (_core._gameMode == _GameStatus.BATTLE)
                 {
                     foreach (Hero h in _battleCon._heroData)
                     {
-                        if (h.hero.id == hero.id)
+                        if (h.GetStoreId() == hero.GetStoreId())
                         {
-                            h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.hp * 1 / hero.hpMax);
+                            //h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.GetStatus().currentHP * 1 / hero.GetStatus().hpMax);
                             break;
                         }
                     }
@@ -54,19 +53,19 @@ namespace item
             }
         }
 
-        public bool MediumPosion(HeroStore hero)
+        public bool MediumPosion(Hero hero)
         {
             Run();
-            if (hero.hp > 0)
+            if (hero.GetStatus().currentHP > 0)
             {
-                hero.hp = hero.hp + 50;
+                hero.GetStatus().currentHP = hero.GetStatus().currentHP + 50;
                 if(_core._gameMode == _GameStatus.BATTLE)
                 {
                     foreach (Hero h in _battleCon._heroData)
                     {
-                        if (h.hero.id == hero.id)
+                        if (h.GetStoreId() == hero.GetStoreId())
                         {
-                            h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.hp * 1 / hero.hpMax);
+                            //h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.GetStatus().currentHP * 1 / hero.GetStatus().hpMax);
                             break;
                         }
                     }
@@ -82,19 +81,19 @@ namespace item
             }
         }
 
-        public bool LargePosion(HeroStore hero)
+        public bool LargePosion(Hero hero)
         {
             Run();
-            if (hero.hp > 0)
+            if (hero.GetStatus().currentHP > 0)
             {
-                hero.hp = hero.hp + 100;
+                hero.GetStatus().currentHP = hero.GetStatus().currentHP + 100;
                 if (_core._gameMode == _GameStatus.BATTLE)
                 {
                     foreach (Hero h in _battleCon._heroData)
                     {
-                        if (h.hero.id == hero.id)
+                        if (h.GetStoreId() == hero.GetStoreId())
                         {
-                            h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.hp * 1 / hero.hpMax);
+                            //h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.GetStatus().currentHP * 1 / hero._status.hpMax);
                             break;
                         }
                     }
@@ -109,48 +108,44 @@ namespace item
             }
         }
 
-        public bool ReCrystal(HeroStore hero)
+        public bool ReCrystal(Hero hero)
         {
             Run();
             //Debug.Log("Re actionPoint ");
             return true;
         }
 
-        public bool Antidote(HeroStore hero)
+        public bool Antidote(Hero hero)
         {
             Run();
             //Debug.Log("Re actionPoint ");
             return true;
         }
 
-        public bool Revive(HeroStore hero)
+        public bool Revive(Hero hero)
         {
             Run();
-            if (hero.hp == 0)
+            if (hero.GetStatus().currentHP == 0)
             {
-                hero.hp = 1;
+                hero.GetStatus().currentHP = 1;
                 if (_core._gameMode == _GameStatus.BATTLE)
                 {
                     int index = 0;
                     foreach (Hero h in _battleCon._heroData)
                     {
-                        if (h.hero.id == hero.id)
+                        if (h.GetStoreId() == hero.GetStoreId())
                         {
-                            h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.hp * 1 / hero.hpMax);
+                            //h._icon.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)hero.GetStatus().currentHP * 1 / hero.GetStatus().hpMax);
                             h.Revive();
                             _battleCon._hero.Add(h);
-                            _battleCon._hero = _battleCon._hero.OrderBy(o => o.slotId).ToList();
+                            _battleCon._hero = _battleCon._hero.OrderBy(o => o.GetSlot()).ToList();
                             break;
                         }
                         index++;
                     }
                 }
-                foreach (Hero r in _battleCon._hero)
-                {
-                    Debug.Log(r.hero.hero.name +" "+r.slotId);
-                }
                 _core.OpenTrueNotify("ชุบชีวิตฮีโร่สำเร็จ!");
-                _selectATKCon.UpdateAttackSlot();
+                _attackCon.UpdateAttackSlot();
                 return true;
             }
             else

@@ -1,4 +1,4 @@
-﻿using monster;
+﻿
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -48,21 +48,21 @@ namespace model
         {
             return (Math.Pow(level, 2) + level) / 2 * 100 - (level * 100);
         }
-        public int CalculateATK(HeroStore hero)
+        public int CalculateATK(int STR,int AGI,int INT)
         {
-            return (int)(hero.STR * 1.5 + hero.AGI / 5 + hero.INT / 10 + _damageBase);
+            return (int)(STR * 1.5 + AGI / 5 + INT / 10 + _damageBase);
         }
-        public int CalculateMATK(HeroStore hero)
+        public int CalculateMATK(int STR, int AGI, int INT)
         {
-            return (int)(hero.STR / 10 + hero.AGI / 5 + hero.INT * 1.5 + _damageBase/2);
+            return (int)(STR / 10 + AGI / 5 + INT * 1.5 + _damageBase/2);
         }
-        public int CalculateDEF(HeroStore hero)
+        public int CalculateDEF(int STR, int AGI, int INT)
         {
-            return (int)(hero.STR / 5 + hero.AGI * 0.5 + hero.INT / 5);
+            return (int)(STR / 5 + AGI * 0.5 + INT / 5);
         }
-        public int CalculateMDEF(HeroStore hero)
+        public int CalculateMDEF(int STR, int AGI, int INT)
         {
-            return (int)(hero.STR / 10 + hero.AGI / 5 + hero.INT * 0.5);
+            return (int)(STR / 10 + AGI / 5 + INT * 0.5);
         }
 
         /// <summary>
@@ -87,28 +87,7 @@ namespace model
                     status[2] = (int)(baseINT + 1.5 * level);
             return status;
         }
-
-        public int CalculateHpMax(Monster monster)
-        {
-            return (int)(monster.STR * 5 + monster.AGI * 2.5 + monster.INT * 1.5 + 50);
-        }
-        public int CalculateATK(Monster monster)
-        {
-            return (int)(monster.STR * 1.5 + monster.AGI / 5 + monster.INT / 10 + _damageBase);
-        }
-        public int CalculateMATK(Monster monster)
-        {
-            return (int)(monster.STR / 10 + monster.AGI / 5 + monster.INT * 1.5 + _damageBase/2);
-        }
-        public int CalculateDEF(Monster monster)
-        {
-            return (int)(monster.STR / 5 + monster.AGI * 0.5 + monster.INT / 5);
-        }
-        public int CalculateMDEF(Monster monster)
-        {
-            return (int)(monster.STR / 10 + monster.AGI / 5 + monster.INT * 0.5);
-        }
-
+        
         /// <summary>
         /// For all project
         /// </summary>

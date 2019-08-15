@@ -27,7 +27,7 @@ public class Cutscene : MonoBehaviour
         _core = Camera.main.GetComponent<GameCore>();
 
         CutscenePlay();
-        //TutorialPlay(_core._landObj.GetComponent<LandController>()._landPanel.transform.Find("GridView").Find("CampButton"), true, "เจ้าลองจิ้มตามแสงกระพริบๆ ในหน้าจอของเจ้าดูซิ มันจะทำให้เจ้าเข้าใจการเล่นเบื้องต้นมากขึ้น");
+        
     }
 
     public void CutscenePlay()

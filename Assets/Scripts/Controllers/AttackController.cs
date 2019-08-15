@@ -1,6 +1,4 @@
 ﻿using model;
-using Model;
-using player;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +8,7 @@ using UnityEngine.UI;
 
 namespace controller
 {
-    public class SelectAttackController : MonoBehaviour
+    public class AttackController : MonoBehaviour
     {
         GameCore _core;
         BattleController _battleCon;
@@ -53,7 +51,7 @@ namespace controller
                 {
                     foreach (Hero hero in _battleCon._hero.ToList())
                     {
-                        if (hero.hero.id == _attackList[i].heroStoreId)
+                        if (hero.GetStoreId() == _attackList[i].heroStoreId)
                         {
                             _attackList[i].obj.transform.Find("Image").GetComponent<Image>().color = new Color32(255, 255, 255, 255);
                             heroDead = false;
@@ -137,9 +135,11 @@ namespace controller
                 _core = Camera.main.GetComponent<GameCore>();
             if (_battleCon==null)
                 _battleCon = _core._battleCon;
-            
+
             int ranSlot = Random.Range(0, _battleCon._heroData.Length);
-            if(_battleCon._heroData[ranSlot].hero.hp == 0)
+            Hero hero = _battleCon._heroData[ranSlot];
+
+            if(hero.GetStatus().currentHP == 0)
             {
                 //Debug.Log("old block "+ranSlot);
                 ranSlot = Random.Range(0, _battleCon._heroData.Length);
@@ -151,22 +151,22 @@ namespace controller
             slot.transform.localScale = new Vector3(1, 1, 1);
             slot.transform.localPosition = Vector3.zero;
             
-            if (getSpriteSet != _battleCon._heroData[ranSlot].hero.hero.spriteSet)
+            if (getSpriteSet != hero.GetData().spriteSet)
             {
-                getSpriteSet = _battleCon._heroData[ranSlot].hero.hero.spriteSet;
+                getSpriteSet = hero.GetData().spriteSet;
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
             
-            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + _battleCon._heroData[ranSlot].hero.hero.spriteName);
+            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.GetData().spriteName);
             SkillBlock skill = new SkillBlock();
             
             skill.slotId = _blockCount;
-            skill.defCrystal = _battleCon._heroData[ranSlot].hero.attack[0].skill.crystal;
+            skill.defCrystal = hero.GetStatus().attack[0].skill.crystal;
             slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = skill.defCrystal.ToString();
-            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Skill_" + _battleCon._heroData[ranSlot].hero.hero.spriteName);
-            skill.heroStoreId = _battleCon._heroData[ranSlot].hero.id;
+            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Skill_" + hero.GetData().spriteName);
+            skill.heroStoreId = hero.GetStoreId();
             skill.blockStack = 1;
-            skill.color = _battleCon._heroData[ranSlot].slotId;
+            skill.color = hero.GetSlot();
             skill.isAttack = true;
             skill.isUltimate = false;
             skill.crystal = skill.defCrystal;
@@ -216,21 +216,21 @@ namespace controller
             slot.transform.localScale = new Vector3(1, 1, 1);
             slot.transform.localPosition = Vector3.zero;
 
-            
-            if (getSpriteSet != _battleCon._heroData[slotId].hero.hero.spriteSet)
+            Hero hero = _battleCon._heroData[slotId];
+            if (getSpriteSet != hero.GetData().spriteSet)
             {
-                getSpriteSet = _battleCon._heroData[slotId].hero.hero.spriteSet;
+                getSpriteSet = hero.GetData().spriteSet;
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
-            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + _battleCon._heroData[slotId].hero.hero.spriteName);
-            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Ultimate_" + _battleCon._heroData[slotId].hero.hero.spriteName);
+            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.GetData().spriteName);
+            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Ultimate_" + hero.GetData().spriteName);
             SkillBlock skill = new SkillBlock();
             skill.slotId = _blockCount;
-            skill.defCrystal = _battleCon._heroData[slotId].hero.attack[1].skill.crystal;
+            skill.defCrystal = hero.GetStatus().attack[1].skill.crystal;
             slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = skill.defCrystal.ToString();
-            skill.heroStoreId = _battleCon._heroData[slotId].hero.id;
+            skill.heroStoreId = hero.GetStoreId();
             skill.blockStack = 1;
-            skill.color = _battleCon._heroData[slotId].slotId;
+            skill.color = hero.GetSlot();
             skill.isAttack = true;
             skill.isUltimate = true;
             skill.crystal = skill.defCrystal;
@@ -254,17 +254,10 @@ namespace controller
                     bool have = false;
                     foreach (Hero hero in _battleCon._hero.ToList())
                     {
-                        if (hero.hero.id == skill.heroStoreId)
+                        if (hero.GetStoreId() == skill.heroStoreId)
                         {
                             have = true;
-                            if (_core.dataSetting[0].question && _core._questionLoadComplete > 1)
-                            {
-                                _battleCon.OpenQuestion(hero, skill.isUltimate, skill.blockStack);
-                            }
-                            else
-                            {
-                                hero.Attack(skill.isUltimate, false, skill.blockStack);
-                            }
+                            hero.Attack(skill.isUltimate, false, skill.blockStack);
                             break;
                         }
                     }
@@ -276,7 +269,7 @@ namespace controller
                 }
                 else
                 {
-                    _battleCon.GetHeroFocus().AddDefenseList(skill.crystal);
+                    _battleCon.FocusHero().AddDefenseList(skill.crystal);
                     
                 }
                 DeleteBlock(skill);

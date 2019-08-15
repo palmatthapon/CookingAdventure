@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UI;
 using model;
-using player;
-using monster;
 using controller;
 
 namespace skill
@@ -66,6 +64,7 @@ namespace skill
 
         public void Buff5(Buff data)
         {
+            /*
             run();
             if (!data.remove)
             {
@@ -73,14 +72,14 @@ namespace skill
                 {
                     foreach (Hero h in _battleCon._hero)
                     {
-                        h._buffBonusDEF = 1.25f;
+                        h._status._buffBonusDEF = 1.25f;
                     }
                 }
                 else
                 {
                     foreach (Monster m in _battleCon._monster)
                     {
-                        m._buffBonusDEF = 1.25f;
+                        m._status._buffBonusDEF = 1.25f;
                     }
                 }
             }
@@ -90,55 +89,57 @@ namespace skill
                 {
                     foreach (Hero h in _battleCon._hero)
                     {
-                        h._buffBonusDEF = 1;
+                        h._status._buffBonusDEF = 1;
                     }
                 }
                 else
                 {
                     foreach (Monster m in _battleCon._monster)
                     {
-                        m._buffBonusDEF = 1;
+                        m._status._buffBonusDEF = 1;
                     }
                 }
-            }
+            }*/
 
             //Debug.Log("Buff5");
         }
 
         public void Buff6(Buff data)
         {
+            /*
             run();
             if (!data.remove)
             {
                 if ((data.whoUse == _Model.PLAYER && data.forMe) || (data.whoUse == _Model.MONSTER && !data.forMe))
-                    _battleCon.GetHeroFocus()._buffBonusATK = 1.25f;
+                    _battleCon.FocusHero()._status._buffBonusATK = 1.25f;
                 else
-                    _battleCon.GetMonFocus()._buffBonusATK = 1.25f;
+                    _battleCon.FocusMonster()._status._buffBonusATK = 1.25f;
             }
             else
             {
                 if ((data.whoUse == _Model.PLAYER && data.forMe) || (data.whoUse == _Model.MONSTER && !data.forMe))
-                    _battleCon.GetHeroFocus()._buffBonusATK = 1;
+                    _battleCon.FocusHero()._status._buffBonusATK = 1;
                 else
-                    _battleCon.GetMonFocus()._buffBonusATK = 1;
-            }
+                    _battleCon.FocusMonster()._status._buffBonusATK = 1;
+            }*/
             //Debug.Log("Buff6");
         }
 
         public void Buff7(Buff data)
         {
+            /*
             run();
             if (!data.remove)
             {
                 if ((data.whoUse == _Model.PLAYER && data.forMe) || (data.whoUse == _Model.MONSTER && !data.forMe))
                 {
-                    _battleCon.GetHeroFocus()._avatar.transform.parent.localScale = new Vector3(1.5f, 1.5f, 1.5f);
-                    _battleCon.GetHeroFocus().UpdatehpMax(100);
+                    _battleCon.FocusHero()._avatar.transform.parent.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+                    _battleCon.FocusHero().UpdateCurrentHPMax(100);
                 }
                 else
                 {
                     _core._monPanel.GetComponent<MonPanel>()._monAvatarList[0].transform.parent.localScale = new Vector3(1.5f, 1.5f, 1.5f);
-                    _battleCon.GetMonFocus().UpdatehpMax(100);
+                    _battleCon.FocusMonster().UpdateCurrentHPMax(100);
 
                 }
             }
@@ -146,39 +147,40 @@ namespace skill
             {
                 if ((data.whoUse == _Model.PLAYER && data.forMe) || (data.whoUse == _Model.MONSTER && !data.forMe))
                 {
-                    _battleCon.GetHeroFocus()._avatar.transform.parent.localScale = data.originalSize;
-                    int hp = _battleCon.GetHeroFocus().hp * _battleCon.GetHeroFocus()._originalHPMax / _battleCon.GetHeroFocus().hero.hpMax;
-                    _battleCon.GetHeroFocus().hero.hpMax = _battleCon.GetHeroFocus()._originalHPMax;
-                    _battleCon.GetHeroFocus().hp = hp;
+                    _battleCon.FocusHero()._avatar.transform.parent.localScale = data.originalSize;
+                    int hp = _battleCon.FocusHero()._status.currentHP * _battleCon.FocusHero()._status.hpMax / _battleCon.FocusHero()._status.hpMax;
+                    _battleCon.FocusHero()._status.hpMax = _battleCon.FocusHero()._status.hpMax;
+                    _battleCon.FocusHero()._status.currentHP = hp;
                 }
                 else
                 {
                     _core._monPanel.GetComponent<MonPanel>()._monAvatarList[0].transform.parent.localScale = data.originalSize;
-                    int hp = _battleCon.GetMonFocus().hp * _battleCon.GetMonFocus()._originalHPMax / _battleCon.GetMonFocus().hpMax;
-                    _battleCon.GetMonFocus().hpMax = _battleCon.GetMonFocus()._originalHPMax;
-                    _battleCon.GetMonFocus().hp = hp;
+                    int hp = _battleCon.FocusMonster()._status.currentHP * _battleCon.FocusMonster()._originalHPMax / _battleCon.FocusMonster()._status.hpMax;
+                    _battleCon.FocusMonster()._status.hpMax = _battleCon.FocusMonster()._originalHPMax;
+                    _battleCon.FocusMonster()._status.currentHP = hp;
                 }
-            }
+            }*/
             //Debug.Log("Buff7");
         }
 
         public void Buff8(Buff data)
         {
+            /*
             run();
             if (!data.remove)
             {
                 if ((data.whoUse == _Model.PLAYER && data.forMe) || (data.whoUse == _Model.MONSTER && !data.forMe))
-                    _battleCon.GetHeroFocus()._buffBonusMATK = 1.25f;
+                    _battleCon.FocusHero()._status._buffBonusMATK = 1.25f;
                 else
-                    _battleCon.GetMonFocus()._buffBonusMATK = 1.25f;
+                    _battleCon.FocusMonster()._status._buffBonusMATK = 1.25f;
             }
             else
             {
                 if ((data.whoUse == _Model.PLAYER && data.forMe) || (data.whoUse == _Model.MONSTER && !data.forMe))
-                    _battleCon.GetHeroFocus()._buffBonusMATK = 1;
+                    _battleCon.FocusHero()._status._buffBonusMATK = 1;
                 else
-                    _battleCon.GetMonFocus()._buffBonusMATK = 1;
-            }
+                    _battleCon.FocusMonster()._status._buffBonusMATK = 1;
+            }*/
             //Debug.Log("Buff6");
         }
     }

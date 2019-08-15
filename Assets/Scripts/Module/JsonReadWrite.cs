@@ -72,25 +72,12 @@ namespace model
             string heroStore = "";
             for (int i = 0; i < _core._heroStore.Count; i++)
             {
-                heroStore += _core._heroStore[i].id + ":" + _core._heroStore[i].heroId + ":" + _core._heroStore[i].exp + ":" + _core._heroStore[i].hp;
+                heroStore += _core._heroStore[i].GetStoreId() + ":" + _core._heroStore[i].GetData().id + ":" + _core._heroStore[i].GetExp() + ":" + _core._heroStore[i].GetStatus().currentHP;
                 if (i < _core._heroStore.Count - 1)
                     heroStore += ",";
             }
             dataPlayerLog[logNumber].heroStore = heroStore;
-            dataPlayerLog[logNumber].teamSelected = _core._currentTeamIsSelect;
-            string teamSetup = "";
-            for (int i = 0; i < _core._teamSetup.Count; i++)
-            {
-                for (int j = 0; j < _core._teamSetup[i].position.Count; j++)
-                {
-                    teamSetup += _core._teamSetup[i].position[j].id;
-                    if (j != 4)
-                        teamSetup += ":";
-                }
-                if (i < _core._teamSetup.Count - 1)
-                    teamSetup += ",";
-            }
-            dataPlayerLog[logNumber].teamSetup = teamSetup;
+            dataPlayerLog[logNumber].heroIsPlay = _core._heroIsPlaying.GetStoreId();
             string dungeonIsPass = "";
             for (int i = 0; i < _core._dungeon.Length; i++)
             {

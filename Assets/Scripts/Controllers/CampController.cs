@@ -25,6 +25,7 @@ namespace controller
                     child.gameObject.SetActive(true);
                 }
             }
+            
         }
 
         void Update()
@@ -88,7 +89,7 @@ namespace controller
                     }
                     else if (tag == "Hero")
                     {
-                        _core._CharacterPanel.SetActive(true);
+                        _core._PlayerInfoPanel.SetActive(true);
                     }
                     else if (tag == "Farm")
                     {

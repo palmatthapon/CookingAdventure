@@ -9,7 +9,6 @@ using model;
 
     public class ShadowSlot : EventTrigger
     {
-        public HeroStore _hero;
         CharacterController _teamCon;
         GameCore _core;
 

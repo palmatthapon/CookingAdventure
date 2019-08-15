@@ -19,55 +19,55 @@ namespace Model
                 _core = Camera.main.GetComponent<GameCore>();
             if (_battleCon == null)
                 _battleCon = _core._battleCon;
-            _battleCon.GetHeroFocus()._eventBonusDmg = 1;
-            _battleCon.GetMonFocus()._eventBonusDmg = 1;
+            _battleCon.FocusHero().GetStatus()._eventBonusDmg = 1;
+            _battleCon.FocusMonster().GetStatus()._eventBonusDmg = 1;
         }
 
         public void Event1()
         {
             Run();
             //Debug.Log("event 1");
-            if(_battleCon.GetHeroFocus().hero.hero.type == _Character.HAMMER)
+            if(_battleCon.FocusHero().GetData().type == _Character.HAMMER)
             {
-                _battleCon.GetHeroFocus()._eventBonusDmg = _battleCon._evenAttack;
+                _battleCon.FocusHero().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
             }
-            if(_battleCon.GetMonFocus().type == _Character.HAMMER)
+            if(_battleCon.FocusMonster().GetData().type == _Character.HAMMER)
             {
-                _battleCon.GetMonFocus()._eventBonusDmg = _battleCon._evenAttack;
+                _battleCon.FocusMonster().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
             }
 		}
         public void Event2()
         {
             Run();
             //Debug.Log("event 2");
-            if (_battleCon.GetHeroFocus().hero.hero.type == _Character.SCISSORS)
+            if (_battleCon.FocusHero().GetData().type == _Character.SCISSORS)
             {
-                _battleCon.GetHeroFocus()._eventBonusDmg = _battleCon._evenAttack;
+                _battleCon.FocusHero().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
             }
-            if (_battleCon.GetMonFocus().type == _Character.SCISSORS)
+            if (_battleCon.FocusMonster().GetData().type == _Character.SCISSORS)
             {
-                _battleCon.GetMonFocus()._eventBonusDmg = _battleCon._evenAttack;
+                _battleCon.FocusMonster().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
             }
         }
         public void Event3()
         {
             Run();
             //Debug.Log("event 3");
-            if (_battleCon.GetHeroFocus().hero.hero.type == _Character.PAPER)
+            if (_battleCon.FocusHero().GetData().type == _Character.PAPER)
             {
-                _battleCon.GetHeroFocus()._eventBonusDmg = _battleCon._evenAttack;
+                _battleCon.FocusHero().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
             }
-            if (_battleCon.GetMonFocus().type == _Character.PAPER)
+            if (_battleCon.FocusMonster().GetData().type == _Character.PAPER)
             {
-                _battleCon.GetMonFocus()._eventBonusDmg = _battleCon._evenAttack;
+                _battleCon.FocusMonster().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
             }
         }
         public void Event4()
         {
             Run();
             //Debug.Log("event 4");
-            _battleCon.GetHeroFocus()._eventBonusDmg = _battleCon._evenAttack;
-            _battleCon.GetMonFocus()._eventBonusDmg = _battleCon._evenAttack;
+            _battleCon.FocusHero().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
+            _battleCon.FocusMonster().GetStatus()._eventBonusDmg = _battleCon._evenAttack;
         }
         public void Event5()
         {

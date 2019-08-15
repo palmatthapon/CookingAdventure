@@ -10,7 +10,7 @@ using model;
 using item;
 using controller;
 
-namespace player
+namespace model
 {
     public class ManageHeroPanel : MonoBehaviour
     {
@@ -40,16 +40,16 @@ namespace player
 
         void OnEnable()
         {
-            _teamList = new List<HeroStore>();
+            _heroList = new List<Hero>();
             LoadData();
             _heroIsSelect = 0;
             _confirmBtn.SetActive(_core._ActionMode != _ActionStatus.Item ? false : true);
             LoadHeroIcon();
-            ShowInfoHero(_teamList[_heroIsSelect]);
+            ShowInfoHero(_heroList[_heroIsSelect]);
             
                 
         }
-        List<HeroStore> _teamList;
+        List<Hero> _heroList;
 
         void LoadData()
         {
@@ -57,12 +57,12 @@ namespace player
             {
                 for(int i=0;i< _core._heroStore.Count; i++)
                 {
-                    _teamList.Add(_core._heroStore[i]);
+                    _heroList.Add(_core._heroStore[i]);
                 }
             }
             else
             {
-                 _teamList = _core._teamSetup[_core._currentTeamIsSelect - 1].position;
+                _heroList.Add(_core._heroIsPlaying);
             }
         }
         
@@ -74,47 +74,34 @@ namespace player
                 PrevImg();
         }
 
+        Sprite[] loadSprite = null;
+        string getSpriteSet = "";
+
         void LoadHeroIcon()
         {
-            Sprite[] loadSprite = null;
-            string getSpriteSet = "";
+            
 
             CreateBlockSlot(_manageMask);
             
-            for (int i = 0; i < _teamList.Count; i++)
+            for (int i = 0; i < _heroList.Count; i++)
             {
                 GameObject slot = Instantiate(_ManageTeamSlot);
                 slot.transform.SetParent(_manageMask);
                 slot.transform.localScale = new Vector3(1, 1, 1);
 
-                if (_teamList[i].id == -1)
+                if (getSpriteSet != _heroList[i].GetData().spriteSet)
                 {
-                    if (getSpriteSet != "hero")
-                    {
-                        getSpriteSet = "hero";
-                        loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
-                    }
+                    getSpriteSet = _heroList[i].GetData().spriteSet;
+                    loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
+                }
+                slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _heroList[i].GetData().spriteName);
 
-                    slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_Shadow");
-                    slot.transform.Find("Type").gameObject.SetActive(false);
-                    slot.transform.Find("Death").gameObject.SetActive(false);
-                }
+                if (_heroList[i].GetStatus().currentHP <= 0)
+                    slot.transform.Find("Death").gameObject.SetActive(true);
                 else
-                {
-                    if (getSpriteSet != _teamList[i].hero.spriteSet)
-                    {
-                        getSpriteSet = _teamList[i].hero.spriteSet;
-                        loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
-                    }
-                    slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _teamList[i].hero.spriteName);
-                    slot.transform.Find("Type").gameObject.SetActive(true);
-                    _core.SetSpriteType(slot.transform.Find("Type").GetComponent<Image>(), _teamList[i].hero.type);
-                    if (_teamList[i].hp <= 0)
-                        slot.transform.Find("Death").gameObject.SetActive(true);
-                    else
-                        slot.transform.Find("Death").gameObject.SetActive(false);
-                }
-                _teamList[i].obj = slot;
+                    slot.transform.Find("Death").gameObject.SetActive(false);
+
+                _heroList[i].obj = slot;
 
             }
 
@@ -150,9 +137,9 @@ namespace player
         public void PrevHero()
         {
             if (_heroIsSelect <= 0) return;
-            _teamList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
+            _heroList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
             _heroIsSelect--;
-            if (_core._ActionMode == _ActionStatus.Item || _teamList[_heroIsSelect].id != -1 && 0 != _heroIsSelect && _teamList[_heroIsSelect].hp >0)
+            if (_core._ActionMode == _ActionStatus.Item || _heroList[_heroIsSelect].GetStoreId() != -1 && 0 != _heroIsSelect && _heroList[_heroIsSelect].GetStatus().currentHP > 0)
             {
                 _confirmBtn.SetActive(true);
             }
@@ -162,16 +149,16 @@ namespace player
             }
             _nextCheck = false;
             _newPosition = new Vector3(_manageMask.localPosition.x + _recManageTeamSlot.rect.width + _spacing, _manageMask.localPosition.y, _manageMask.localPosition.z);
-            ShowInfoHero(_teamList[_heroIsSelect]);
+            ShowInfoHero(_heroList[_heroIsSelect]);
             _prevCheck = true;
         }
 
         public void NextHero()
         {
-            if (_heroIsSelect >= _teamList.Count - 1) return;
-            _teamList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
+            if (_heroIsSelect >= _heroList.Count - 1) return;
+            _heroList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
             _heroIsSelect++;
-            if (_core._ActionMode == _ActionStatus.Item || _teamList[_heroIsSelect].id != -1 && 0 != _heroIsSelect && _teamList[_heroIsSelect].hp >0)
+            if (_core._ActionMode == _ActionStatus.Item || _heroList[_heroIsSelect].GetStoreId() != -1 && 0 != _heroIsSelect && _heroList[_heroIsSelect].GetStatus().currentHP > 0)
             {
                 _confirmBtn.SetActive(true);
             }
@@ -181,7 +168,7 @@ namespace player
             }
             _prevCheck = false;
             _newPosition = new Vector3(_manageMask.localPosition.x - (_recManageTeamSlot.rect.width + _spacing), _manageMask.localPosition.y, _manageMask.localPosition.z);
-            ShowInfoHero(_teamList[_heroIsSelect]);
+            ShowInfoHero(_heroList[_heroIsSelect]);
             _nextCheck = true;
         }
         public float smoothTime = 0.5f;
@@ -213,20 +200,20 @@ namespace player
             }
         }
 
-        void ShowInfoHero(HeroStore _hero)
+        void ShowInfoHero(Hero _hero)
         {
-            if(_hero.id == -1)
+            if(_hero.GetStoreId() == -1)
             {
                 _core._infoPanel.SetActive(false);
                 return;
             }
             _hero.obj.transform.Find("SelectEffect").gameObject.SetActive(true);
-                _core.SetInfo(_hero.hero.name + " Lv. " + _hero.level
-                    +(_hero.hp < _hero.hpMax / 2 ? "<color=#ff0000><เลือด " : "<color=#01b140><เลือด ") + _hero.hp + " </color><color=#01b140>/" + _hero.hpMax + "></color>"
-                    + "\n<โจมตี " + _hero.ATK+">"
-                    + "<โจมตีเวทย์ " + _hero.MATK + ">"
-                    + "<เกาะ " + _hero.DEF  + ">"
-                    + "<เกาะเวทย์ " + _hero.MDEF  + ">"
+                _core.SetInfo(_hero.GetStatus().name + " Lv. " + _hero.GetStatus().level
+                    +(_hero.GetStatus().currentHP < _hero.GetStatus().hpMax / 2 ? "<color=#ff0000><เลือด " : "<color=#01b140><เลือด ") + _hero.GetStatus().currentHP + " </color><color=#01b140>/" + _hero.GetStatus().hpMax + "></color>"
+                    + "\n<โจมตี " + _hero.GetStatus().ATK+">"
+                    + "<โจมตีเวทย์ " + _hero.GetStatus().MATK + ">"
+                    + "<เกาะ " + _hero.GetStatus().DEF  + ">"
+                    + "<เกาะเวทย์ " + _hero.GetStatus().MDEF  + ">"
                     );
             
         }
@@ -235,7 +222,7 @@ namespace player
         {
             if (_core._ActionMode == _ActionStatus.Item)
             {
-                if(_teamList[_heroIsSelect].id == -1)
+                if(_heroList[_heroIsSelect].GetStoreId() == -1)
                 {
                     _core.OpenErrorNotify("ไม่มีฮีโร่ที่ใช้งานได้!");
                     return;
@@ -246,15 +233,15 @@ namespace player
                     {
                         if (_itemCon._itemStoreIdSelect.id == item.id)
                         {
-                            if (CallItemFunction((_Item)_itemCon._itemStoreIdSelect.itemId, _teamList[_heroIsSelect]))
+                            if (CallItemFunction((_Item)_itemCon._itemStoreIdSelect.itemId, _heroList[_heroIsSelect]))
                             {
                                 
                                 item.amount -= 1;
-                                if(_teamList[_heroIsSelect].hp > 0)
+                                if(_heroList[_heroIsSelect].GetStatus().currentHP > 0)
                                 {
-                                    _teamList[_heroIsSelect].obj.transform.Find("Death").gameObject.SetActive(false);
+                                    _heroList[_heroIsSelect].obj.transform.Find("Death").gameObject.SetActive(false);
                                 }
-                                ShowInfoHero(_teamList[_heroIsSelect]);
+                                ShowInfoHero(_heroList[_heroIsSelect]);
                                 if (item.amount == 0)
                                 {
                                     item.obj.transform.Find("Select").gameObject.SetActive(false);
