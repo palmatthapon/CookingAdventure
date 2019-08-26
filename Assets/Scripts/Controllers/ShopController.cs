@@ -24,7 +24,7 @@ namespace controller
         {
             _core = Camera.main.GetComponent<GameCore>();
             _cal = new Calculate();
-            _itemCon = _core._mainMenu.GetComponent<ItemController>();
+            _itemCon = _core._menuPanel.GetComponent<ItemController>();
         }
 
         public void ViewItem()
@@ -58,13 +58,13 @@ namespace controller
 
         public void LoadShop()
         {
-            if (_core._gameMode == _GameStatus.LAND)
+            if (_core._gameMode == _GameState.LAND)
             {
                 _itemShopList = _core._landShopList;
             }
             else
             {
-                string[] item = _core._dungeon[_core._currentDungeonLayer].dungeon.shopList.Split(',');
+                string[] item = _core._dungeon[_core._player.currentDungeonFloor].dungeon.shopList.Split(',');
                 _itemShopList = new List<ItemShop>();
                 for (int i = 0; i < item.Length; i++)
                 {
@@ -104,7 +104,7 @@ namespace controller
                 data.item = _itemShopList[a].item;
                 data.itemId = _itemShopList[a].item.id;
                 itemComp._item = data;
-                if (_core._gameMode == _GameStatus.LAND)
+                if (_core._gameMode == _GameState.LAND)
                 {
                     itemSlot.transform.Find("Price").GetComponent<Text>().text = (_itemShopList[a].item.price + (_itemShopList[a].buyCount / 10) * 5).ToString();
                 }
@@ -130,8 +130,8 @@ namespace controller
                 if (_itemShopIsSelect.id == item.id)
                 {
                     item.amount += -1;
-                    _core._currentMoney += (item.item.price / 2);
-                    _core.SubMenuCancelBtn();
+                    _core._player.currentMoney += (item.item.price / 2);
+                    _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
                     foreach (ItemShop itemShop in _itemShopList)
                     {
                         if (itemShop.id == _itemShopIsSelect.itemId)
@@ -163,7 +163,7 @@ namespace controller
             {
                 if (itemShop.item.id == _itemShopIsSelect.itemId)
                 {
-                    if (_core._gameMode == _GameStatus.LAND)
+                    if (_core._gameMode == _GameState.LAND)
                     {
                         totalPrice = _itemShopIsSelect.item.price + (itemShop.buyCount / 10) * 5;
                     }
@@ -172,13 +172,13 @@ namespace controller
                         totalPrice = _itemShopIsSelect.item.price + (_itemShopIsSelect.item.price / 4) * itemShop.buyCount;
                     }
 
-                    if (_core._currentMoney < totalPrice)
+                    if (_core._player.currentMoney < totalPrice)
                     {
                         //_core.CallSubMenu(_SubMenu.Alert, "จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
                         _core.OpenErrorNotify("จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
                         return;
                     }
-                    _core._currentMoney += -totalPrice;
+                    _core._player.currentMoney += -totalPrice;
                     itemShop.buyCount++;
                     ViewShop();
                     break;
@@ -194,7 +194,7 @@ namespace controller
                     if (item.amount == 99) break;
                     item.amount++;
                     item.obj.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                    _core.SubMenuCancelBtn();
+                    _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
                     haveItem = true;
                     break;
                 }
@@ -208,7 +208,7 @@ namespace controller
                 _itemShopIsSelect.amount = 1;
                 _core._itemStore.Add(_itemShopIsSelect);
                 _itemCon.ViewItem(_itemList);
-                _core.SubMenuCancelBtn();
+                _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
             }
             _itemShopIsSelect = null;
         }

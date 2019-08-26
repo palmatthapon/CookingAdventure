@@ -41,16 +41,16 @@ namespace controller
 
             playerIcon.transform.Find("Level").gameObject.SetActive(false);
 
-            if (getSpriteSet != _core._heroIsPlaying.GetData().spriteSet)
+            if (getSpriteSet != _core._heroIsPlaying.getSpriteSet())
             {
-                getSpriteSet = _core._heroIsPlaying.GetData().spriteSet;
+                getSpriteSet = _core._heroIsPlaying.getSpriteSet();
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
-            Debug.Log("playerIcon"+_core._heroIsPlaying.GetData().spriteName);
-            playerIcon.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _core._heroIsPlaying.GetData().spriteName);
+            Debug.Log("playerIcon"+_core._heroIsPlaying.getSpriteName());
+            playerIcon.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _core._heroIsPlaying.getSpriteName());
             
             playerIcon.transform.Find("Death").gameObject.SetActive(false);
-            _core._CharacterPanel.transform.Find("InfoBG").Find("NameText").GetComponent<Text>().text = _core._heroIsPlaying.GetData().name;
+            _core._CharacterPanel.transform.Find("InfoBG").Find("NameText").GetComponent<Text>().text = _core._heroIsPlaying.getName();
 
             if (loadAvatar)
             {
@@ -61,13 +61,13 @@ namespace controller
 
         public void LoadCampAvatar()
         {
-            if (getSpriteSet != _core._heroIsPlaying.GetData().spriteSet)
+            if (getSpriteSet != _core._heroIsPlaying.getSpriteSet())
             {
-                getSpriteSet = _core._heroIsPlaying.GetData().spriteSet;
+                getSpriteSet = _core._heroIsPlaying.getSpriteSet();
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
-            Debug.Log("camp avatar " + _core._heroIsPlaying.GetData().spriteName);
-            _core._campAvatar[0].GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == _core._heroIsPlaying.GetData().spriteName);
+            Debug.Log("camp avatar " + _core._heroIsPlaying.getSpriteName());
+            _core._campAvatar[0].GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == _core._heroIsPlaying.getSpriteName());
             _core._campAvatar[0].GetComponent<SpriteRenderer>().material = _mats.Single(s => s.name == getSpriteSet);
         }
         

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using model;
 using controller;
+using System.Linq;
 
 public class ItemPanel : MonoBehaviour
 {
@@ -17,18 +18,18 @@ public class ItemPanel : MonoBehaviour
     {
         _core = Camera.main.GetComponent<GameCore>();
         _cal = new Calculate();
-        _itemCon = _core._mainMenu.GetComponent<ItemController>();
+        _itemCon = _core._menuPanel.GetComponent<ItemController>();
     }
 
     private void OnEnable()
     {
-        _core._ActionMode = _ActionStatus.Item;
+        _core._actionMode = _ActionState.Item;
         _itemCon.ViewItem(this.gameObject);
     }
 
     public void Close()
     {
-        _core._itemBtn.GetComponent<Image>().sprite = _core._bagIcon[0];
+        _core._menuCon.gridViewTrans.Find("BagButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "bagClose"); ;
         this.gameObject.SetActive(false);
     }
 }

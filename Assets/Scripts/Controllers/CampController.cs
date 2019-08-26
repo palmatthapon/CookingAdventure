@@ -32,7 +32,7 @@ namespace controller
         {
             if (!_core.isPaused)
             {
-                if (_core._gameMode == _GameStatus.CAMP || _core._gameMode == _GameStatus.LAND)
+                if (_core._gameMode == _GameState.CAMP || _core._gameMode == _GameState.LAND)
                 {
                     OnTouch();
                 }

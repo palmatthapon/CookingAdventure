@@ -28,7 +28,6 @@ namespace menu
             if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
             {
                 //Debug.Log("Select");
-                _settingPan.AddQuestionLink(_link);
             }
             lastTimeClick = currentTimeClick;
         }

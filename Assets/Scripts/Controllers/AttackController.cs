@@ -51,7 +51,7 @@ namespace controller
                 {
                     foreach (Hero hero in _battleCon._hero.ToList())
                     {
-                        if (hero.GetStoreId() == _attackList[i].heroStoreId)
+                        if (hero.getStoreId() == _attackList[i].heroStoreId)
                         {
                             _attackList[i].obj.transform.Find("Image").GetComponent<Image>().color = new Color32(255, 255, 255, 255);
                             heroDead = false;
@@ -139,7 +139,7 @@ namespace controller
             int ranSlot = Random.Range(0, _battleCon._heroData.Length);
             Hero hero = _battleCon._heroData[ranSlot];
 
-            if(hero.GetStatus().currentHP == 0)
+            if(hero.getStatus().currentHP == 0)
             {
                 //Debug.Log("old block "+ranSlot);
                 ranSlot = Random.Range(0, _battleCon._heroData.Length);
@@ -151,22 +151,22 @@ namespace controller
             slot.transform.localScale = new Vector3(1, 1, 1);
             slot.transform.localPosition = Vector3.zero;
             
-            if (getSpriteSet != hero.GetData().spriteSet)
+            if (getSpriteSet != hero.getSpriteSet())
             {
-                getSpriteSet = hero.GetData().spriteSet;
+                getSpriteSet = hero.getSpriteSet();
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
             
-            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.GetData().spriteName);
+            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.getSpriteName());
             SkillBlock skill = new SkillBlock();
             
             skill.slotId = _blockCount;
-            skill.defCrystal = hero.GetStatus().attack[0].skill.crystal;
+            skill.defCrystal = hero.getStatus().attack[0].skill.crystal;
             slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = skill.defCrystal.ToString();
-            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Skill_" + hero.GetData().spriteName);
-            skill.heroStoreId = hero.GetStoreId();
+            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Skill_" + hero.getSpriteName());
+            skill.heroStoreId = hero.getStoreId();
             skill.blockStack = 1;
-            skill.color = hero.GetSlot();
+            skill.color = hero.getSlot();
             skill.isAttack = true;
             skill.isUltimate = false;
             skill.crystal = skill.defCrystal;
@@ -217,20 +217,20 @@ namespace controller
             slot.transform.localPosition = Vector3.zero;
 
             Hero hero = _battleCon._heroData[slotId];
-            if (getSpriteSet != hero.GetData().spriteSet)
+            if (getSpriteSet != hero.getSpriteSet())
             {
-                getSpriteSet = hero.GetData().spriteSet;
+                getSpriteSet = hero.getSpriteSet();
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
-            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.GetData().spriteName);
-            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Ultimate_" + hero.GetData().spriteName);
+            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.getSpriteName());
+            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Ultimate_" + hero.getSpriteName());
             SkillBlock skill = new SkillBlock();
             skill.slotId = _blockCount;
-            skill.defCrystal = hero.GetStatus().attack[1].skill.crystal;
+            skill.defCrystal = hero.getStatus().attack[1].skill.crystal;
             slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = skill.defCrystal.ToString();
-            skill.heroStoreId = hero.GetStoreId();
+            skill.heroStoreId = hero.getStoreId();
             skill.blockStack = 1;
-            skill.color = hero.GetSlot();
+            skill.color = hero.getSlot();
             skill.isAttack = true;
             skill.isUltimate = true;
             skill.crystal = skill.defCrystal;
@@ -244,7 +244,7 @@ namespace controller
 
         public void UseAttack(SkillBlock skill)
         {
-            _core._ActionMode = skill.isAttack?_ActionStatus.Attack: _ActionStatus.Defense;
+            _core._actionMode = skill.isAttack?_ActionState.Attack: _ActionState.Defense;
             
             if (_core.UseCrystal(skill.crystal))
             {
@@ -254,7 +254,7 @@ namespace controller
                     bool have = false;
                     foreach (Hero hero in _battleCon._hero.ToList())
                     {
-                        if (hero.GetStoreId() == skill.heroStoreId)
+                        if (hero.getStoreId() == skill.heroStoreId)
                         {
                             have = true;
                             hero.Attack(skill.isUltimate, false, skill.blockStack);

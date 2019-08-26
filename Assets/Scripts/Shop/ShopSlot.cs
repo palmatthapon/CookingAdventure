@@ -19,7 +19,7 @@ namespace shop
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _shopCon = _core._mainMenu.GetComponent<ShopController>();
+            _shopCon = _core._menuPanel.GetComponent<ShopController>();
         }
         float lastTimeClick;
 
@@ -32,7 +32,7 @@ namespace shop
             if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
             {
 
-                _core.CallSubMenu(_SubMenu.Shop);
+                _core.OpenSubMenu(_SubMenu.Shop);
             }
             lastTimeClick = currentTimeClick;
         }

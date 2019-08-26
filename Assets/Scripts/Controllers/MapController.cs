@@ -13,15 +13,12 @@ namespace controller
 
         GameCore _core;
         Calculate _cal;
-        MonPanel _monCom;
 
         public GameObject _teamIconSlot;
         public GameObject _monsterSlot;
         public GameObject _roomSlot,_blackFog;
         public Sprite[] _roomIcon;
         public GameObject _warpBtn, _bossRoomBtn,_campBtn;
-        public Sprite[] _dunBlack,_dunWhite;
-
 
         Vector2 StartPosition;
         Vector2 DragStartPosition;
@@ -42,7 +39,6 @@ namespace controller
         {
             _core = Camera.main.GetComponent<GameCore>();
             _cal = _core._cal;
-            _monCom = _core._monCom;
             speed = 0.005F;
             mapSize = _core._mapObj.GetComponent<SpriteRenderer>().bounds.size;
             mapPos = _core._mapObj.transform.position;
@@ -51,23 +47,24 @@ namespace controller
 
         void OnEnable() {
             Camera.main.orthographicSize = 0.9f;
-            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.SetActive(false);
+            _core._menuCon.setIconMapBtn("mapOpen");
             LoadData();
             SetPanel(true);
             LoadMap();
-            //_core.LoadScene(_GameStatus.FORESTSHOP);
+            //_core.LoadScene(_GameState.FORESTSHOP);
         }
 
         void LoadData()
         {
-            _dungeon = _core._dungeon[_core._currentDungeonLayer - 1];
+            Debug.Log("Dungeon Floor "+_core._player.currentDungeonFloor);
+            _dungeon = _core._dungeon[_core._player.currentDungeonFloor - 1];
             
         }
         
         void Update () {
             if (!_core.isPaused)
             {
-                if (_core._gameMode == _GameStatus.MAP && !_core._subMenuPanel.activeSelf)
+                if (_core._gameMode == _GameState.MAP && !_core._subMenuPanel.activeSelf)
                 {
                     CameraMove();
                     CheckTouchRoom();
@@ -99,20 +96,32 @@ namespace controller
         int sizeY;
         int sizeMax;
 
+        int startX;
+        int startY;
+
         void LoadMap()
         {
-            if (_dungeonLayerIsLoad != _core._currentDungeonLayer || _core._mapObj.transform.childCount == 0)
+            if (_dungeonLayerIsLoad != _core._player.currentDungeonFloor || _core._mapObj.transform.childCount == 0)
             {
-                _dungeonLayerIsLoad = _core._currentDungeonLayer;
+                _dungeonLayerIsLoad = _core._player.currentDungeonFloor;
+                
                 foreach (Transform child in _core._mapObj.transform)
                 {
                     GameObject.Destroy(child.gameObject);
                 }
+                
                 string sizeStr = _dungeon.dungeon.size;
                 string[] size = sizeStr.Split(':');
                 sizeX = _cal.IntParseFast(size[0]);
                 sizeY = _cal.IntParseFast(size[1]);
                 sizeMax = sizeX * sizeY;
+
+                startX = _dungeon.dungeon.startRoom % sizeX;
+                startY = _dungeon.dungeon.startRoom / sizeX + 1;
+
+
+                LoadMonsterInDungeonLayer();
+
                 _roomList = new GameObject[sizeMax];
 
                 for (int row = 0; row < sizeY; row++)
@@ -149,30 +158,136 @@ namespace controller
 
                 }
             }
-            Navigate(_core._currentRoomPosition, true);
+            Navigate(_core._player.currentRoomPosition, true);
 
-            _roomList[_core._currentRoomPosition].transform.Find("LightMask").gameObject.SetActive(true);
-            _roomLoad = _roomList[_core._currentRoomPosition];
-            _warpBtn.SetActive(_core._currentRoomPosition == _dungeon.dungeon.startRoom ? true : false);
-            _bossRoomBtn.SetActive(_core._currentRoomPosition == _dungeon.dungeon.bossRoom ? true : false);
-            ChangePlayerIconMap(_core._currentRoomPosition);
+            _roomList[_core._player.currentRoomPosition].transform.Find("LightMask").gameObject.SetActive(true);
+            _roomLoad = _roomList[_core._player.currentRoomPosition];
+            _warpBtn.SetActive(_core._player.currentRoomPosition == _dungeon.dungeon.startRoom ? true : false);
+            _bossRoomBtn.SetActive(_core._player.currentRoomPosition == _dungeon.dungeon.bossRoom ? true : false);
+            ChangePlayerIconMap(_core._player.currentRoomPosition);
             FocusPosition();
         }
+
+        List<Monster> _bossInCurrentDungeonLayer;
+        List<Monster> _monsterInCurrentDungeonLayer;
+
+        void LoadMonsterInDungeonLayer()
+        {
+            _bossInCurrentDungeonLayer = new List<Monster>();
+            _monsterInCurrentDungeonLayer = new List<Monster>();
+
+            foreach (MonsterDataList dataList in _core.dataMonsterList)
+            {
+                if (dataList.id == _dungeon.dungeon.monsterSetId)
+                {
+                    string[] monsList = dataList.name.Split(',');
+                    string[] type = dataList.type.Split(',');
+                    string[] baseSTR = dataList.baseSTR.Split(',');
+                    string[] baseAGI = dataList.baseAGI.Split(',');
+                    string[] baseINT = dataList.baseINT.Split(',');
+                    string[] skillLoad = dataList.skillList.Split(',');
+                    string[] patternAtkLoad = dataList.patternAttack.Split(',');
+
+
+                    for (int id = 0; id < monsList.Length; id++)
+                    {
+                        ModelDataSet dataNew = new ModelDataSet();
+                        dataNew.name = monsList[id];
+                        dataNew.spriteSet = dataList.spriteSet;
+                        dataNew.spriteName = dataList.spriteSet + "_" + id;
+                        
+                        dataNew.baseSTR = _cal.IntParseFast(baseSTR[id]);
+                        dataNew.baseAGI = _cal.IntParseFast(baseAGI[id]);
+                        dataNew.baseINT = _cal.IntParseFast(baseINT[id]);
+
+                        Monster monster = new Monster(id, _dungeon.dungeon.levelMin, dataNew);
+
+                        string[] skillList = skillLoad[id].Split(':');
+                        for (int c = 0; c < skillList.Length; c++)
+                        {
+                            foreach (SkillDataSet skill in _core.dataSkillList)
+                            {
+                                if (_cal.IntParseFast(skillList[c]) == skill.id)
+                                {
+                                    Skill attack = new Skill();
+                                    string[] buffList = skill.buffList.Split(',');
+                                    for (int s = 0; s < buffList.Length; s++)
+                                    {
+                                        string[] buff = buffList[s].Split(':');
+                                        Buff dataBuff = new Buff();
+                                        dataBuff.id = _cal.IntParseFast(buff[0]);
+                                        dataBuff.icon = _cal.IntParseFast(buff[1]);
+                                        dataBuff.timeCount = _cal.IntParseFast(buff[2]);
+                                        dataBuff.whoUse = _Model.MONSTER;
+                                        dataBuff.forMe = (_cal.IntParseFast(buff[3]) == 0) ? true : false;
+                                        attack.buff.Add(dataBuff);
+                                    }
+                                    attack.hate = (int)skill.bonusDmg * 20;
+                                    attack.skill = skill;
+                                    monster.getStatus().attack[c] = attack;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        monster.patternAttack = patternAtkLoad;
+                        _monsterInCurrentDungeonLayer.Add(monster);
+                    }
+                    break;
+                }
+
+            }
+
+            float bonusBoss = 1;
+
+            string[] getBoss = _dungeon.dungeon.bossListId.Split(',');
+
+            for (int i = 0; i < getBoss.Length; i++)
+            {
+                string[] bossSet = getBoss[i].Split(':');
+
+                foreach (ModelDataSet boss in _core.dataHeroList)
+                {
+                    if (boss.id != _cal.IntParseFast(bossSet[0])) continue;
+                    Monster bossNew = new Monster(i, _cal.IntParseFast(bossSet[1]), boss);
+
+                    float[] statusBonus = new float[3];
+                    for (int p = 1; p <= _roomPassCount; p++)
+                    {
+                        int ranStatus = Random.Range(0, 3);
+                        statusBonus[ranStatus] = statusBonus[ranStatus] + 0.5f;
+                    }
+                    for (int p = 1; p <= _roomEscapeCount; p++)
+                    {
+                        int ranStatus = Random.Range(0, 3);
+                        statusBonus[ranStatus] = statusBonus[ranStatus] + 2.5f;
+                    }
+
+                    string[] attackp = boss.patternAttack.Split(',');
+                    bossNew.patternAttack = attackp;
+                    _bossInCurrentDungeonLayer.Add(bossNew);
+                    break;
+                }
+                
+            }
+            bonusBoss = 2f;
+        }
+
         Sprite[] loadSprite = null;
         string getSpriteSet = "";
 
         public void ChangePlayerIconMap(int pos,int posNew=-1)
         {
 
-            if (getSpriteSet != _core._heroIsPlaying.GetData().spriteSet)
+            if (getSpriteSet != _core._heroIsPlaying.getSpriteSet())
             {
-                getSpriteSet = _core._heroIsPlaying.GetData().spriteSet;
+                getSpriteSet = _core._heroIsPlaying.getSpriteSet();
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
             if (posNew == -1)
             {
                 _roomList[pos].transform.Find("Player").gameObject.SetActive(true);
-                _roomList[pos].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_"+ _core._heroIsPlaying.GetData().spriteName);
+                _roomList[pos].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_"+ _core._heroIsPlaying.getSpriteName());
             }
             else
             {
@@ -192,7 +307,7 @@ namespace controller
                 }
                 _roomList[pos].transform.Find("LightMask").gameObject.SetActive(false);
                 _roomList[posNew].transform.Find("Player").gameObject.SetActive(true);
-                _roomList[posNew].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_" + _core._heroIsPlaying.GetData().spriteName);
+                _roomList[posNew].transform.Find("Player").GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == "Map_" + _core._heroIsPlaying.getSpriteName());
                 _roomList[posNew].transform.Find("LightMask").gameObject.SetActive(true);
             }
             
@@ -200,8 +315,8 @@ namespace controller
 
         public void FocusPosition()
         {
-            Camera.main.transform.position = new Vector3(_roomList[_core._currentRoomPosition].transform.position.x,
-                    _roomList[_core._currentRoomPosition].transform.position.y,
+            Camera.main.transform.position = new Vector3(_roomList[_core._player.currentRoomPosition].transform.position.x,
+                    _roomList[_core._player.currentRoomPosition].transform.position.y,
                     Camera.main.transform.position.z);
         }
 
@@ -209,36 +324,37 @@ namespace controller
         {
             if (pos == 0)
             {
-                return _dunBlack[0];
-            }else if (pos == sizeX-1)
+                return _core._mapSprite.Single(s => s.name == "map2_1");
+            }
+            else if (pos == sizeX-1)
             {
-                return _dunBlack[2];
+                return _core._mapSprite.Single(s => s.name == "map2_3");
             }
             else if (pos == sizeMax - sizeX)
             {
-                return _dunBlack[6];
+                return _core._mapSprite.Single(s => s.name == "map2_7");
             }
             else if (pos == sizeMax - 1)
             {
-                return _dunBlack[8];
+                return _core._mapSprite.Single(s => s.name == "map2_9");
             }
             else if (pos < sizeX)
             {
-                return _dunBlack[1];
+                return _core._mapSprite.Single(s => s.name == "map2_2");
             }
             else if (pos % sizeX ==0)
             {
-                return _dunBlack[3];
+                return _core._mapSprite.Single(s => s.name == "map2_4");
             }
             else if ((pos+1)%sizeX == 0)
             {
-                return _dunBlack[5];
+                return _core._mapSprite.Single(s => s.name == "map2_6");
             }
             else if (pos > sizeMax - sizeX)
             {
-                return _dunBlack[7];
+                return _core._mapSprite.Single(s => s.name == "map2_8");
             }
-            return _dunBlack[4];
+            return _core._mapSprite.Single(s => s.name == "map2_5");
         }
 
         void SetRoomIconWhite(int pos,GameObject room,char name)
@@ -246,39 +362,39 @@ namespace controller
             Sprite roomIcon;
             if (pos == 0)
             {
-                roomIcon = _dunWhite[0];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_10");
             }
             else if (pos == sizeX - 1)
             {
-                roomIcon = _dunWhite[2];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_12");
             }
             else if (pos == sizeMax - sizeX)
             {
-                roomIcon = _dunWhite[6];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_16");
             }
             else if (pos == sizeMax - 1)
             {
-                roomIcon = _dunWhite[8];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_18");
             }
             else if (pos < sizeX)
             {
-                roomIcon = _dunWhite[1];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_11");
             }
             else if (pos % sizeX == 0)
             {
-                roomIcon = _dunWhite[3];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_13");
             }
             else if ((pos + 1) % sizeX == 0)
             {
-                roomIcon = _dunWhite[5];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_15");
             }
             else if (pos > sizeMax - sizeX)
             {
-                roomIcon = _dunWhite[7];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_17");
             }
             else
             {
-                roomIcon = _dunWhite[4];
+                roomIcon = _core._mapSprite.Single(s => s.name == "map2_14");
             }
             room.GetComponent<SpriteRenderer>().sprite = roomIcon;
             room.GetComponent<SpriteRenderer>().sortingOrder = 1;
@@ -414,29 +530,29 @@ namespace controller
                     if (Mathf.Abs(secondsCount - lastTimeClick) < 0.75f)
                     {
                         int newPosition = _cal.IntParseFast(hit.collider.gameObject.name);
-                        if (newPosition == _core._currentRoomPosition + 1 || newPosition == _core._currentRoomPosition - 1 || newPosition == _core._currentRoomPosition + sizeX || newPosition == _core._currentRoomPosition - sizeY)
+                        if (newPosition == _core._player.currentRoomPosition + 1 || newPosition == _core._player.currentRoomPosition - 1 || newPosition == _core._player.currentRoomPosition + sizeX || newPosition == _core._player.currentRoomPosition - sizeY)
                         {
-                            _roomList[_core._currentRoomPosition].transform.Find("LightMask").gameObject.SetActive(false);
-                            if (_core._currentRoomPosition == _dungeon.dungeon.startRoom)
+                            _roomList[_core._player.currentRoomPosition].transform.Find("LightMask").gameObject.SetActive(false);
+                            if (_core._player.currentRoomPosition == _dungeon.dungeon.startRoom)
                             {
-                                SetRoomIconWhite(_core._currentRoomPosition, _roomList[_core._currentRoomPosition], 's');
+                                SetRoomIconWhite(_core._player.currentRoomPosition, _roomList[_core._player.currentRoomPosition], 's');
                             }
-                            else if (_core._currentRoomPosition == _dungeon.dungeon.bossRoom)
+                            else if (_core._player.currentRoomPosition == _dungeon.dungeon.bossRoom)
                             {
-                                SetRoomIconWhite(_core._currentRoomPosition, _roomList[_core._currentRoomPosition], 'b');
+                                SetRoomIconWhite(_core._player.currentRoomPosition, _roomList[_core._player.currentRoomPosition], 'b');
                             }
                             else
                             {
-                                SetRoomIconWhite(_core._currentRoomPosition, _roomList[_core._currentRoomPosition], 'w');
+                                SetRoomIconWhite(_core._player.currentRoomPosition, _roomList[_core._player.currentRoomPosition], 'w');
                             }
                             SetRoomIconWhite(newPosition, _roomList[newPosition], 'w');
-                            ChangePlayerIconMap(_core._currentRoomPosition, newPosition);
+                            ChangePlayerIconMap(_core._player.currentRoomPosition, newPosition);
 
-                            Navigate(_core._currentRoomPosition, false);
-                            _core._currentRoomPosition = newPosition;
-                            Navigate(_core._currentRoomPosition, true);
+                            Navigate(_core._player.currentRoomPosition, false);
+                            _core._player.currentRoomPosition = newPosition;
+                            Navigate(_core._player.currentRoomPosition, true);
 
-                            _roomLoad = _roomList[_core._currentRoomPosition];
+                            _roomLoad = _roomList[_core._player.currentRoomPosition];
 
 
                             if (newPosition == _dungeon.dungeon.startRoom)
@@ -460,13 +576,13 @@ namespace controller
                                 if (roomPass == false)
                                 {
                                     Room newRoom = new Room();
-                                    newRoom.id = _core._currentRoomPosition;
+                                    newRoom.id = _core._player.currentRoomPosition;
                                     newRoom.passCount = 0;
                                     newRoom.escapeCount = 0;
                                     _dungeon.roomIsPass.Add(newRoom);
                                 }
                                 _warpBtn.SetActive(false);
-                                _bossRoomBtn.SetActive(_core._currentRoomPosition == _dungeon.dungeon.bossRoom ? true : false);
+                                _bossRoomBtn.SetActive(_core._player.currentRoomPosition == _dungeon.dungeon.bossRoom ? true : false);
                                 int shoprate = 30;
                                 if (_core._cutscene != null)
                                 {
@@ -479,7 +595,7 @@ namespace controller
                                     Debug.Log(shopRan + "<=" + shoprate + "mod " + shopRan % 2);
                                     if (newPosition != _dungeon.dungeon.bossRoom && shopRan <= shoprate && shopRan%2 ==0)
                                     {
-                                        _core.LoadScene(_GameStatus.FORESTSHOP);
+                                        _core.LoadScene(_GameState.FORESTSHOP);
                                     }
                                     else
                                     {
@@ -504,201 +620,55 @@ namespace controller
 
         void Navigate(int pos,bool open)
         {
-            if (pos + 1 < sizeMax)
+            if (pos + 1 < sizeMax && pos % sizeX != 2)
             {
                 _roomList[pos + 1].transform.Find("ParticleRoom").gameObject.SetActive(open);
             }
-            if (pos - 1 >= 0)
+            if (pos - 1 >= 0 && pos % sizeX != 0)
                 _roomList[pos - 1].transform.Find("ParticleRoom").gameObject.SetActive(open);
             if (pos + sizeX < sizeMax)
                 _roomList[pos + sizeX].transform.Find("ParticleRoom").gameObject.SetActive(open);
             if (pos - sizeX >= 0)
                 _roomList[pos - sizeX].transform.Find("ParticleRoom").gameObject.SetActive(open);
         }
-
-        public Monster[] monsterList;
-
+        
         void LoadMonsterInRoom()
         {
-            if (_core._cutscene != null)
-            {
-               //_core._cutscene.GetComponent<Cutscene>().TutorialPlay(_loadBattlePanel.transform.Find("BG").Find("JoinBattleButton"));
-            }
-            string[] getMonster;
-            int[] bossLvl=null;
-            int[] monsterListId=null;
-            float bonusBoss = 1;
+
             
-            int posX = _core._currentRoomPosition % sizeX;
-            int posY = _core._currentRoomPosition / sizeX + 1;
-            int startX = _dungeon.dungeon.startRoom % sizeX;
-            int startY = _dungeon.dungeon.startRoom / sizeX + 1;
+            
+            int posX = _core._player.currentRoomPosition % sizeX;
+            int posY = _core._player.currentRoomPosition / sizeX + 1;
+            
             int x = Math.Abs(posX - startX);
             int y = Math.Abs(posY - startY);
             int maxPos = (x > y ? x : y);
             
-            if (_core._currentRoomPosition == _dungeon.dungeon.bossRoom)
+            if (_core._player.currentRoomPosition == _dungeon.dungeon.bossRoom)
             {
                 _escapeRate = 0.4f;
-                getMonster = _dungeon.dungeon.bossListId.Split(',');
-                monsterListId = new int[getMonster.Length];
-                bossLvl = new int[getMonster.Length];
-                for (int i =0;i< getMonster.Length;i++)
-                {
-                    string[] cut = getMonster[i].Split(':');
-                    monsterListId[i] = _cal.IntParseFast(cut[0]);
-                    bossLvl[i] = _cal.IntParseFast(cut[1]);
-                }
-                bonusBoss = 2f;
                 
-                LoadBoss(monsterListId, bossLvl, bonusBoss);
             }
             else
             {
-                
-                    _escapeRate = 0.5f;
-                    
-                    _core._currentMonsterBattle = new Monster[1 + (Random.Range(0, max: Random.Range(0f,1f) < 0.5 ? 5: 5 / maxPos))];
-                    
-                    int MaxLevel = maxPos * _dungeon.dungeon.levelMax / sizeY;
-                    Debug.Log("Monster have " + _core._currentMonsterBattle.Length+" lvl max "+ MaxLevel+" dun lvl max "+ _dungeon.dungeon.levelMax);
-                    foreach (MonsterDataList dataList in _core.dataMonsterList)
-                    {
-                        if (dataList.id == _dungeon.dungeon.monsterSetId)
-                        {
-                            string[] monsList = dataList.name.Split(',');
-                            for (int i = 0; i < _core._currentMonsterBattle.Length; i++)
-                            {
-                                int id = Random.Range(0, monsList.Length);
 
-                                ModelDataSet addData = new ModelDataSet();
-                                addData.name = monsList[id];
-                                addData.spriteSet = dataList.spriteSet;
-                                addData.spriteName = dataList.spriteSet + "_" + id;
-                                string[] type = dataList.type.Split(',');
-                                addData.type = (_Character)_cal.IntParseFast(type[id]);
+                _escapeRate = 0.5f;
 
-                                float[] statusBonus = new float[3];
-                                for (int p = 1; p <= _roomPassCount; p++)
-                                {
-                                    int ranStatus = Random.Range(0, 3);
-                                    statusBonus[ranStatus] = statusBonus[ranStatus] + 0.5f;
-                                }
-                                for (int p = 1; p <= _roomEscapeCount; p++)
-                                {
-                                    int ranStatus = Random.Range(0, 3);
-                                    statusBonus[ranStatus] = statusBonus[ranStatus] + 2.5f;
-                                }
-                                string[] baseSTR = dataList.baseSTR.Split(',');
-                                string[] baseAGI = dataList.baseAGI.Split(',');
-                                string[] baseINT = dataList.baseINT.Split(',');
-                                addData.baseSTR = _cal.IntParseFast(baseSTR[id]);
-                                addData.baseAGI = _cal.IntParseFast(baseAGI[id]);
-                                addData.baseINT = _cal.IntParseFast(baseINT[id]);
+                _core._currentMonsterBattle = new Monster[1 + (Random.Range(0, max: Random.Range(0f, 1f) < 0.5 ? 5 : 5 / maxPos))];
 
-                                Monster monster = new Monster(i, Random.Range(0, MaxLevel) + _dungeon.dungeon.levelMin, addData);
-                                
-                                string[] sk = dataList.skillList.Split(',');
-                                string[] skillList = sk[id].Split(':');
-                                for (int c = 0; c < skillList.Length; c++)
-                                {
-                                    foreach (SkillDataSet skill in _core.dataSkillList)
-                                    {
-                                        if (_cal.IntParseFast(skillList[c]) == skill.id)
-                                        {
-                                            Skill attack = new Skill();
-                                            string[] buffList = skill.buffList.Split(',');
-                                            for (int s = 0; s < buffList.Length; s++)
-                                            {
-                                                string[] buff = buffList[s].Split(':');
-                                                Buff dataBuff = new Buff();
-                                                dataBuff.id = _cal.IntParseFast(buff[0]);
-                                                dataBuff.icon = _cal.IntParseFast(buff[1]);
-                                                dataBuff.timeCount = _cal.IntParseFast(buff[2]);
-                                                dataBuff.whoUse = _Model.MONSTER;
-                                                dataBuff.forMe = (_cal.IntParseFast(buff[3]) == 0) ? true : false;
-                                                attack.buff.Add(dataBuff);
-                                            }
-                                            attack.hate = (int)skill.bonusDmg * 20;
-                                            attack.skill = skill;
-                                            monster.GetStatus().attack[c] = attack;
-                                            break;
-                                        }
-                                    }
-                                }
-                                string[] attackp = dataList.attackPattern.Split(',');
-                                monster.attackPattern = attackp;
-                                _core._currentMonsterBattle[i] = monster;
-                                monsterList = _core._currentMonsterBattle;
-                                _monCom._monAvatarList[i].transform.parent.localScale = new Vector3(1, 1, 1);
-                            }
-                            break;
-                        }
-                        
-                    }
-                
-                 
-            }
-            _core.LoadScene(_GameStatus.BATTLE);
-        }
+                int MaxLevel = maxPos * _dungeon.dungeon.levelMax / sizeY;
+                Debug.Log("Monster have " + _core._currentMonsterBattle.Length + " lvl max " + MaxLevel + " dun lvl max " + _dungeon.dungeon.levelMax);
 
-        void LoadBoss(int[] monsterListId,int[] bossLvl,float bonusBoss)
-        {
-            _core._currentMonsterBattle = new Monster[monsterListId.Length];
-            for (int i = 0; i < monsterListId.Length; i++)
-            {
-                foreach (ModelDataSet boss in _core.dataHeroList)
+                for(int i=0;i< _core._currentMonsterBattle.Length; i++)
                 {
-                    if (boss.id != monsterListId[i]) continue;
-                    Monster monster = new Monster(i, bossLvl[i], boss);
-                    
-                    float[] statusBonus = new float[3];
-                    for (int p = 1; p <= _roomPassCount; p++)
-                    {
-                        int ranStatus = Random.Range(0, 3);
-                        statusBonus[ranStatus] = statusBonus[ranStatus] + 0.5f;
-                    }
-                    for (int p = 1; p <= _roomEscapeCount; p++)
-                    {
-                        int ranStatus = Random.Range(0, 3);
-                        statusBonus[ranStatus] = statusBonus[ranStatus] + 2.5f;
-                    }
-                    string[] skillList = boss.skillList.Split(':');
-                    for (int c = 0; c < skillList.Length; c++)
-                    {
-                        foreach (SkillDataSet skill in _core.dataSkillList)
-                        {
-                            if (_cal.IntParseFast(skillList[c]) == skill.id)
-                            {
-                                Skill attack = new Skill();
-                                string[] buffList = skill.buffList.Split(',');
-                                for (int s = 0; s < buffList.Length; s++)
-                                {
-                                    string[] buff = buffList[s].Split(':');
-                                    Buff dataBuff = new Buff();
-                                    dataBuff.id = _cal.IntParseFast(buff[0]);
-                                    dataBuff.icon = _cal.IntParseFast(buff[1]);
-                                    dataBuff.timeCount = _cal.IntParseFast(buff[2]);
-                                    dataBuff.whoUse = _Model.MONSTER;
-                                    dataBuff.forMe = (_cal.IntParseFast(buff[3]) == 0) ? true : false;
-                                    attack.buff.Add(dataBuff);
-                                }
-                                attack.hate = (int)skill.bonusDmg * 20;
-                                attack.skill = skill;
-                                monster.GetStatus().attack[c] = attack;
-                                break;
-                            }
-                        }
-                    }
-                    string[] attackp = boss.attackPattern.Split(',');
-                    monster.attackPattern = attackp;
-                    _core._currentMonsterBattle[i] = monster;
-                    monsterList = _core._currentMonsterBattle;
-                    break;
+                    _core._currentMonsterBattle[i] = _monsterInCurrentDungeonLayer[Random.Range(0, _monsterInCurrentDungeonLayer.Count)];
+                    _core._monPanel.GetComponent<MonPanel>()._monAvatarList[i].transform.parent.localScale = new Vector3(1f, 1f, 1f);
                 }
-                _monCom._monAvatarList[i].transform.parent.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+                
             }
+            _core.LoadScene(_GameState.BATTLE);
         }
+        
         
         int teamIsSelect;
         
@@ -709,12 +679,12 @@ namespace controller
         
         public void CampBtn()
         {
-            _core.LoadScene(_GameStatus.CAMP);
+            _core.LoadScene(_GameState.CAMP);
         }
 
         public void WarpLandBtn()
         {
-            _core.LoadScene(_GameStatus.LAND);
+            _core.LoadScene(_GameState.LAND);
         }
         
         public float _escapeRate;
@@ -723,11 +693,11 @@ namespace controller
         {
             if (_core._mapObj.transform.childCount != 0)
             {
-                _roomList[_core._currentRoomPosition].transform.Find("LightMask").gameObject.SetActive(false);
-                _roomList[_core._currentRoomPosition].transform.Find("Player").gameObject.SetActive(false);
-                Navigate(_core._currentRoomPosition, false);
+                _roomList[_core._player.currentRoomPosition].transform.Find("LightMask").gameObject.SetActive(false);
+                _roomList[_core._player.currentRoomPosition].transform.Find("Player").gameObject.SetActive(false);
+                Navigate(_core._player.currentRoomPosition, false);
             }
-            _core._mainMenu.GetComponent<MainMenu>()._mapBtn.SetActive(true);
+            _core._menuCon._mapBtn.SetActive(true);
             SetPanel(false);
         }
     }

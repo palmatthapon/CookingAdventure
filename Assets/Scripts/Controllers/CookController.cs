@@ -22,12 +22,12 @@ namespace controller
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _itemCon = _core._mainMenu.GetComponent<ItemController>();
+            _itemCon = _core._menuPanel.GetComponent<ItemController>();
         }
 
         private void OnEnable()
         {
-            _core._ActionMode = _ActionStatus.Cook;
+            _core._actionMode = _ActionState.Cook;
             _itemCon.ViewItem(_item,"rawmaterial");
             _core.SetColliderCamp(false);
         }
@@ -81,6 +81,8 @@ namespace controller
             }
             
         }
+
+
 
         private void OnDisable()
         {

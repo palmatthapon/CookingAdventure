@@ -8,12 +8,11 @@ using UnityEngine;
 
 namespace shop
 {
-    public class ForestShopPanel : MonoBehaviour
+    public class ForestShopController : MonoBehaviour
     {
         GameCore _core;
 
         public GameObject _forestShopNpc;
-        public GameObject _forestShopPanel;
         
 
         private void Awake()
@@ -24,20 +23,14 @@ namespace shop
         void OnEnable()
         {
             Camera.main.transform.position = new Vector3(_forestShopNpc.transform.position.x, -0.1f, Camera.main.transform.position.z);
-            SetPanel(true);
         }
 
         void Update()
         {
-            if (_core._gameMode == _GameStatus.FORESTSHOP)
+            if (_core._gameMode == _GameState.FORESTSHOP)
             {
                 OnTouch();
             }
-        }
-
-        void SetPanel(bool set)
-        {
-            _forestShopPanel.SetActive(set);
         }
 
         void OnTouch()
@@ -98,7 +91,6 @@ namespace shop
         {
             _core._talkPanel.SetActive(false);
             _core._shopPanel.SetActive(false);
-            SetPanel(false);
         }
     }
 }

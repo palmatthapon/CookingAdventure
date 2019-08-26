@@ -26,7 +26,7 @@ namespace controller
         void OnEnable()
         {
             //_core._storyPanelTxt.text = "ลองค้นกระเป๋าดูดีๆ อาจจะเจอของที่เจ้าตามหา!";
-            _money.text = _core._currentMoney.ToString();
+            _money.text = _core._player.currentMoney.ToString();
         }
         
         Sprite[] loadSprite = null;
@@ -50,7 +50,7 @@ namespace controller
                     ItemSlot itemComp = itemSlot.GetComponent<ItemSlot>();
                     itemComp._item = item;
                     itemSlot.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                    if (_core._gameMode == _GameStatus.BATTLE)
+                    if (_core._gameMode == _GameState.BATTLE)
                         itemSlot.transform.Find("Select").localScale = new Vector3(1.2f, 1.2f, 1);
                     if (getSpriteSet != item.item.spriteSet)
                     {
@@ -74,8 +74,7 @@ namespace controller
         void UseItem()
         {
             _itemStoreIdSelect.obj.transform.Find("Select").gameObject.SetActive(true);
-            _core._manageHeroPanel.SetActive(true);
-            _core.SubMenuCancelBtn();
+            _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
         }
         
         

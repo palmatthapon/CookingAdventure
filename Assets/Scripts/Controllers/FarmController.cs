@@ -22,7 +22,7 @@ namespace controller
 
         void OnEnable()
         {
-            _core._ActionMode = _ActionStatus.Farm;
+            _core._actionMode = _ActionState.Farm;
             _core.SetColliderCamp(false);
         }
 

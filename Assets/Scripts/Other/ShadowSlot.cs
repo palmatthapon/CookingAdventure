@@ -22,7 +22,7 @@ using model;
         {
             //_teamCon._heroSwapIsSelect = _hero;
             //Debug.Log("hero is " + mHeroId);
-            if (_core._gameMode == _GameStatus.LAND)
+            if (_core._gameMode == _GameState.LAND)
             {
                 //_core.SetTalk("");
             }

@@ -14,7 +14,7 @@ namespace model
 {
     public class ManageHeroPanel : MonoBehaviour
     {
-
+        /*
         GameCore _core;
         BattleController _battleCon;
         ItemController _itemCon;
@@ -43,7 +43,7 @@ namespace model
             _heroList = new List<Hero>();
             LoadData();
             _heroIsSelect = 0;
-            _confirmBtn.SetActive(_core._ActionMode != _ActionStatus.Item ? false : true);
+            _confirmBtn.SetActive(_core._ActionMode != _ActionState.Item ? false : true);
             LoadHeroIcon();
             ShowInfoHero(_heroList[_heroIsSelect]);
             
@@ -53,7 +53,7 @@ namespace model
 
         void LoadData()
         {
-            if(_core._gameMode != _GameStatus.BATTLE)
+            if(_core._gameMode != _GameState.BATTLE)
             {
                 for(int i=0;i< _core._heroStore.Count; i++)
                 {
@@ -89,26 +89,26 @@ namespace model
                 slot.transform.SetParent(_manageMask);
                 slot.transform.localScale = new Vector3(1, 1, 1);
 
-                if (getSpriteSet != _heroList[i].GetData().spriteSet)
+                if (getSpriteSet != _heroList[i].getSpriteSet())
                 {
-                    getSpriteSet = _heroList[i].GetData().spriteSet;
+                    getSpriteSet = _heroList[i].getSpriteSet();
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
                 }
-                slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _heroList[i].GetData().spriteName);
+                slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _heroList[i].getSpriteName());
 
-                if (_heroList[i].GetStatus().currentHP <= 0)
+                if (_heroList[i].getStatus().currentHP <= 0)
                     slot.transform.Find("Death").gameObject.SetActive(true);
                 else
                     slot.transform.Find("Death").gameObject.SetActive(false);
 
-                _heroList[i].obj = slot;
+                _heroList[i].setIconManageHero(slot);
 
             }
 
             CreateBlockSlot(_manageMask);
 
             _manageMask.localPosition = Vector3.zero;
-            if (_core._gameMode == _GameStatus.BATTLE)
+            if (_core._gameMode == _GameState.BATTLE)
             {
                 _manageMask.localPosition = new Vector3(_manageMask.localPosition.x - (_recManageTeamSlot.rect.width + _spacing) * (1 + _heroIsSelect) + _spacing, _manageMask.localPosition.y, _manageMask.localPosition.z);
             }
@@ -137,9 +137,9 @@ namespace model
         public void PrevHero()
         {
             if (_heroIsSelect <= 0) return;
-            _heroList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
+            _heroList[_heroIsSelect].getIconManageHero().transform.Find("SelectEffect").gameObject.SetActive(false);
             _heroIsSelect--;
-            if (_core._ActionMode == _ActionStatus.Item || _heroList[_heroIsSelect].GetStoreId() != -1 && 0 != _heroIsSelect && _heroList[_heroIsSelect].GetStatus().currentHP > 0)
+            if (_core._ActionMode == _ActionState.Item || _heroList[_heroIsSelect].getStoreId() != -1 && 0 != _heroIsSelect && _heroList[_heroIsSelect].getStatus().currentHP > 0)
             {
                 _confirmBtn.SetActive(true);
             }
@@ -156,9 +156,9 @@ namespace model
         public void NextHero()
         {
             if (_heroIsSelect >= _heroList.Count - 1) return;
-            _heroList[_heroIsSelect].obj.transform.Find("SelectEffect").gameObject.SetActive(false);
+            _heroList[_heroIsSelect].getIconManageHero().transform.Find("SelectEffect").gameObject.SetActive(false);
             _heroIsSelect++;
-            if (_core._ActionMode == _ActionStatus.Item || _heroList[_heroIsSelect].GetStoreId() != -1 && 0 != _heroIsSelect && _heroList[_heroIsSelect].GetStatus().currentHP > 0)
+            if (_core._ActionMode == _ActionState.Item || _heroList[_heroIsSelect].getStoreId() != -1 && 0 != _heroIsSelect && _heroList[_heroIsSelect].getStatus().currentHP > 0)
             {
                 _confirmBtn.SetActive(true);
             }
@@ -202,27 +202,27 @@ namespace model
 
         void ShowInfoHero(Hero _hero)
         {
-            if(_hero.GetStoreId() == -1)
+            if(_hero.getStoreId() == -1)
             {
                 _core._infoPanel.SetActive(false);
                 return;
             }
-            _hero.obj.transform.Find("SelectEffect").gameObject.SetActive(true);
-                _core.SetInfo(_hero.GetStatus().name + " Lv. " + _hero.GetStatus().level
-                    +(_hero.GetStatus().currentHP < _hero.GetStatus().hpMax / 2 ? "<color=#ff0000><เลือด " : "<color=#01b140><เลือด ") + _hero.GetStatus().currentHP + " </color><color=#01b140>/" + _hero.GetStatus().hpMax + "></color>"
-                    + "\n<โจมตี " + _hero.GetStatus().ATK+">"
-                    + "<โจมตีเวทย์ " + _hero.GetStatus().MATK + ">"
-                    + "<เกาะ " + _hero.GetStatus().DEF  + ">"
-                    + "<เกาะเวทย์ " + _hero.GetStatus().MDEF  + ">"
+            _hero.getIconManageHero().transform.Find("SelectEffect").gameObject.SetActive(true);
+                _core.SetInfo(_hero.getStatus().name + " Lv. " + _hero.getStatus().level
+                    +(_hero.getStatus().currentHP < _hero.getStatus().hpMax / 2 ? "<color=#ff0000><เลือด " : "<color=#01b140><เลือด ") + _hero.getStatus().currentHP + " </color><color=#01b140>/" + _hero.getStatus().hpMax + "></color>"
+                    + "\n<โจมตี " + _hero.getStatus().ATK+">"
+                    + "<โจมตีเวทย์ " + _hero.getStatus().MATK + ">"
+                    + "<เกาะ " + _hero.getStatus().DEF  + ">"
+                    + "<เกาะเวทย์ " + _hero.getStatus().MDEF  + ">"
                     );
             
         }
         
         public void ConfirmBtn()
         {
-            if (_core._ActionMode == _ActionStatus.Item)
+            if (_core._ActionMode == _ActionState.Item)
             {
-                if(_heroList[_heroIsSelect].GetStoreId() == -1)
+                if(_heroList[_heroIsSelect].getStoreId() == -1)
                 {
                     _core.OpenErrorNotify("ไม่มีฮีโร่ที่ใช้งานได้!");
                     return;
@@ -237,9 +237,9 @@ namespace model
                             {
                                 
                                 item.amount -= 1;
-                                if(_heroList[_heroIsSelect].GetStatus().currentHP > 0)
+                                if(_heroList[_heroIsSelect].getStatus().currentHP > 0)
                                 {
-                                    _heroList[_heroIsSelect].obj.transform.Find("Death").gameObject.SetActive(false);
+                                    _heroList[_heroIsSelect].getIconManageHero().transform.Find("Death").gameObject.SetActive(false);
                                 }
                                 ShowInfoHero(_heroList[_heroIsSelect]);
                                 if (item.amount == 0)
@@ -282,11 +282,11 @@ namespace model
 
         public void CancelBtn()
         {
-            if (_core._ActionMode == _ActionStatus.Item)
+            if (_core._ActionMode == _ActionState.Item)
             {
                 _itemCon._itemStoreIdSelect.obj.transform.Find("Select").gameObject.SetActive(false);
                 _itemCon._itemStoreIdSelect = null;
-                if(_core._gameMode == _GameStatus.BATTLE)
+                if(_core._gameMode == _GameState.BATTLE)
                 {
                     _core._itemPanel.SetActive(false);
                     _core._attackPanel.SetActive(true);
@@ -318,7 +318,7 @@ namespace model
             {
                 Destroy(child.gameObject);
             }
-        }
+        }*/
     }
 }
 

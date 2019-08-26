@@ -37,7 +37,7 @@ public class FarmTool : EventTrigger
     public override void OnPointerDown(PointerEventData eventData)
     {
         base.OnPointerDown(eventData);
-        if (_core._ActionMode == _ActionStatus.Farm)
+        if (_core._actionMode == _ActionState.Farm)
         {
             _farmCon.GetRawMaterial();
 
@@ -48,7 +48,7 @@ public class FarmTool : EventTrigger
     public override void OnPointerUp(PointerEventData eventData)
     {
         base.OnPointerUp(eventData);
-        if (_core._ActionMode == _ActionStatus.Farm)
+        if (_core._actionMode == _ActionState.Farm)
         {
             _farmCon.PutRawMaterial();
 

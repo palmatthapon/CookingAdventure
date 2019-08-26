@@ -41,7 +41,7 @@ namespace menu
         void LoadData()
         {
             _monsterList = _core._currentMonsterBattle;
-            _dungeon = _core._dungeon[_core._currentDungeonLayer - 1];
+            _dungeon = _core._dungeon[_core._player.currentDungeonFloor - 1];
 
         }
         
@@ -49,7 +49,7 @@ namespace menu
         {
             foreach (Room room in _dungeon.roomIsPass)
             {
-                if (room.id == _core._currentRoomPosition)
+                if (room.id == _core._player.currentRoomPosition)
                 {
                     room.passCount++;
                     break;
@@ -68,14 +68,14 @@ namespace menu
             slot.transform.SetParent(_gridViewHero);
             slot.transform.localScale = new Vector3(1, 1, 1);
 
-            if (getSpriteSet != _core._heroIsPlaying.GetData().spriteSet)
+            if (getSpriteSet != _core._heroIsPlaying.getSpriteSet())
             {
-                getSpriteSet = _core._heroIsPlaying.GetData().spriteSet;
+                getSpriteSet = _core._heroIsPlaying.getSpriteSet();
                 loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
-            slot.transform.Find("Hero").Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _core._heroIsPlaying.GetData().spriteName);
-            slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + _core._heroIsPlaying.GetStatus().level;
-            slot.transform.Find("Name").GetComponent<Text>().text = _core._heroIsPlaying.GetStatus().name;
+            slot.transform.Find("Hero").Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _core._heroIsPlaying.getSpriteName());
+            slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + _core._heroIsPlaying.getStatus().getLvl();
+            slot.transform.Find("Name").GetComponent<Text>().text = _core._heroIsPlaying.getName();
             _heroRewardIcon = slot;
         }
         int moneyDropTotal;
@@ -194,7 +194,7 @@ namespace menu
             money.transform.Find("Count").GetComponent<Text>().text = "X " + moneyDropTotal;
             Sprite[] loadMoneySprite = Resources.LoadAll<Sprite>("Sprites/UI/ui");
             money.transform.Find("Icon").GetComponent<Image>().sprite = loadMoneySprite.Single(s => s.name == "ui_27");
-            _core._currentMoney += moneyDropTotal;
+            _core._player.currentMoney += moneyDropTotal;
             moneyDropTotal = 0;
         }
         
@@ -203,7 +203,7 @@ namespace menu
             int roomPassCount=0;
             foreach (Room room in _dungeon.roomIsPass)
             {
-                if (room.id == _core._currentRoomPosition)
+                if (room.id == _core._player.currentRoomPosition)
                 {
                     roomPassCount = room.passCount;
                     break;
@@ -220,11 +220,11 @@ namespace menu
                 
                 for (int heroCount=0; heroCount < _battleCon._damage_of_each_hero.GetLength(1); heroCount++)
                 {
-                    int betweenLvl = Mathf.Abs(_core._heroIsPlaying.GetStatus().level - _monsterList[monCount].GetStatus().level);
+                    int betweenLvl = Mathf.Abs(_core._heroIsPlaying.getStatus().getLvl() - _monsterList[monCount].getStatus().getLvl());
                     //Debug.Log("betweenLvl" + betweenLvl);
                     if (betweenLvl < 6)
                     {
-                        expForHero[heroCount] += ((_battleCon._damage_of_each_hero[monCount, heroCount] / 100.00) * (_monsterList[monCount].GetExpDrop() + roomPassCount) / (total_damage / 100.00))* ((6-betweenLvl)/6.00);
+                        expForHero[heroCount] += ((_battleCon._damage_of_each_hero[monCount, heroCount] / 100.00) * (_monsterList[monCount].getStatus().getExpDrop() + roomPassCount) / (total_damage / 100.00))* ((6-betweenLvl)/6.00);
                         Debug.Log("hero "+ heroCount + " exp A "+ expForHero[heroCount]);
                     }
                     else
@@ -237,24 +237,24 @@ namespace menu
             }
 
             _heroRewardIcon.transform.Find("ExpAdd").GetComponent<Text>().text = "+" + expForHero[0];
-            double expAdd = _core._heroIsPlaying.GetExp() + expForHero[0];
+            double expAdd = _core._heroIsPlaying.getStatus().getExp() + expForHero[0];
             int levelAdd = _cal.CalculateLevel(expAdd);
             double expMin = _cal.CalculateExp(levelAdd);
             double expMax = _cal.CalculateExp(levelAdd + 1);
             int newLevel = _cal.CalculateLevel(expAdd);
 
-            double expBetween = _core._heroIsPlaying.GetExp() - expMin;
+            double expBetween = _core._heroIsPlaying.getStatus().getExp() - expMin;
             double expExcess = expAdd - expMin;
 
-            float fillExp = levelAdd > _core._heroIsPlaying.GetStatus().level ? 0 : (float)(expBetween / (expMax - expMin));
+            float fillExp = levelAdd > _core._heroIsPlaying.getStatus().getLvl() ? 0 : (float)(expBetween / (expMax - expMin));
             float fillExpAdd = (float)(expExcess / (expMax - expMin));
             _heroRewardIcon.transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExp(fillExp);
             _heroRewardIcon.transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExpAdd(fillExpAdd);
 
-            _core._heroIsPlaying.SetExp(expAdd);
-            if (_core._heroIsPlaying.GetStatus().level != newLevel)
+            _core._heroIsPlaying.getStatus().setExp(expAdd);
+            if (_core._heroIsPlaying.getStatus().getLvl() != newLevel)
             {
-                _core._heroIsPlaying.GetStatus().level = newLevel;
+                _core._heroIsPlaying.getStatus().setLvl(newLevel);
                 _heroRewardIcon.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + newLevel;
             }
         }
@@ -267,28 +267,28 @@ namespace menu
             {
                 GameObject.Destroy(child.gameObject);
             }
-            if (_core._currentRoomPosition == _core._dungeon[_core._currentDungeonLayer-1].dungeon.bossRoom)
+            if (_core._player.currentRoomPosition == _core._dungeon[_core._player.currentDungeonFloor-1].dungeon.bossRoom)
             {
-                _core._currentDungeonLayer = _core._currentDungeonLayer + 1;
-                if(_core._currentDungeonLayer > _core._dungeon.Length)
+                _core._player.currentDungeonFloor = _core._player.currentDungeonFloor + 1;
+                if(_core._player.currentDungeonFloor > _core._dungeon.Length)
                 {
-                    _core._currentDungeonLayer = 1;
-                    _core._currentRoomPosition = _core._dungeon[_core._currentDungeonLayer - 1].dungeon.startRoom;
-                    _core.LoadScene(_GameStatus.LAND);
+                    _core._player.currentDungeonFloor = 1;
+                    _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
+                    _core.LoadScene(_GameState.LAND);
                 }
                 else
                 {
                     Room newRoom = new Room();
-                    newRoom.id = _core._dungeon[_core._currentDungeonLayer - 1].dungeon.startRoom;
+                    newRoom.id = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
                     newRoom.passCount = 1;
-                    _core._dungeon[_core._currentDungeonLayer - 1].roomIsPass.Add(newRoom);
-                    _core._currentRoomPosition = _core._dungeon[_core._currentDungeonLayer - 1].dungeon.startRoom;
-                    _core.LoadScene(_GameStatus.MAP);
+                    _core._dungeon[_core._player.currentDungeonFloor - 1].roomIsPass.Add(newRoom);
+                    _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
+                    _core.LoadScene(_GameState.MAP);
                 }
             }
             else
             {
-                _core.LoadScene(_GameStatus.MAP);
+                _core.LoadScene(_GameState.MAP);
             }
         }
 

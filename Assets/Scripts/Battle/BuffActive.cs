@@ -10,20 +10,9 @@ namespace skill
 {
     public class BuffActive
     {
-        BattleController _battleCon;
-        GameCore _core;
-
-        void run()
-        {
-            if (_core == null)
-                _core = Camera.main.GetComponent<GameCore>();
-            if (_battleCon == null)
-                _battleCon = _core._battleObj.GetComponent<BattleController>();
-        }
         
         public void Buff1(Buff data)
         {
-            run();
             if (data.remove)
             {
                     
@@ -33,7 +22,6 @@ namespace skill
 
         public void Buff2(Buff data)
         {
-            run();
             if (data.remove)
             {
 
@@ -43,7 +31,6 @@ namespace skill
 
         public void Buff3(Buff data)
         {
-            run();
             if (data.remove)
             {
                 
@@ -54,7 +41,6 @@ namespace skill
         
         public void Buff4(Buff data)
         {
-            run();
             if (data.remove)
             {
 

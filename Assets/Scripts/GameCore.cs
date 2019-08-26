@@ -11,6 +11,7 @@ using Random = UnityEngine.Random;
 using model;
 using warp;
 using controller;
+using player;
 
 public class GameCore : MonoBehaviour
 {
@@ -19,17 +20,12 @@ public class GameCore : MonoBehaviour
     public MapController _mapCon;
     public BuffController _buffCon;
     public Calculate _cal;
-    public MonPanel _monCom;
     public AttackController _attackCon;
+    public MenuController _menuCon;
 
 
     JsonReadWrite _json;
-
-    public GoSheets googleSheet;
-    ///------your google sheet tsv link------------
-    //string url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTGnUodHOAsOpl-Bb8HYzq3gHA0PYNHj5Cr3sRUrZKzhc75XGCfSAoPiJu5CAY8mtTqI_V267aBu0v4/pub?gid=0&single=true&output=tsv";
-    //string url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTGnUodHOAsOpl-Bb8HYzq3gHA0PYNHj5Cr3sRUrZKzhc75XGCfSAoPiJu5CAY8mtTqI_V267aBu0v4/pub?gid=130495216&single=true&output=tsv";
-
+    
 
     ///------------All DataSet-----------------
     public DungeonDataSet[] dataDungeonList;
@@ -53,7 +49,7 @@ public class GameCore : MonoBehaviour
     ///---Panel Zone-----
     public GameObject _gameMenu, _miniGameMenu;
     public GameObject _settingPanel;
-    public GameObject _mainMenu;
+    public GameObject _menuPanel;
     public GameObject _attackPanel, _questionPanel;
     public Text _questionPanelTxt;
     public GameObject _monPanel;
@@ -62,7 +58,6 @@ public class GameCore : MonoBehaviour
     public GameObject _CharacterPanel;
     public GameObject _itemPanel;
     public GameObject _changeTeamPanel;
-    public GameObject _manageHeroPanel;
     public GameObject _subMenuPanel;
     public GameObject _playerLifePanel;
     public GameObject _rewardPanel;
@@ -78,7 +73,6 @@ public class GameCore : MonoBehaviour
     public GameObject _heroAvatar;
     public GameObject _cookMenu;
     public GameObject _farmMenu;
-    public GameObject _forestShopPanel;
     public GameObject _PlayerInfoPanel;
 
     /// -----End Panel Zone
@@ -97,75 +91,40 @@ public class GameCore : MonoBehaviour
 
     public Hero _heroIsPlaying;
     
-    public int _currentTeamIsSelect;
-    public int _currentRoomPosition;
-    public int _currentDungeonLayer;
     public Monster[] _currentMonsterBattle;
-    int money;
-    int playerHP;
+    
 
     Image _loadingScreenImg;
 
-    public _GameStatus _gameMode;
+    public _GameState _gameMode;
     Vector3 _cameraMainPosition;
 
     
     public string[] _passiveDatail;
     public Sprite[] _bgList;
-    public bool _adsFinish = false;
     public bool _loadNewGame = false;
     public GameObject[] _environment;
 
-    public int _playerHP
-    {
-        get
-        {
-            return this.playerHP;
-        }
-        set
-        {
-            if (value < 0)
-            {
-                value = 0;
-            }
-            else if (value > 100)
-            {
-                value = 100;
-            }
-            this.playerHP = value;
-            //_playerSoulBar.GetComponent<PlayerSoul>().AddFill(playerHP);
-            //_playerSoulBar.transform.Find("SoulText").GetComponent<Text>().text = playerHP + "/100";
-        }
-    }
 
-    public int _currentMoney
-    {
-        get
-        {
-            return this.money;
-        }
-        set
-        {
-            if (value < 0)
-            {
-                value = 0;
-            }
-            this.money = value;
-        }
-    }
+    public Sprite[] _uiSprite1;
+    public Sprite[] _uiSprite2;
+    public Sprite[] _mapSprite;
+
+    public GameObject _cutscene;
+    public _SubMenu _subMenuMode;
+    public _ActionState _actionMode;
+
 
     private void Awake()
     {
         Caching.ClearCache();
-        _passiveDatail = new string[]{"หนุมาน:หากตายในเทิร์นที่มีลมพัดผ่าน จะฟื้นคืนเลือด 50",
-                "นักมวย:หากเลือดต่ำกว่า 50% พลังโจมตีจะเพิ่มขึ้น 25%",
-                "อภัยมณี:หากเลือดมากกว่า 50% อภัยมณีจะได้รับดาเมจเวทย์ลดลง",
-                "ทศกัณฐ์:หากตายในตอนที่หลอดความโกรธมากกว่า 75% จะฟื้นคืนชีพด้วยเลือด 25%",
-                "ราม:เมื่อใช้สกิลไม้ตายตอนศัตรูเลือดต่ำกว่า 25% พลังโจมตีจะเพิ่มขึ้น200%",
-                "สีดา:เมื่อสิ้นชีพ ฮีโร่ในทีมจะได้รับการฮิวเลือด 50% ของเลือดสูงสุดตน",
-                "สุครีพ:เมื่อสิ้นชีพจะส่งต่อค่าความโกรธของตัวเองให้ฮีโร่ในทีม",
-                "หมอผี:เมื่อเลือดต่ำกว่า 25% จะได้รับความเสียหายกายภาพลดลง",
-                "เงาะป่า:หากเลือดน้อยกว่า 1 ใน 3 แล้วป้องกันสำเร็จจะได้เลือดคืนครึ่งหนึ่งของดาเมจที่ทำได้" };
+        _uiSprite1 = Resources.LoadAll<Sprite>("Sprites/UI/ui");
+        _uiSprite2 = Resources.LoadAll<Sprite>("Sprites/UI/ui2");
+        _mapSprite = Resources.LoadAll<Sprite>("Sprites/UI/map2");
+
+        _passiveDatail = new string[]{"passive detail" };
+
+        _player = new Player();
         SetComponent();
         _cal = new Calculate();
         _json = new JsonReadWrite();
@@ -173,9 +132,8 @@ public class GameCore : MonoBehaviour
         AudioListener.volume = dataSetting[0].soundValue;
         _uiCanvas = GameObject.Find("UICanvas");
         _loadingScreenImg = _loadingScreen.GetComponent<Image>();
-        
-        googleSheet = this.gameObject.AddComponent<GoSheets>();
-        SetingBeforeStart();
+
+        SettingBeforeStart();
         OpenGameMenu();
 
     }
@@ -184,13 +142,17 @@ public class GameCore : MonoBehaviour
     {
     }
 
+    public static GameCore call() {
+        return Camera.main.GetComponent<GameCore>();
+    }
+
     void SetComponent()
     {
         _battleCon = _battleObj.GetComponent<BattleController>();
         _mapCon = _mapObj.GetComponent<MapController>();
         _buffCon = _buffPanel.GetComponent<BuffController>();
-        _monCom = _monPanel.GetComponent<MonPanel>();
         _attackCon = _attackPanel.GetComponent<AttackController>();
+        _menuCon = _menuPanel.GetComponent<MenuController>();
     }
 
     public bool isPaused = false;
@@ -217,8 +179,8 @@ public class GameCore : MonoBehaviour
             }
             if (_battleObj.activeSelf)
             {
-                _battleCon.FocusHero().GetAnim().enabled = false;
-                _battleCon.FocusMonster().GetAnim().enabled = false;
+                _battleCon.FocusHero().Anim(false);
+                _battleCon.FocusMonster().getAnim().enabled = false;
             }
         }
         else
@@ -237,8 +199,8 @@ public class GameCore : MonoBehaviour
             }
             if (_battleObj.activeSelf)
             {
-                _battleCon.FocusHero().GetAnim().enabled = true;
-                _battleCon.FocusMonster().GetAnim().enabled = true;
+                _battleCon.FocusHero().getAnim().enabled = true;
+                _battleCon.FocusMonster().getAnim().enabled = true;
             }
             if (_mapObj.activeSelf)
             {
@@ -284,7 +246,7 @@ public class GameCore : MonoBehaviour
                     _loadingScreen.SetActive(false);
             }
         }
-        if (_gameMode == _GameStatus.GAMEMENU)
+        if (_gameMode == _GameState.GAMEMENU)
         {
             float distCovered = (Time.time - startTime) * speed;
             float fracJourney = distCovered / journeyLength;
@@ -320,15 +282,15 @@ public class GameCore : MonoBehaviour
     private float journeyLength;
     bool moveLeft = false;
 
-    void OpenGameMenu()
+    public void OpenGameMenu()
     {
         journeyLength = Vector3.Distance(startMarker, endMarker);
-        _gameMode = _GameStatus.GAMEMENU;
+        _gameMode = _GameState.GAMEMENU;
         _gameMenu.SetActive(true);
         OpenObjInScene(_campObj);
         _settingPanel.SetActive(false);
         _miniGameMenu.SetActive(false);
-        _mainMenu.SetActive(false);
+        _menuPanel.SetActive(false);
         _tutorialPanel.SetActive(false);
         _playerSoulBar.SetActive(false);
         _cookMenu.SetActive(false);
@@ -336,7 +298,7 @@ public class GameCore : MonoBehaviour
     }
     GameObject _uiCanvas;
 
-    void SetingBeforeStart()
+    public void SettingBeforeStart()
     {
         if (_loadingScreenImg == null)
         {
@@ -348,9 +310,11 @@ public class GameCore : MonoBehaviour
         endMarker = new Vector3(startMarker.x + 0.65f, startMarker.y, startMarker.z);
     }
 
-    void LoadStartScene()
+    public Player _player;
+
+    public void LoadStartScene()
     {
-        _gameMode = _GameStatus.START;
+        _gameMode = _GameState.START;
         Camera.main.orthographicSize = 0.8f;
         Camera.main.transform.position = new Vector3(0, 0f, Camera.main.transform.position.z);
         _cameraMainPosition = transform.position;
@@ -360,31 +324,24 @@ public class GameCore : MonoBehaviour
         _gameMenu.SetActive(false);
         _miniGameMenu.SetActive(true);
         _playerSoulBar.SetActive(true);
-        _mainMenu.SetActive(true);
+        _menuPanel.SetActive(true);
         if (dataPlayerLog[0].landScene)
         {
-            StartCoroutine(LoadingScene(_GameStatus.LAND, false));
+            StartCoroutine(LoadingScene(_GameState.LAND, false));
         }
         else
         {
-            StartCoroutine(LoadingScene(_GameStatus.CAMP, false));
+            StartCoroutine(LoadingScene(_GameState.CAMP, false));
         }
-
+        
     }
 
     public void OpenActionPanel(GameObject obj = null)
     {
-        _manageHeroPanel.SetActive(obj == _manageHeroPanel ? true : false);
         _itemPanel.SetActive(obj == _itemPanel ? true : false);
         _CharacterPanel.SetActive(obj == _CharacterPanel ? true : false);
         _attackPanel.SetActive(obj == _attackPanel ? true : false);
-        //_defensePanel.SetActive(obj == _defensePanel ? true : false);
-        //if (obj == _teamPanel || obj == _itemPanel)
-        //_storyPanel.SetActive(true);
-        //else
-        // _storyPanel.SetActive(obj == _storyPanel ? true : false);
         _questionPanel.SetActive(obj == _questionPanel ? true : false);
-        //_skillPanel.SetActive(obj == _skillPanel ? true : false);
     }
 
     void ReadDataAll()
@@ -413,10 +370,12 @@ public class GameCore : MonoBehaviour
 
     void CompilePlayerLog(int SaveNum = 0)
     {
-        _playerHP = dataPlayerLog[SaveNum].hp;
-        _currentDungeonLayer = dataPlayerLog[SaveNum].dungeonLayer;
-        _currentRoomPosition = dataPlayerLog[SaveNum].roomPosition;
-        _currentMoney = dataPlayerLog[SaveNum].money;
+        _player.name = dataPlayerLog[SaveNum].playerName;
+        _player.currentSoul = dataPlayerLog[SaveNum].soul;
+        Debug.Log("complie dungeonFloor " + dataPlayerLog[SaveNum].dungeonFloor);
+        _player.currentDungeonFloor = dataPlayerLog[SaveNum].dungeonFloor;
+        _player.currentRoomPosition = dataPlayerLog[SaveNum].roomPosition;
+        _player.currentMoney = dataPlayerLog[SaveNum].money;
         ///------load itemstore------
         if (dataPlayerLog[0].itemStore != "")
         {
@@ -442,7 +401,7 @@ public class GameCore : MonoBehaviour
                     rowReal++;
                 }
             }
-            //Debug.Log("foreach row " + rowReal);
+            Debug.Log("foreach row " + rowReal);
             int dataCount = 0;
             int row = 0;
             int itemCount = 0;
@@ -472,9 +431,9 @@ public class GameCore : MonoBehaviour
                 }
                 row++;
             } while (itemCount < itemStore.Length);
+            Debug.Log("do while row" + row);
         }
-
-        //Debug.Log("do while row" + row);
+        
         ///-------end load itemstore---------------
 
         ///-------load herostore ------------
@@ -514,12 +473,12 @@ public class GameCore : MonoBehaviour
                                 }
                                 attack.hate = (int)skill.bonusDmg * 20;
                                 attack.skill = skill;
-                                hero.GetStatus().attack[a] = attack;
+                                hero.getStatus().attack[a] = attack;
                                 break;
                             }
                         }
                     }
-                    hero.GetStatus().passive = (_Passive)data.passiveId;
+                    hero.getStatus().passive = (_Passive)data.passiveId;
                     _heroStore.Add(hero);
                     break;
                 }
@@ -531,7 +490,7 @@ public class GameCore : MonoBehaviour
         ///-----load playerAvatar-----
         foreach (Hero hero in _heroStore)
         {
-            if (hero.GetStoreId() == dataPlayerLog[SaveNum].heroIsPlay)
+            if (hero.getStoreId() == dataPlayerLog[SaveNum].heroIsPlay)
             {
                 _heroIsPlaying = hero;
                 break;
@@ -605,7 +564,7 @@ public class GameCore : MonoBehaviour
         targetAlpha = 1.0f;
     }
 
-    IEnumerator SavePlayerData(bool ExitGame = false)
+    public IEnumerator SavePlayerData(bool ExitGame = false)
     {
         _loadingNotify.transform.Find("BG").GetComponentInChildren<Text>().text = "กำลังเซฟข้อมูลเกม...";
         _loadingNotify.SetActive(true);
@@ -618,7 +577,7 @@ public class GameCore : MonoBehaviour
         }
     }
 
-    IEnumerator LoadingScene(_GameStatus mode, bool save = true)
+    IEnumerator LoadingScene(_GameState mode, bool save = true)
     {
         _gameMode = mode;
         FadeIn();
@@ -628,20 +587,20 @@ public class GameCore : MonoBehaviour
         coll.enabled = false;
         switch (mode)
         {
-            case _GameStatus.BATTLE:
+            case _GameState.BATTLE:
                 OpenBattleScene();
                 coll.enabled = true;
                 break;
-            case _GameStatus.CAMP:
+            case _GameState.CAMP:
                 OpenCampScene();
                 break;
-            case _GameStatus.MAP:
+            case _GameState.MAP:
                 OpenMapScene();
                 break;
-            case _GameStatus.LAND:
+            case _GameState.LAND:
                 OpenLandScene();
                 break;
-            case _GameStatus.FORESTSHOP:
+            case _GameState.FORESTSHOP:
                 OpenForestShopScene();
                 break;
         }
@@ -649,9 +608,7 @@ public class GameCore : MonoBehaviour
         if (save)
             _json.WriteDataPlayerLog(dataPlayerLog);
         FadeOut();
-        if (_unlockHeroList != null)
-            OpenUnlockNotify();
-
+        
         if (_loadNewGame)
         {
             /*
@@ -663,349 +620,50 @@ public class GameCore : MonoBehaviour
             _loadNewGame = false;
         }
     }
-    public GameObject _cutscene;
-
-    public void CallSubMenu(_SubMenu mode)
+    
+    public void OpenSubMenu(_SubMenu mode)
     {
-        CallSubMenu(mode, "");
+        OpenSubMenu(mode, "");
     }
-    _SubMenu _subMenuMode;
-    public _ActionStatus _ActionMode;
-
-    public void CallSubMenu(_SubMenu mode, string topic)
+    
+    public void OpenSubMenu(_SubMenu mode, string topic)
     {
         _subMenuMode = mode;
-        Transform trans = _subMenuPanel.transform.Find("GridView").transform;
-        _subMenuPanel.transform.Find("CloseButton").gameObject.SetActive(false);
-        trans.Find("Post").gameObject.SetActive(false);
-        trans.Find("ConfirmButton").gameObject.SetActive(false);
-        trans.Find("CancelButton").gameObject.SetActive(false);
-        trans.Find("UseButton").gameObject.SetActive(false);
-        trans.Find("SellButton").gameObject.SetActive(false);
-        trans.Find("BuyButton").gameObject.SetActive(false);
-        trans.Find("SaveButton").gameObject.SetActive(false);
-        trans.Find("NewGameButton").gameObject.SetActive(false);
-        trans.Find("SettingButton").gameObject.SetActive(false);
-        trans.Find("ExitGameButton").gameObject.SetActive(false);
-        trans.Find("BackTownButton").gameObject.SetActive(false);
-
-        if (_subMenuMode == _SubMenu.Item)
-        {
-            trans.Find("CancelButton").gameObject.SetActive(true);
-            trans.Find("SellButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.Alert)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("Post").gameObject.GetComponentInChildren<Text>().text = topic;
-            trans.Find("ConfirmButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.Shop)
-        {
-            trans.Find("CancelButton").gameObject.SetActive(true);
-            trans.Find("BuyButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.Warp)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("Post").gameObject.GetComponentInChildren<Text>().text = topic;
-            trans.Find("ConfirmButton").gameObject.SetActive(true);
-            trans.Find("CancelButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.GameMenu)
-        {
-            _subMenuPanel.transform.Find("CloseButton").gameObject.SetActive(true);
-            trans.Find("SaveButton").gameObject.SetActive(true);
-            trans.Find("NewGameButton").gameObject.SetActive(true);
-            trans.Find("SettingButton").gameObject.SetActive(true);
-            trans.Find("ExitGameButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.BattleEnd)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("Post").gameObject.GetComponentInChildren<Text>().text = topic;
-            trans.Find("BackTownButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.ManageHero)
-        {
-            trans.Find("CancelButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.LoadBattleRevive)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("Post").gameObject.GetComponentInChildren<Text>().text = topic;
-            trans.Find("HeroReviveButton").gameObject.SetActive(true);
-        }
-        else if (_subMenuMode == _SubMenu.GameOver)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("Post").gameObject.GetComponentInChildren<Text>().text = topic;
-            trans.Find("ConfirmButton").gameObject.SetActive(true);
-        }
         _subMenuPanel.SetActive(true);
+        _subMenuPanel.GetComponent<SubMenuPanel>().setTopic(topic);
     }
 
     /// <summary>
     /// Event Button Zone....
     /// </summary>
     /// 
-    public void SubMenuCloseBtn()
-    {
-        _subMenuPanel.SetActive(false);
-    }
-
-    public void SubMenuBackTownBtn()
-    {
-        //_battleCon.IsRevive = true;
-        CalEscapeRoom();
-        _subMenuPanel.SetActive(false);
-        LoadScene(_GameStatus.LAND);
-    }
-
+    
     public void StartBtn()
     {
         LoadStartScene();
     }
 
-    public void SettingBtn()
-    {
-        _settingPanel.SetActive(true);
-        _gameMenu.SetActive(false);
-    }
-
-    public void SubMenuSaveBtn()
-    {
-        StartCoroutine(SavePlayerData());
-    }
-
-    public void SubMenuNewGameBtn()
-    {
-        OpenConfirmNotify("เจ้าแน่ใจว่าต้องการเริ่มเกมใหม่?", _ConfirmNotify.NewGame);
-    }
-
-    public void SubMenuExitGameBtn()
-    {
-        OpenConfirmNotify("เจ้าแน่ใจว่าต้องการออกจากเกม?", _ConfirmNotify.ExitGame);
-    }
-
+    
     public void ExitGameBtn()
     {
         Application.Quit();
     }
-
-    public void MiniGameMenuBtn()
-    {
-        if (_subMenuMode == _SubMenu.GameMenu && _subMenuPanel.activeSelf)
-        {
-            if (!_settingPanel.activeSelf)
-                _subMenuPanel.SetActive(false);
-        }
-        else
-        {
-            CallSubMenu(_SubMenu.GameMenu);
-        }
-    }
-
-    public void AttackBtn()
-    {
-        OpenActionPanel(_attackPanel);
-    }
-
-    public void DefenseBtn()
-    {
-        if (_cutscene != null)
-        {
-            //_cutscene.GetComponent<Cutscene>().TutorialPlay(_defensePanel.transform.Find("Defense2"));
-        }
-        //OpenActionPanel(_defensePanel);
-    }
-
-    public GameObject _itemBtn;
-    public Sprite[] _bagIcon;
-
-    public void ItemBtn()
-    {
-        _ActionMode = _ActionStatus.Item;
-        Debug.Log("Item clicked");
-        if (_itemPanel.activeSelf)
-        {
-            _itemBtn.GetComponent<Image>().sprite = _bagIcon[0];
-            _itemPanel.SetActive(false);
-            if (_gameMode == _GameStatus.BATTLE)
-                _attackPanel.SetActive(true);
-        }
-        else
-        {
-            _itemBtn.GetComponent<Image>().sprite = _bagIcon[1];
-            OpenActionPanel(_itemPanel);
-        }
-    }
-
-    public void TeamBtn()
-    {
-        _ActionMode = _ActionStatus.Team;
-        if (_gameMode == _GameStatus.BATTLE)
-        {
-            //_menuPanel.transform.parent.gameObject.SetActive(false);
-            OpenActionPanel(_manageHeroPanel);
-        }
-        else
-        {
-            if (_CharacterPanel.activeSelf)
-            {
-                _CharacterPanel.SetActive(false);
-            }
-            else
-                OpenActionPanel(_CharacterPanel);
-        }
-    }
-
-    public void SubMenuConfirmBtn()
-    {
-        _subMenuPanel.SetActive(false);
-        if (_subMenuMode == _SubMenu.Alert)
-        {
-
-        }
-        else if (_subMenuMode == _SubMenu.Warp)
-        {
-            _currentDungeonLayer = _gatePanel.GetComponent<GatePanel>()._dungeonLayerIsSelect;
-            _currentRoomPosition = _dungeon[_currentDungeonLayer - 1].dungeon.startRoom;
-            LoadScene(_GameStatus.MAP);
-            _gatePanel.SetActive(false);
-            _talkPanel.SetActive(false);
-        }
-        else if (_subMenuMode == _SubMenu.BattleEnd)
-        {
-            LoadScene(_GameStatus.MAP);
-        }
-        else if (_subMenuMode == _SubMenu.GameOver)
-        {
-            DeleteFile();
-            foreach (Transform child in _mapObj.transform)
-            {
-                GameObject.Destroy(child.gameObject);
-            }
-            _mapObj.transform.DetachChildren();
-            //_subMenuPanel.SetActive(false);
-            //_confirmNotify.SetActive(false);
-            SetingBeforeStart();
-            OpenGameMenu();
-        }
-    }
-
-    public void SubMenuCancelBtn()
-    {
-        _subMenuPanel.SetActive(false);
-        if (_subMenuMode == _SubMenu.Alert)
-        {
-
-        }
-        else if (_subMenuMode == _SubMenu.ManageTeam)
-        {
-            //_menuPanel.transform.parent.gameObject.SetActive(true);
-        }
-    }
-
-
-
-    public void MapBtn()
-    {
-        _ActionMode = _ActionStatus.Map;
-        if (_gameMode == _GameStatus.BATTLE)
-        {
-            if (!_battleCon._isEscape)
-            {
-                _battleCon._isEscape = true;
-                if (UseCrystal(2))
-                {
-                    if (Random.Range(0f, 1f) <= _mapCon._escapeRate)
-                    {
-                        LoadScene(_GameStatus.MAP);
-                        CalEscapeRoom();
-                    }
-                    else
-                    {
-                        _battleCon.ShowDamage("หลบหนีล้มเหลว", _battleCon.FocusHero().GetAvatar().transform.position);
-                        _battleCon.EndTurnSpeed();
-                        _mapCon._escapeRate += 0.05f;
-                    }
-
-                }
-                else
-                {
-                    //CallSubMenu(_SubMenu.Alert, "คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย 2");
-                    OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย 2");
-                }
-            }
-
-        }
-        else
-        {
-            _CharacterPanel.SetActive(false);
-            _itemPanel.SetActive(false);
-            LoadScene(_GameStatus.MAP);
-        }
-
-
-    }
-
-    public void ConfirmNotifyOkayBtn()
-    {
-        if (_confirmNotifyMode == _ConfirmNotify.NewGame)
-        {
-            DeleteFile();
-            foreach (Transform child in _mapObj.transform)
-            {
-                GameObject.Destroy(child.gameObject);
-            }
-            _mapObj.transform.DetachChildren();
-            LoadStartScene();
-            _subMenuPanel.SetActive(false);
-            _confirmNotify.SetActive(false);
-        }
-        else if (_confirmNotifyMode == _ConfirmNotify.ExitGame)
-        {
-            OpenConfirmNotify("เจ้าต้องการเซฟเกมหรือไม่?", _ConfirmNotify.SaveAndExit);
-
-        }
-        else if (_confirmNotifyMode == _ConfirmNotify.SaveAndExit)
-        {
-            StartCoroutine(SavePlayerData(true));
-            _confirmNotify.SetActive(false);
-        }
-    }
-
-    public void ConfirmNotifyCancelBtn()
-    {
-        if (_confirmNotifyMode == _ConfirmNotify.NewGame)
-        {
-            _confirmNotify.SetActive(false);
-        }
-        else if (_confirmNotifyMode == _ConfirmNotify.ExitGame)
-        {
-            _confirmNotify.SetActive(false);
-        }
-        else if (_confirmNotifyMode == _ConfirmNotify.SaveAndExit)
-        {
-            _confirmNotify.SetActive(false);
-            Application.Quit();
-        }
-    }
+    
 
     /// End Event button zone.
     /// 
-    _ConfirmNotify _confirmNotifyMode;
-    void OpenConfirmNotify(string txt, _ConfirmNotify mode)
+    public _ConfirmNotify _confirmNotifyMode;
+
+    public void OpenConfirmNotify(string txt, _ConfirmNotify mode)
     {
         _confirmNotifyMode = mode;
         _confirmNotify.SetActive(true);
         _confirmNotify.transform.Find("Text").GetComponent<Text>().text = txt;
     }
 
-    void DeleteFile(string fileName = "PlayerLog.json")
+    public void DeleteSave(string fileName = "PlayerLog.json")
     {
-        string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
+        string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/FileSave/";
         string filePath = folderPath + fileName;
         File.Delete(filePath);
         RefreshEditorProjectWindow();
@@ -1018,7 +676,7 @@ public class GameCore : MonoBehaviour
 #endif
     }
 
-    public void LoadScene(_GameStatus mode)
+    public void LoadScene(_GameState mode)
     {
         StartCoroutine(LoadingScene(mode));
     }
@@ -1055,7 +713,7 @@ public class GameCore : MonoBehaviour
     void OpenForestShopScene()
     {
         OpenObjInScene(_forestShopObj);
-        _forestShopPanel.SetActive(true);
+        //Camera.main.transform.position = new Vector3(-10, 0f, Camera.main.transform.position.z);
     }
 
     void OpenObjInScene(GameObject obj)
@@ -1118,7 +776,7 @@ public class GameCore : MonoBehaviour
 
     public bool CheckCrystal(int point)
     {
-        if (_gameMode != _GameStatus.BATTLE) return true;
+        if (_gameMode != _GameState.BATTLE) return true;
         if (_battleCon.Crystal - point < 0)
         {
             return false;
@@ -1128,7 +786,7 @@ public class GameCore : MonoBehaviour
 
     public bool UseCrystal(int point)
     {
-        if (_gameMode != _GameStatus.BATTLE) return true;
+        if (_gameMode != _GameState.BATTLE) return true;
         if (_battleCon.Crystal - point < 0)
         {
             return false;
@@ -1143,93 +801,19 @@ public class GameCore : MonoBehaviour
 
     public void CalEscapeRoom()
     {
-        foreach (Room room in _dungeon[_currentDungeonLayer - 1].roomIsPass)
+        foreach (Room room in _dungeon[_player.currentDungeonFloor - 1].roomIsPass)
         {
-            if (room.id == _currentRoomPosition)
+            if (room.id == _player.currentRoomPosition)
             {
                 room.escapeCount++;
                 break;
             }
         }
     }
-    public List<string> _unlockHeroList;
+    
     public PopupText _unlockNotifyPopup;
 
-    public void OpenUnlockNotify()
-    {
-        StartCoroutine(ShowUnlockNotify());
-    }
-
-    IEnumerator ShowUnlockNotify()
-    {
-        yield return new WaitForSeconds(1.5f);
-        Sprite[] loadSprite = null;
-        string getSpriteSet = "";
-        for (int i = 0; i < _unlockHeroList.Count; i++)
-        {
-            PopupText unlock = Instantiate(_unlockNotifyPopup);
-            unlock.transform.SetParent(GameObject.Find("FrontCanvas").transform, false);
-            unlock.transform.localScale = new Vector3(1, 1, 1);
-            foreach (ModelDataSet data in dataHeroList)
-            {
-                if (_unlockHeroList[i] == data.spriteName)
-                {
-                    if (getSpriteSet != data.spriteSet)
-                    {
-                        getSpriteSet = data.spriteSet;
-                        loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
-                    }
-                    unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + data.spriteName);
-                    unlock.SetPopupText("ปลดล็อค" + data.name + "สำเร็จ");
-                    
-                    int idStore = 1;
-                    foreach (Hero h in _heroStore)
-                    {
-                        if (h.GetStoreId() > idStore)
-                        {
-                            idStore = h.GetStoreId();
-                        }
-                    }
-                    Hero hero = new Hero(idStore+1,dataHeroList.Length,1, data);
-
-                    string[] skillList = data.skillList.Split(':');
-                    for (int a = 0; a < skillList.Length; a++)
-                    {
-                        foreach (SkillDataSet skill in dataSkillList)
-                        {
-                            if (_cal.IntParseFast(skillList[a]) == skill.id)
-                            {
-                                Skill attack = new Skill();
-                                string[] buffList = skill.buffList.Split(',');
-                                for (int s = 0; s < buffList.Length; s++)
-                                {
-                                    string[] buff = buffList[s].Split(':');
-                                    Buff dataBuff = new Buff();
-                                    dataBuff.id = _cal.IntParseFast(buff[0]);
-                                    dataBuff.icon = _cal.IntParseFast(buff[1]);
-                                    dataBuff.timeCount = _cal.IntParseFast(buff[2]);
-                                    dataBuff.whoUse = _Model.PLAYER;
-                                    dataBuff.forMe = (_cal.IntParseFast(buff[3]) == 0) ? true : false;
-                                    attack.buff.Add(dataBuff);
-                                }
-                                attack.hate = (int)skill.bonusDmg * 20;
-                                attack.skill = skill;
-                                hero.GetStatus().attack[a] = attack;
-                                break;
-                            }
-                        }
-                    }
-                    hero.GetStatus().passive = (_Passive)data.passiveId;
-                    _heroStore.Add(hero);
-                    break;
-                }
-            }
-
-            yield return new WaitForSeconds(1.5f);
-        }
-        _unlockHeroList = null;
-        //yield return new WaitForSeconds(1.5f);
-    }
+    
 
     public void OpenErrorNotify(string txt)
     {
@@ -1247,14 +831,13 @@ public class GameCore : MonoBehaviour
         PopupText unlock = Instantiate(_unlockNotifyPopup);
         unlock.transform.SetParent(GameObject.Find("FrontCanvas").transform, false);
         unlock.transform.localScale = new Vector3(1, 1, 1);
-        Sprite[] sprite = Resources.LoadAll<Sprite>("Sprites/UI/ui2");
         if (icon)
         {
-            unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = sprite.Single(s => s.name == "ui2_5");
+            unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = _uiSprite2.Single(s => s.name == "confirm");
         }
         else
         {
-            unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = sprite.Single(s => s.name == "ui2_4");
+            unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = _uiSprite2.Single(s => s.name == "cencel");
         }
         unlock.SetPopupText(txt);
         //yield return new WaitForSeconds(1.5f);

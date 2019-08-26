@@ -13,7 +13,7 @@ namespace model
     {
         public Setting[] ReadSetting(Setting[] dataSetting)
         {
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/FileSave/";
             string filePath = folderPath + "Setting.json";
             if (File.Exists(filePath))
             {
@@ -35,7 +35,7 @@ namespace model
             /*---android can't load
             string reader = File.ReadAllText(Application.dataPath + "/Resources/PlayerLog.json");
             dataPlayerLog = JsonHelper.FromJson<PlayerLog>(reader);*/
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/FileSave/";
             string filePath = folderPath + "PlayerLog.json";
             if (File.Exists(filePath))
             {
@@ -57,10 +57,11 @@ namespace model
         {
             GameCore _core = Camera.main.GetComponent<GameCore>();
             int logNumber = 0;
-            dataPlayerLog[logNumber].hp = _core._playerHP;
-            dataPlayerLog[logNumber].dungeonLayer = _core._currentDungeonLayer;
-            dataPlayerLog[logNumber].roomPosition = _core._currentRoomPosition;
-            dataPlayerLog[logNumber].money = _core._currentMoney;
+            dataPlayerLog[logNumber].soul = _core._player.currentSoul;
+            Debug.Log("WriteDataPlayerLog " + _core._player.currentDungeonFloor);
+            dataPlayerLog[logNumber].dungeonFloor = _core._player.currentDungeonFloor;
+            dataPlayerLog[logNumber].roomPosition = _core._player.currentRoomPosition;
+            dataPlayerLog[logNumber].money = _core._player.currentMoney;
             string itemStore = "";
             for (int i = 0; i < _core._itemStore.Count; i++)
             {
@@ -72,12 +73,12 @@ namespace model
             string heroStore = "";
             for (int i = 0; i < _core._heroStore.Count; i++)
             {
-                heroStore += _core._heroStore[i].GetStoreId() + ":" + _core._heroStore[i].GetData().id + ":" + _core._heroStore[i].GetExp() + ":" + _core._heroStore[i].GetStatus().currentHP;
+                heroStore += _core._heroStore[i].getStoreId() + ":" + _core._heroStore[i].getId() + ":" + _core._heroStore[i].getStatus().getExp() + ":" + _core._heroStore[i].getStatus().currentHP;
                 if (i < _core._heroStore.Count - 1)
                     heroStore += ",";
             }
             dataPlayerLog[logNumber].heroStore = heroStore;
-            dataPlayerLog[logNumber].heroIsPlay = _core._heroIsPlaying.GetStoreId();
+            dataPlayerLog[logNumber].heroIsPlay = _core._heroIsPlaying.getStoreId();
             string dungeonIsPass = "";
             for (int i = 0; i < _core._dungeon.Length; i++)
             {
@@ -119,7 +120,7 @@ namespace model
 
         void WriteJson(string text, string fileName = "PlayerLog.json")
         {
-            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/dataFile/";
+            string folderPath = (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer ? Application.persistentDataPath : Application.dataPath) + "/FileSave/";
             string filePath = folderPath + fileName;
             if (!Directory.Exists(folderPath))
             {

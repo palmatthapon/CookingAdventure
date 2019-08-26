@@ -22,9 +22,9 @@ namespace item
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _shopCon = _core._mainMenu.GetComponent<ShopController>();
+            _shopCon = _core._menuPanel.GetComponent<ShopController>();
             _cookCon = _core._cookMenu.GetComponent<CookController>();
-            _itemCon = _core._mainMenu.GetComponent<ItemController>();
+            _itemCon = _core._menuPanel.GetComponent<ItemController>();
         }
         
         public override void OnPointerEnter(PointerEventData eventData)
@@ -41,7 +41,7 @@ namespace item
 
         public override void OnPointerClick(PointerEventData data)
         {
-            if (_core._manageHeroPanel.activeSelf) return;
+            
             if (_core._shopPanel.activeSelf)
             {
                 //Debug.Log("Item id " + _item.id);
@@ -52,20 +52,20 @@ namespace item
             {
                 _itemCon._itemStoreIdSelect = _item;
             }
-            if (_core._gameMode == _GameStatus.BATTLE || _core._gameMode == _GameStatus.CAMP)
+            if (_core._gameMode == _GameState.BATTLE || _core._gameMode == _GameState.CAMP)
             {
                 _itemCon.UseBtn();
             }
             else
             {
-                _core.CallSubMenu(_SubMenu.Item);
+                _core.OpenSubMenu(_SubMenu.Item);
             }
         }
 
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
-            if (_core._ActionMode == _ActionStatus.Cook)
+            if (_core._actionMode == _ActionState.Cook)
             {
                 if (_item.amount == 0) return;
                 _item.obj.transform.Find("Count").GetComponent<Text>().text = (--_item.amount).ToString();

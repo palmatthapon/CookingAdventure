@@ -26,8 +26,8 @@ namespace shop
         {
             _core = Camera.main.GetComponent<GameCore>();
             _cal = new Calculate();
-            _itemCon = _core._mainMenu.GetComponent<ItemController>();
-            _shopCon = _core._mainMenu.GetComponent<ShopController>();
+            _itemCon = _core._menuPanel.GetComponent<ItemController>();
+            _shopCon = _core._menuPanel.GetComponent<ShopController>();
         }
 
         void OnEnable()

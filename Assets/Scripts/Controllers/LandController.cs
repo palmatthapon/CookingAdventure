@@ -31,7 +31,7 @@ namespace controller
         {
             if (!_core.isPaused)
             {
-                if (_core._gameMode == _GameStatus.LAND)
+                if (_core._gameMode == _GameState.LAND)
                 {
                     if (!_core._shopPanel.activeSelf && !_core._gatePanel.activeSelf && !_core._CharacterPanel.activeSelf && !_core._subMenuPanel.activeSelf)
                     {

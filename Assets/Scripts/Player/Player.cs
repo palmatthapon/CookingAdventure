@@ -1,0 +1,67 @@
+﻿using UnityEngine;
+using System.Collections;
+
+namespace player
+{
+    [System.Serializable]
+    public class Player
+    {
+        string Name;
+        int Money;
+        int Soul;
+
+        public int currentDungeonFloor;
+        public int currentRoomPosition;
+
+        public string name
+        {
+            get
+            {
+                return Name;
+            }
+            set
+            {
+                Name = value;
+            }
+        }
+
+        public int currentSoul
+        {
+            get
+            {
+                return this.Soul;
+            }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                else if (value > 100)
+                {
+                    value = 100;
+                }
+                this.Soul = value;
+                //_playerSoulBar.GetComponent<PlayerSoul>().AddFill(playerHP);
+                //_playerSoulBar.transform.Find("SoulText").GetComponent<Text>().text = playerHP + "/100";
+            }
+        }
+
+        public int currentMoney
+        {
+            get
+            {
+                return this.Money;
+            }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                this.Money = value;
+            }
+        }
+    }
+}
+

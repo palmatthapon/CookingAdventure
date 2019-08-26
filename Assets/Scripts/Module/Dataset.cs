@@ -43,7 +43,7 @@ namespace model
         public string baseSTR;
         public string baseAGI;
         public string baseINT;
-        public string attackPattern;
+        public string patternAttack;
     }
     
     [System.Serializable]
@@ -53,13 +53,12 @@ namespace model
         public string name;
         public string spriteSet;
         public string spriteName;
-        public _Character type;
         public string skillList;
         public int passiveId;
         public int baseSTR;
         public int baseAGI;
         public int baseINT;
-        public string attackPattern;
+        public string patternAttack;
     }
 
     [System.Serializable]
@@ -112,8 +111,9 @@ namespace model
     [System.Serializable]
     public class PlayerLog
     {
-        public int hp;
-        public int dungeonLayer;
+        public string playerName;
+        public int soul;
+        public int dungeonFloor;
         public int roomPosition;
         public int money;
         public string itemStore;

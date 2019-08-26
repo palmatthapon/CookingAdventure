@@ -16,13 +16,6 @@ namespace model
         NPC
     }
     
-    public enum _Character
-    {
-        HAMMER = 1,
-        SCISSORS,
-        PAPER
-    }
-
     public enum _Attack
     {
         PHYSICAL = 1,
@@ -65,7 +58,7 @@ namespace model
         Revive
     }
 
-    public enum _GameStatus
+    public enum _GameState
     {
         GAMEMENU,
         START,
@@ -75,7 +68,7 @@ namespace model
         LAND,
         FORESTSHOP
     }
-    public enum _ActionStatus
+    public enum _ActionState
     {
         Attack,
         Defense,

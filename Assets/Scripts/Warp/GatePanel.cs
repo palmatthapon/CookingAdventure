@@ -59,7 +59,7 @@ namespace warp
             _dungeonLayerIsSelect = _cal.IntParseFast(EventSystem.current.currentSelectedGameObject.name);
             //Debug.Log(_dungeonLayerIsSelect);
             _core.SetTalk(name+" อันตรายมากนะ ระวังด้วยพ่อหนุ่ม");
-            _core.CallSubMenu(_SubMenu.Warp,"เจ้าแน่ใจแล้วใช่ไหมที่จะเข้าไป");
+            _core.OpenSubMenu(_SubMenu.Warp,"เจ้าแน่ใจแล้วใช่ไหมที่จะเข้าไป");
         }
     }
 }

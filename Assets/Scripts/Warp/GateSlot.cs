@@ -33,12 +33,12 @@ public class GateSlot : EventTrigger
                 _core.OpenErrorNotify("วาปชั้นนี้ยังไม่ได้เปิดใช้งาน!");
                 return;
             }
-            _core._currentDungeonLayer = _dungeonLayer;
-            _core._currentRoomPosition = _core._dungeon[_core._currentDungeonLayer - 1].dungeon.startRoom;
+            _core._player.currentDungeonFloor = _dungeonLayer;
+            _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
             bool roomPass = false;
-            foreach (Room room in _core._dungeon[_core._currentDungeonLayer - 1].roomIsPass)
+            foreach (Room room in _core._dungeon[_core._player.currentDungeonFloor - 1].roomIsPass)
             {
-                if (room.id == _core._currentRoomPosition)
+                if (room.id == _core._player.currentRoomPosition)
                 {
                     roomPass = true;
                     break;
@@ -48,12 +48,12 @@ public class GateSlot : EventTrigger
             if (roomPass == false)
             {
                 Room newRoom = new Room();
-                newRoom.id = _core._currentRoomPosition;
+                newRoom.id = _core._player.currentRoomPosition;
                 newRoom.passCount = 0;
                 newRoom.escapeCount = 0;
-                _core._dungeon[_core._currentDungeonLayer - 1].roomIsPass.Add(newRoom);
+                _core._dungeon[_core._player.currentDungeonFloor - 1].roomIsPass.Add(newRoom);
             }
-            _core.LoadScene(_GameStatus.MAP);
+            _core.LoadScene(_GameState.MAP);
             _core._gatePanel.SetActive(false);
             _core._talkPanel.SetActive(false);
         }

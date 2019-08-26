@@ -2,34 +2,34 @@
 using System.Collections.Generic;
 using UnityEngine;
 using skill;
-using model;
 
-namespace character
+namespace model
 {
     [System.Serializable]
     public class Status
     {
-        Calculate _cal;
-
-        public GameObject _avatar;
-        public string name;
-        public int level;
-        public int STR;
-        public int AGI;
-        public int INT;
-        public int hpMax;
-        public int ATK;
-        public int MATK;
-        public int DEF;
-        public int MDEF;
+        int level;
+        int STR;
+        int AGI;
+        int INT;
+        int hpMax;
+        int ATK;
+        int MATK;
+        int DEF;
+        int MDEF;
         public Skill[] attack = new Skill[2];
         public _Passive passive;
+
+        Skill _currentSkill;
 
         public int currentHPMax;
         int CurrentHP;
 
+        double Exp;
+
         int Hate;
-        
+        int _damage;
+
         public float _eventBonusDmg = 1;
         public float _passiveBonusATK = 1;
         public float _passiveBonusMATK = 1;
@@ -44,9 +44,11 @@ namespace character
         
         public Status(double exp, ModelDataSet model)
         {
-            _cal = new Calculate();
-            level = _cal.CalculateLevel(exp);
+            Exp = exp;
 
+            Calculate _cal = GameCore.call()._cal;
+
+            level = _cal.CalculateLevel(exp);
             STR = _cal.CalculateSTR(model.baseSTR, model.baseAGI, model.baseINT, level);
             AGI = _cal.CalculateAGI(model.baseSTR, model.baseAGI, model.baseINT, level);
             INT = _cal.CalculateINT(model.baseSTR, model.baseAGI, model.baseINT, level);
@@ -62,7 +64,7 @@ namespace character
 
         public Status(int level, ModelDataSet model)
         {
-            _cal = new Calculate();
+            Calculate _cal = GameCore.call()._cal;
 
             STR = _cal.CalculateSTR(model.baseSTR, model.baseAGI, model.baseINT, level);
             AGI = _cal.CalculateAGI(model.baseSTR, model.baseAGI, model.baseINT, level);
@@ -75,6 +77,27 @@ namespace character
 
             hpMax = _cal.CalculateHpMax(STR, AGI, INT);
             currentHP = hpMax;
+        }
+
+        public int getATK()
+        {
+            return ATK;
+        }
+
+        public int getMATK()
+        {
+            return MATK;
+        }
+
+        public int getLvl()
+        {
+            return level;
+        }
+
+        public void setLvl(int lvl)
+        {
+            if(lvl>level)
+                level = lvl;
         }
 
         public int currentHP
@@ -91,6 +114,8 @@ namespace character
                     this.CurrentHP = currentHPMax;
                 else
                     this.CurrentHP = value;
+
+                GameCore.call()._battleCon._playerLifePanel.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)CurrentHP * 1 / currentHPMax);
             }
         }
 
@@ -132,5 +157,83 @@ namespace character
             _buffBonusHP = 1;
         }
 
+        public double getExp()
+        {
+            return Exp;
+        }
+
+        public void setExp(double exp)
+        {
+            if (exp == 0) return;
+            Exp = exp;
+        }
+
+        public int getDEF()
+        {
+            return DEF;
+        }
+
+        public int getMDEF()
+        {
+            return MDEF;
+        }
+
+        public int CalDmgSkill(_Attack type,double skillBonus,Status target,int skillStack)
+        {
+            if (type == _Attack.PHYSICAL)
+            {
+
+                return((int)(ATK * skillBonus * _passiveBonusATK * _eventBonusDmg *_buffBonusATK * skillStack - target.getDEF() * _buffBonusDEF * _passiveBonusDEF));
+            }
+            else
+            {
+
+                return ((int)(ATK * skillBonus * _passiveBonusMATK * _eventBonusDmg * _buffBonusMATK * skillStack - target.getMDEF() * _buffBonusMDEF * _passiveBonusMDEF));
+            }
+        }
+
+        public double getExpDrop()
+        {
+            return 50.0 + (STR - AGI);
+        }
+
+        public int CalDmgCounterAttack(int slot,Status target,int targetSlot)
+        {
+            int damage = (int)(ATK * _eventBonusDmg * _passiveBonusATK * _buffBonusATK);
+            int hpBefore = target.currentHP;
+            target.currentHP -= damage;
+            GameCore.call()._battleCon._damage_of_each_hero[targetSlot, slot] += hpBefore - target.currentHP;
+            return damage;
+        }
+
+        public void ResetHP()
+        {
+            currentHPMax = hpMax;
+            currentHP = hpMax;
+        }
+
+        public Skill getCurrentSkill()
+        {
+            return _currentSkill;
+        }
+
+        public void setCurrentSkill(Skill skill)
+        {
+            _currentSkill = skill;
+        }
+
+        public int getCurrentDmg()
+        {
+            return _damage;
+        }
+
+        public void setCurrentDmg(int dmg)
+        {
+            if (dmg < 0)
+            {
+                dmg = 0;
+            }
+            _damage = dmg;
+        }
     }
 }
