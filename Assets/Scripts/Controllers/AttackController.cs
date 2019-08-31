@@ -1,8 +1,8 @@
 ﻿using model;
-using System.Collections;
+using system;
 using System.Collections.Generic;
 using System.Linq;
-using UI;
+using battle;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,8 +11,7 @@ namespace controller
     public class AttackController : MonoBehaviour
     {
         GameCore _core;
-        BattleController _battleCon;
-        List<SkillBlock> _attackList = new List<SkillBlock>();
+        List<AttackBlock> _attackList = new List<AttackBlock>();
         public GameObject _attackSlot;
         public Sprite[] _attackIcon;
         public Sprite[] _defenseIcon;
@@ -22,26 +21,23 @@ namespace controller
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _battleCon = _core._battleCon;
         }
 
+        void LoadBlockAttack()
+        {
+
+        }
         
         public void UpdateAttackSlot()
         {
             while (_attackList.Count < 7)
             {
-                if (_blockCount % 4==0 && _blockCount > 6)
-                {
-                    LoadDefense();
-                }
-                else
-                {
-                    LoadAttack();
-                }
+                LoadAttack();
             }
 
             UpdateBlockStack();
         }
+
         void UpdateBlockStack()
         {
             for (int i = 0; i < _attackList.ToList().Count; i++)
@@ -49,7 +45,7 @@ namespace controller
                 bool heroDead = true;
                 if (_attackList[i].isAttack)
                 {
-                    foreach (Hero hero in _battleCon._hero.ToList())
+                    foreach (Hero hero in _core.getBattCon()._hero.ToList())
                     {
                         if (hero.getStoreId() == _attackList[i].heroStoreId)
                         {
@@ -133,16 +129,14 @@ namespace controller
         {
             if(_core ==null)
                 _core = Camera.main.GetComponent<GameCore>();
-            if (_battleCon==null)
-                _battleCon = _core._battleCon;
 
-            int ranSlot = Random.Range(0, _battleCon._heroData.Length);
-            Hero hero = _battleCon._heroData[ranSlot];
+            int ranSlot = Random.Range(0, _core.getBattCon()._heroCache.Length);
+            Hero hero = _core.getBattCon()._heroCache[ranSlot];
 
             if(hero.getStatus().currentHP == 0)
             {
                 //Debug.Log("old block "+ranSlot);
-                ranSlot = Random.Range(0, _battleCon._heroData.Length);
+                ranSlot = Random.Range(0, _core.getBattCon()._heroCache.Length);
                 //Debug.Log("new ran block "+ ranSlot);
             }
 
@@ -158,65 +152,37 @@ namespace controller
             }
             
             slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.getSpriteName());
-            SkillBlock skill = new SkillBlock();
-            
-            skill.slotId = _blockCount;
-            skill.defCrystal = hero.getStatus().attack[0].skill.crystal;
-            slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = skill.defCrystal.ToString();
+            AttackBlock atk = new AttackBlock();
+
+            atk.slotId = _blockCount;
+            atk.defCrystal = hero.getStatus().attack[0].data.crystal;
+            slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = atk.defCrystal.ToString();
             slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Skill_" + hero.getSpriteName());
-            skill.heroStoreId = hero.getStoreId();
-            skill.blockStack = 1;
-            skill.color = hero.getSlot();
-            skill.isAttack = true;
-            skill.isUltimate = false;
-            skill.crystal = skill.defCrystal;
-            skill.obj = slot;
-            AttackSlot atk = slot.GetComponent<AttackSlot>();
-            atk._skill = skill;
-            _attackList.Add(skill);
+            atk.heroStoreId = hero.getStoreId();
+            atk.blockStack = 1;
+            atk.color = hero.getSlot();
+            atk.isAttack = true;
+            atk.isUltimate = false;
+            atk.crystal = atk.defCrystal;
+            atk.obj = slot;
+            AttackSlot atkSlot = slot.GetComponent<AttackSlot>();
+            atkSlot._attack = atk;
+            _attackList.Add(atk);
             _blockCount++;
             transform.Find("ActionMask").Find("GridView").localPosition = new Vector3(1, 0, 0);
         }
-
-        public void LoadDefense()
-        {
-            GameObject slot = Instantiate(_attackSlot);
-            slot.transform.SetParent(transform.Find("ActionMask").Find("GridView"));
-            slot.transform.localScale = new Vector3(1, 1, 1);
-            slot.transform.localPosition = Vector3.zero;
-
-            slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = 1+"";
-            slot.transform.Find("Image").GetComponent<Image>().sprite = _defenseIcon[0];
-            slot.transform.Find("Icon").gameObject.SetActive(false);
-            SkillBlock skill = new SkillBlock();
-            skill.slotId = _blockCount;
-            skill.defCrystal = 1;
-            skill.heroStoreId = 1;
-            skill.color = 5;
-            skill.isAttack = false;
-            skill.blockStack = 1;
-            skill.crystal = 1;
-            skill.obj = slot;
-            AttackSlot atk = slot.GetComponent<AttackSlot>();
-            atk._skill = skill;
-            _attackList.Add(skill);
-            _blockCount++;
-            transform.Find("ActionMask").Find("GridView").localPosition = new Vector3(1, 0, 0);
-        }
-
+        
         public void LoadUltimate(int slotId)
         {
             if (_core == null)
                 _core = Camera.main.GetComponent<GameCore>();
-            if (_battleCon == null)
-                _battleCon = _core._battleCon;
             
             GameObject slot = Instantiate(_attackSlot);
             slot.transform.SetParent(transform.Find("ActionMask").Find("GridView"));
             slot.transform.localScale = new Vector3(1, 1, 1);
             slot.transform.localPosition = Vector3.zero;
 
-            Hero hero = _battleCon._heroData[slotId];
+            Hero hero = _core.getBattCon()._heroCache[slotId];
             if (getSpriteSet != hero.getSpriteSet())
             {
                 getSpriteSet = hero.getSpriteSet();
@@ -224,71 +190,66 @@ namespace controller
             }
             slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Map_" + hero.getSpriteName());
             slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Ultimate_" + hero.getSpriteName());
-            SkillBlock skill = new SkillBlock();
-            skill.slotId = _blockCount;
-            skill.defCrystal = hero.getStatus().attack[1].skill.crystal;
-            slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = skill.defCrystal.ToString();
-            skill.heroStoreId = hero.getStoreId();
-            skill.blockStack = 1;
-            skill.color = hero.getSlot();
-            skill.isAttack = true;
-            skill.isUltimate = true;
-            skill.crystal = skill.defCrystal;
-            skill.obj = slot;
-            AttackSlot atk = slot.GetComponent<AttackSlot>();
-            atk._skill = skill;
-            _attackList.Add(skill);
+            AttackBlock atk = new AttackBlock();
+            atk.slotId = _blockCount;
+            atk.defCrystal = hero.getStatus().attack[1].data.crystal;
+            slot.transform.Find("Crystal").GetComponentInChildren<Text>().text = atk.defCrystal.ToString();
+            atk.heroStoreId = hero.getStoreId();
+            atk.blockStack = 1;
+            atk.color = hero.getSlot();
+            atk.isAttack = true;
+            atk.isUltimate = true;
+            atk.crystal = atk.defCrystal;
+            atk.obj = slot;
+            AttackSlot atkSlot = slot.GetComponent<AttackSlot>();
+            atkSlot._attack = atk;
+            _attackList.Add(atk);
             _blockCount++;
             transform.Find("ActionMask").Find("GridView").localPosition = new Vector3(1, 0, 0);
         }
 
-        public void UseAttack(SkillBlock skill)
+        public void UseAttack(AttackBlock attack)
         {
-            _core._actionMode = skill.isAttack?_ActionState.Attack: _ActionState.Defense;
+            _core._actionMode = attack.isAttack?_ActionState.Attack: _ActionState.Defense;
             
-            if (_core.UseCrystal(skill.crystal))
+            if (_core.getMenuCon().UseCrystal(attack.crystal))
             {
-                _battleCon._battleState = _BattleState.Wait;
-                if (skill.isAttack)
+                _core.getBattCon()._battleMode = _BattleState.Wait;
+                if (attack.isAttack)
                 {
                     bool have = false;
-                    foreach (Hero hero in _battleCon._hero.ToList())
+                    foreach (Hero hero in _core.getBattCon()._hero.ToList())
                     {
-                        if (hero.getStoreId() == skill.heroStoreId)
+                        if (hero.getStoreId() == attack.heroStoreId)
                         {
                             have = true;
-                            hero.Attack(skill.isUltimate, false, skill.blockStack);
+                            hero.Attack(attack.isUltimate, attack.blockStack);
                             break;
                         }
                     }
                     if (!have)
                     {
-                        _battleCon._battleState = _BattleState.Finish;
+                        _core.getBattCon()._battleMode = _BattleState.Finish;
                     }
                     
                 }
-                else
-                {
-                    _battleCon.FocusHero().AddDefenseList(skill.crystal);
-                    
-                }
-                DeleteBlock(skill);
+                DeleteBlock(attack);
                     
                 UpdateAttackSlot();
             }
             else
             {
-                //_core.CallSubMenu(_SubMenu.Alert, "คริสตัลของคุณไม่พอ!");
+                //_core.CallSubMenu(_SubMenuState.Alert, "คริสตัลของคุณไม่พอ!");
                 _core.OpenErrorNotify("คริสตัลของคุณไม่พอ!");
             }
         }
 
-        void DeleteBlock(SkillBlock skill)
+        void DeleteBlock(AttackBlock attack)
         {
             string slotIdIsDelete = "";
             for (int i = 0; i < _attackList.Count; i++)
             {
-                if (_attackList[i].slotId == skill.slotId)
+                if (_attackList[i].slotId == attack.slotId)
                 {
                     if (_attackList[i].blockStack == 3)
                     {
@@ -310,7 +271,7 @@ namespace controller
             string[] splitSlotId = slotIdIsDelete.Split(':');
             for (int a = 0; a < splitSlotId.Length; a++)
             {
-                foreach (SkillBlock data in _attackList.ToList())
+                foreach (AttackBlock data in _attackList.ToList())
                 {
                     if (data.slotId == System.Int32.Parse(splitSlotId[a]))
                     {
@@ -323,7 +284,7 @@ namespace controller
         
         public void ClearAttackList()
         {
-            foreach (SkillBlock atk in _attackList.ToList())
+            foreach (AttackBlock atk in _attackList.ToList())
             {
                 Destroy(atk.obj);
             }

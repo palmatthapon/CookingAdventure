@@ -1,14 +1,16 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using controller;
-using skill;
+using battle;
 using System.Linq;
+using system;
 
 namespace model
 {
 
     public class Model
     {
+        GameCore _core = Camera.main.GetComponent<GameCore>();
+
         int _slot;
 
         GameObject _avatar;
@@ -20,13 +22,19 @@ namespace model
         Sprite[] _spriteListloaded = null;
         string _spriteSetLoaded = "";
 
+        GameObject[] loadEffectPlayer;
+        GameObject[] loadEffectMonster;
 
-        public void setModel(int slot,ModelDataSet data,GameObject avatar)
+        Vector3 endPosition;
+        Vector3 originalPos;
+        bool startInjur;
+        bool injur;
+        float speed = 4f;
+
+
+        public void setModel(ModelDataSet data)
         {
-            _slot = slot;
             _data = data;
-            _avatar = avatar;
-            _anim = _avatar.GetComponent<Animator>();
         }
 
         public int getId()
@@ -38,20 +46,32 @@ namespace model
         {
             return _slot;
         }
+
+        public void setSlot(int slot)
+        {
+            _slot = slot;
+
+        }
+
+        public GameCore getCore()
+        {
+            return _core;
+        }
         
-        public BattleController getBatCon()
+        public BattleController getBattCon()
         {
-            return GameCore.call()._battleCon;
+            return _core.getBattCon();
         }
-
-        public BuffController getbuffCon()
-        {
-            return GameCore.call()._buffCon;
-        }
-
+        
         public AttackController getAtkCon()
         {
-            return GameCore.call()._attackCon;
+            return _core.getATKCon();
+        }
+
+        public void setAvatar(GameObject avatar)
+        {
+            _avatar = avatar;
+            _anim = _avatar.GetComponent<Animator>();
         }
         
         public Animator getAnim()
@@ -109,11 +129,6 @@ namespace model
         {
             return _data.spriteName;
         }
-
-        public void Anim(bool ena)
-        {
-            getAnim().enabled = ena;
-        }
         
         public Vector3 getOriginalSize()
         {
@@ -168,7 +183,80 @@ namespace model
             setAvatarSprite(_spriteListloaded.Single(s => s.name == getSpriteName()));
             setAvatarActive(true);
             setOriginalSize(getAvatarTrans().parent.localScale);
-            getBatCon()._battleState = _BattleState.Finish;
         }
+
+        public void CreateAttackEffect(SkillDataSet skill, _Model target)
+        {
+            if (target == _Model.MONSTER)
+            {
+                if (loadEffectPlayer == null)
+                    loadEffectPlayer = Resources.LoadAll<GameObject>("Effects/Effect_Player/");
+
+                for (int i = 0; i < loadEffectPlayer.Length; i++)
+                {
+                    if (skill.effect == loadEffectPlayer[i].name)
+                    {
+                        getBattCon().CloneAttackEffect(skill, loadEffectPlayer[i], getBattCon().FocusMonster().getAvatarTrans(), target);
+                        break;
+                    }
+                }
+
+            }
+            else
+            {
+
+                if (loadEffectMonster == null)
+                    loadEffectMonster = Resources.LoadAll<GameObject>("Effects/Effect_Monster/");
+
+                for (int i = 0; i < loadEffectMonster.Length; i++)
+                {
+                    if (skill.effect == loadEffectMonster[i].name)
+                    {
+                        getBattCon().CloneAttackEffect(skill, loadEffectMonster[i], getBattCon().FocusHero().getAvatarTrans(), target);
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        public void RunInjury(Vector3 pos)
+        {
+            injur = true;
+            originalPos = getAvatarPos();
+
+            endPosition = pos;
+
+            setOriginalMat(getAvatarMat());
+            setAvatarMat(getBattCon()._injuryMat);
+
+            getAnim().SetTrigger("IsInjury");
+
+            startInjur = true;
+        }
+
+        public bool CheckInjury()
+        {
+            if (getAnim() == null) return false;
+            if (startInjur && getAvatarPos() != endPosition)
+            {
+                setAvatarPos(Vector3.MoveTowards(getAvatarPos(), endPosition, speed * Time.deltaTime));
+                return true;
+            }
+            else if (injur)
+            {
+                injur = false;
+                endPosition = originalPos;
+                return true;
+            }
+            if (startInjur)
+            {
+                Debug.Log("check injury");
+                setAvatarMat(getOriginalMat());
+            }
+            startInjur = false;
+            return false;
+        }
+        
     }
 }

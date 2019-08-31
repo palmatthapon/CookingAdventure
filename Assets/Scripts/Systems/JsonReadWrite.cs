@@ -1,13 +1,9 @@
 ﻿
 using Json;
-using model;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace model
+namespace system
 {
     public class JsonReadWrite
     {
@@ -60,7 +56,7 @@ namespace model
             dataPlayerLog[logNumber].soul = _core._player.currentSoul;
             Debug.Log("WriteDataPlayerLog " + _core._player.currentDungeonFloor);
             dataPlayerLog[logNumber].dungeonFloor = _core._player.currentDungeonFloor;
-            dataPlayerLog[logNumber].roomPosition = _core._player.currentRoomPosition;
+            dataPlayerLog[logNumber].stayDungeonBlock = _core._player.currentStayDunBlock;
             dataPlayerLog[logNumber].money = _core._player.currentMoney;
             string itemStore = "";
             for (int i = 0; i < _core._itemStore.Count; i++)
@@ -78,24 +74,24 @@ namespace model
                     heroStore += ",";
             }
             dataPlayerLog[logNumber].heroStore = heroStore;
-            dataPlayerLog[logNumber].heroIsPlay = _core._heroIsPlaying.getStoreId();
-            string dungeonIsPass = "";
+            dataPlayerLog[logNumber].heroIsPlaying = _core._player._heroIsPlaying.getStoreId();
+            string floor = "";
             for (int i = 0; i < _core._dungeon.Length; i++)
             {
-                if (_core._dungeon[i].roomIsPass.Count > 0)
+                if (_core._dungeon[i].blockIsPlayed.Count > 0)
                 {
                     if (i != 0)
-                        dungeonIsPass += ",";
-                    dungeonIsPass += _core._dungeon[i].dungeon.id + "_";
-                    for (int a = 0; a < _core._dungeon[i].roomIsPass.Count; a++)
+                        floor += ",";
+                    floor += _core._dungeon[i].data.id + "_";
+                    for (int a = 0; a < _core._dungeon[i].blockIsPlayed.Count; a++)
                     {
-                        dungeonIsPass += _core._dungeon[i].roomIsPass[a].id + "-" + _core._dungeon[i].roomIsPass[a].passCount+ "-" + _core._dungeon[i].roomIsPass[a].escapeCount;
-                        if (a != _core._dungeon[i].roomIsPass.Count - 1)
-                            dungeonIsPass += ":";
+                        floor += _core._dungeon[i].blockIsPlayed[a].getNumber() + "-" + _core._dungeon[i].blockIsPlayed[a].getPlayed()+ "-" + _core._dungeon[i].blockIsPlayed[a].getEscaped();
+                        if (a != _core._dungeon[i].blockIsPlayed.Count - 1)
+                            floor += ":";
                     }
                 }
             }
-            dataPlayerLog[logNumber].dungeonIsPass = dungeonIsPass;
+            dataPlayerLog[logNumber].floorIsPlayed = floor;
 
             string shop = "";
             for (int i = 0; i < _core._landShopList.Count; i++)

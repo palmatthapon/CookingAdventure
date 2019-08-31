@@ -7,20 +7,19 @@ using UnityEngine.UI;
 public class PlayerInfoPanel : MonoBehaviour
 {
     GameCore _core;
-    PlayerController _playerCon;
     public GameObject _playerProfile;
     public Text _playerName;
 
     private void Awake()
     {
         _core = Camera.main.GetComponent<GameCore>();
-        _playerCon = _core._menuPanel.GetComponent<PlayerController>();
     }
 
     private void OnEnable()
     {
         Debug.Log("player name is " + _core._player.name);
         _playerName.text = _core._player.name;
+        _core.getCampCon().setAllowTouch(false);
     }
     
     public void Close()
@@ -28,4 +27,8 @@ public class PlayerInfoPanel : MonoBehaviour
         this.gameObject.SetActive(false);
     }
 
+    private void OnDisable()
+    {
+        _core.getCampCon().setAllowTouch(true);
+    }
 }

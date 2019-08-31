@@ -1,7 +1,6 @@
 ﻿using item;
-using model;
+using system;
 using shop;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,45 +11,70 @@ namespace controller
     public class ShopController : MonoBehaviour
     {
         GameCore _core;
-        Calculate _cal;
+
+        public Text _headName;
 
         public GameObject _shopList, _itemList;
-        public GameObject _itemSlot;
-        public GameObject _shopSlot;
 
-        ItemController _itemCon;
-
+        public GameObject _secretShopNpc;
+        
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _cal = new Calculate();
-            _itemCon = _core._menuPanel.GetComponent<ItemController>();
         }
 
+        private void OnEnable()
+        {
+            _core._actionMode = _ActionState.Shop;
+            if (_core._gameMode == _GameState.SECRETSHOP)
+            {
+                _headName.text = "Secret Shop";
+            }
+            else
+            {
+                _headName.text = "Shop";
+            }
+            LoadShop();
+            _core.getItemCon().ViewItem(_itemList.transform, "item");
+            _core.getCampCon().setAllowTouch(false);
+
+        }
+        
+        public void MoveCameraToSecretShop()
+        {
+            Camera.main.transform.position = new Vector3(_secretShopNpc.transform.position.x, -0.1f, Camera.main.transform.position.z);
+        }
+        
         public void ViewItem()
         {
             Transform trans = _itemList.transform.Find("ItemMask").Find("GridView");
+            GameObject clone = trans.GetChild(0).gameObject;
+            int count = 1;
             foreach (Transform child in trans)
             {
-                GameObject.Destroy(child.gameObject);
+                if (count > 1)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+                count++;
             }
 
             Sprite[] loadSprite = null;
             string nameSpriteSet = "";
             foreach (ItemStore item in _core._itemStore)
             {
-                GameObject itemSlot = Instantiate(_itemSlot);
+                GameObject itemSlot = Instantiate(clone);
                 itemSlot.transform.SetParent(trans);
                 itemSlot.transform.localScale = new Vector3(1, 1, 1);
                 ItemSlot itemComp = itemSlot.GetComponent<ItemSlot>();
                 itemComp._item = item;
                 itemSlot.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                if (nameSpriteSet != item.item.spriteSet)
+                if (nameSpriteSet != item.data.spriteSet)
                 {
-                    nameSpriteSet = item.item.spriteSet;
+                    nameSpriteSet = item.data.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
+                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.data.spriteName);
                 item.obj = itemSlot;
             }
         }
@@ -64,13 +88,13 @@ namespace controller
             }
             else
             {
-                string[] item = _core._dungeon[_core._player.currentDungeonFloor].dungeon.shopList.Split(',');
+                string[] item = _core._dungeon[_core._player.currentDungeonFloor].data.shopList.Split(',');
                 _itemShopList = new List<ItemShop>();
                 for (int i = 0; i < item.Length; i++)
                 {
                     foreach (ItemDataSet data in _core.dataItemList)
                     {
-                        if (_cal.IntParseFast(item[i]) == data.id)
+                        if (Calculator.IntParseFast(item[i]) == data.id)
                         {
                             ItemShop newItem = new ItemShop();
                             newItem.item = data;
@@ -89,36 +113,44 @@ namespace controller
             Sprite[] loadSprite = null;
             string nameSpriteSet = "";
             Transform trans = _shopList.transform.Find("ShopMask").Find("GridView");
+            GameObject clone = trans.GetChild(0).gameObject;
+            int count = 1;
             foreach (Transform child in trans)
             {
-                GameObject.Destroy(child.gameObject);
+                if (count > 1)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+                count++;
             }
 
             for (int a = 0; a < _itemShopList.Count; a++)
             {
-                GameObject itemSlot = Instantiate(_shopSlot);
-                itemSlot.transform.SetParent(trans);
-                itemSlot.transform.localScale = new Vector3(1, 1, 1);
-                ShopSlot itemComp = itemSlot.GetComponent<ShopSlot>();
-                ItemStore data = new ItemStore();
-                data.item = _itemShopList[a].item;
-                data.itemId = _itemShopList[a].item.id;
-                itemComp._item = data;
+                GameObject slot = Instantiate(clone);
+                slot.transform.SetParent(trans);
+                slot.transform.localScale = new Vector3(1, 1, 1);
+                ShopSlot script = slot.GetComponent<ShopSlot>();
+                ItemStore item = new ItemStore();
+                item.data = _itemShopList[a].item;
+                item.itemId = _itemShopList[a].item.id;
+                script._item = item;
                 if (_core._gameMode == _GameState.LAND)
                 {
-                    itemSlot.transform.Find("Price").GetComponent<Text>().text = (_itemShopList[a].item.price + (_itemShopList[a].buyCount / 10) * 5).ToString();
+                    slot.transform.Find("Price").GetComponent<Text>().text = (_itemShopList[a].item.price + (_itemShopList[a].buyCount / 10) * 5).ToString();
                 }
                 else
                 {
-                    itemSlot.transform.Find("Price").GetComponent<Text>().text = (_itemShopList[a].item.price + (_itemShopList[a].item.price / 2) * _itemShopList[a].buyCount).ToString();
+                    slot.transform.Find("Price").GetComponent<Text>().text = (_itemShopList[a].item.price + (_itemShopList[a].item.price / 2) * _itemShopList[a].buyCount).ToString();
                 }
                 if (nameSpriteSet != _itemShopList[a].item.spriteSet)
                 {
                     nameSpriteSet = _itemShopList[a].item.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == _itemShopList[a].item.spriteName);
-
+                slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == _itemShopList[a].item.spriteName);
+                slot.SetActive(true);
+                foreach (Behaviour behaviour in slot.GetComponentsInChildren<Behaviour>())
+                    behaviour.enabled = true;
             }
         }
         public ItemStore _itemShopIsSelect;
@@ -130,8 +162,8 @@ namespace controller
                 if (_itemShopIsSelect.id == item.id)
                 {
                     item.amount += -1;
-                    _core._player.currentMoney += (item.item.price / 2);
-                    _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
+                    _core._player.currentMoney += (item.data.price / 2);
+                    _core.getSubMenuCore().Cancel();
                     foreach (ItemShop itemShop in _itemShopList)
                     {
                         if (itemShop.id == _itemShopIsSelect.itemId)
@@ -165,16 +197,16 @@ namespace controller
                 {
                     if (_core._gameMode == _GameState.LAND)
                     {
-                        totalPrice = _itemShopIsSelect.item.price + (itemShop.buyCount / 10) * 5;
+                        totalPrice = _itemShopIsSelect.data.price + (itemShop.buyCount / 10) * 5;
                     }
                     else
                     {
-                        totalPrice = _itemShopIsSelect.item.price + (_itemShopIsSelect.item.price / 4) * itemShop.buyCount;
+                        totalPrice = _itemShopIsSelect.data.price + (_itemShopIsSelect.data.price / 4) * itemShop.buyCount;
                     }
 
                     if (_core._player.currentMoney < totalPrice)
                     {
-                        //_core.CallSubMenu(_SubMenu.Alert, "จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
+                        //_core.CallSubMenu(_SubMenuState.Alert, "จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
                         _core.OpenErrorNotify("จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
                         return;
                     }
@@ -194,7 +226,7 @@ namespace controller
                     if (item.amount == 99) break;
                     item.amount++;
                     item.obj.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                    _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
+                    _core.getSubMenuCore().Cancel();
                     haveItem = true;
                     break;
                 }
@@ -207,12 +239,26 @@ namespace controller
                 //Debug.Log("add newitem id : " + _itemShopIsSelect.id);
                 _itemShopIsSelect.amount = 1;
                 _core._itemStore.Add(_itemShopIsSelect);
-                _itemCon.ViewItem(_itemList);
-                _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
+                _core.getItemCon().ViewItem(_itemList.transform,"item");
+                _core.getSubMenuCore().Cancel();
             }
             _itemShopIsSelect = null;
         }
 
+        public void OpenShop()
+        {
+            _core.getMenuCon()._shopMenu.SetActive(true);
+        }
+
+        public void Cancel()
+        {
+            this.gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            _core.getCampCon().setAllowTouch(true);
+        }
     }
 }
 

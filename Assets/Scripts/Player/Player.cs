@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using model;
 
 namespace player
 {
@@ -11,7 +12,8 @@ namespace player
         int Soul;
 
         public int currentDungeonFloor;
-        public int currentRoomPosition;
+        public int currentStayDunBlock;
+        public Hero _heroIsPlaying;
 
         public string name
         {

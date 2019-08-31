@@ -1,6 +1,4 @@
-﻿using model;
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.UI;
 using warp;
@@ -9,69 +7,89 @@ public class SubMenuPanel : MonoBehaviour
 {
 
     GameCore _core;
+    string _subMenuMode;
+
     void Awake()
     {
         _core = Camera.main.GetComponent<GameCore>();
+        
     }
 
     private void OnEnable()
     {
-        Transform trans = this.transform.Find("GridView").transform;
-        foreach(GameObject child in this.transform.Find("GridView").transform)
+        foreach(Transform child in getTrans())
         {
-            child.SetActive(false);
-        }
-        
-        if (_core._subMenuMode == _SubMenu.Item)
-        {
-            trans.Find("CancelButton").gameObject.SetActive(true);
-            trans.Find("SellButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.Alert)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("ConfirmButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.Shop)
-        {
-            trans.Find("CancelButton").gameObject.SetActive(true);
-            trans.Find("BuyButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.Warp)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("ConfirmButton").gameObject.SetActive(true);
-            trans.Find("CancelButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.GameMenu)
-        {
-            trans.Find("ContinueButton").gameObject.SetActive(true);
-            trans.Find("SaveButton").gameObject.SetActive(true);
-            trans.Find("NewGameButton").gameObject.SetActive(true);
-            trans.Find("SettingButton").gameObject.SetActive(true);
-            trans.Find("ExitGameButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.BattleEnd)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("BackTownButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.ManageHero)
-        {
-            trans.Find("CancelButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.LoadBattleRevive)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            trans.Find("HeroReviveButton").gameObject.SetActive(true);
-        }
-        else if (_core._subMenuMode == _SubMenu.GameOver)
-        {
-            trans.Find("Post").gameObject.SetActive(true);
-            
-            trans.Find("ConfirmButton").gameObject.SetActive(true);
+            child.gameObject.SetActive(false);
         }
     }
+
+    Transform getTrans()
+    {
+        return this.transform.Find("GridView").transform;
+    }
+
+    public void OpenUseItem()
+    {
+        _subMenuMode = "useitem";
+        this.gameObject.SetActive(true);
+        getTrans().Find("CancelButton").gameObject.SetActive(true);
+        getTrans().Find("UseButton").gameObject.SetActive(true);
+    }
+
+    public void OpenSellItem()
+    {
+        _subMenuMode = "sellitem";
+        this.gameObject.SetActive(true);
+        getTrans().Find("CancelButton").gameObject.SetActive(true);
+        getTrans().Find("SellButton").gameObject.SetActive(true);
+    }
+
+    public void OpenAlert()
+    {
+        _subMenuMode = "alert";
+        this.gameObject.SetActive(true);
+        getTrans().Find("Post").gameObject.SetActive(true);
+        getTrans().Find("ConfirmButton").gameObject.SetActive(true);
+    }
+    public void OpenBuyShop()
+    {
+        _subMenuMode = "buyshop";
+        this.gameObject.SetActive(true);
+        getTrans().Find("CancelButton").gameObject.SetActive(true);
+        getTrans().Find("BuyButton").gameObject.SetActive(true);
+    }
+    public void OpenWarp()
+    {
+        _subMenuMode = "warp";
+        this.gameObject.SetActive(true);
+        getTrans().Find("Post").gameObject.SetActive(true);
+        getTrans().Find("ConfirmButton").gameObject.SetActive(true);
+        getTrans().Find("CancelButton").gameObject.SetActive(true);
+    }
+    public void OpenGameMenu()
+    {
+        _subMenuMode = "gamemenu";
+        this.gameObject.SetActive(true);
+        getTrans().Find("ContinueButton").gameObject.SetActive(true);
+        getTrans().Find("SaveButton").gameObject.SetActive(true);
+        getTrans().Find("NewGameButton").gameObject.SetActive(true);
+        getTrans().Find("SettingButton").gameObject.SetActive(true);
+        getTrans().Find("ExitGameButton").gameObject.SetActive(true);
+    }
+    public void OpenBattleEnd()
+    {
+        _subMenuMode = "battleend";
+        this.gameObject.SetActive(true);
+        getTrans().Find("Post").gameObject.SetActive(true);
+        getTrans().Find("BackTownButton").gameObject.SetActive(true);
+    }
+    public void OpenGameOver()
+    {
+        _subMenuMode = "gameover";
+        this.gameObject.SetActive(true);
+        getTrans().Find("Post").gameObject.SetActive(true);
+        getTrans().Find("ConfirmButton").gameObject.SetActive(true);
+    }    
 
     public void setTopic(string topic)
     {
@@ -86,9 +104,9 @@ public class SubMenuPanel : MonoBehaviour
     public void BackTown()
     {
         //_battleCon.IsRevive = true;
-        _core.CalEscapeRoom();
+        _core.getMapCon()._dunBlock[_core._player.currentStayDunBlock].AddEscaped(1);
         this.gameObject.SetActive(false);
-        _core.LoadScene(_GameState.LAND);
+        _core.OpenScene(_GameState.LAND);
     }
 
     public void Save()
@@ -104,7 +122,7 @@ public class SubMenuPanel : MonoBehaviour
     public void OpenSetting()
     {
         _core._settingPanel.SetActive(true);
-        _core._gameMenu.SetActive(false);
+        _core._startMenu.SetActive(false);
     }
 
     public void ExitGame()
@@ -112,35 +130,40 @@ public class SubMenuPanel : MonoBehaviour
         _core.OpenConfirmNotify("เจ้าแน่ใจว่าต้องการออกจากเกม?", _ConfirmNotify.ExitGame);
     }
 
+    public void UseItem()
+    {
+        _core.getItemCon().UseItem();
+    }
+
     public void Confirm()
     {
         this.gameObject.SetActive(false);
-        if (_core._subMenuMode == _SubMenu.Alert)
+        if (_subMenuMode == "alert")
         {
 
         }
-        else if (_core._subMenuMode == _SubMenu.Warp)
+        else if (_subMenuMode == "warp")
         {
-            _core._player.currentDungeonFloor = _core._gatePanel.GetComponent<GatePanel>()._dungeonLayerIsSelect;
-            _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
-            _core.LoadScene(_GameState.MAP);
-            _core._gatePanel.SetActive(false);
+            _core._player.currentDungeonFloor = _core.getLandCon()._gatePanel.GetComponent<GatePanel>()._dungeonLayerIsSelect;
+            _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
+            _core.OpenScene(_GameState.MAP);
+            _core.getLandCon()._gatePanel.SetActive(false);
             _core._talkPanel.SetActive(false);
         }
-        else if (_core._subMenuMode == _SubMenu.BattleEnd)
+        else if (_subMenuMode == "battleend")
         {
-            _core.LoadScene(_GameState.MAP);
+            _core.OpenScene(_GameState.MAP);
         }
-        else if (_core._subMenuMode == _SubMenu.GameOver)
+        else if (_subMenuMode == "gameover")
         {
             _core.DeleteSave();
-            foreach (Transform child in _core._mapObj.transform)
+            foreach (Transform child in _core._mapSpace.transform)
             {
                 GameObject.Destroy(child.gameObject);
             }
-            _core._mapObj.transform.DetachChildren();
+            _core._mapSpace.transform.DetachChildren();
             _core.SettingBeforeStart();
-            _core.OpenGameMenu();
+            _core.OpenStartMenu();
         }
     }
 
@@ -148,13 +171,5 @@ public class SubMenuPanel : MonoBehaviour
     public void Cancel()
     {
         this.gameObject.SetActive(false);
-        if (_core._subMenuMode == _SubMenu.Alert)
-        {
-
-        }
-        else if (_core._subMenuMode == _SubMenu.ManageTeam)
-        {
-            //_menuPanel.transform.parent.gameObject.SetActive(true);
-        }
     }
 }

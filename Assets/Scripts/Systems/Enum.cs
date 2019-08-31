@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace model
+﻿
+namespace system
 {
     static class Constants
     {
@@ -19,8 +16,7 @@ namespace model
     public enum _Attack
     {
         PHYSICAL = 1,
-        MAGICAL,
-        BUFF
+        MAGICAL
     }
     
     public enum _Buff
@@ -54,8 +50,7 @@ namespace model
         MediumPosion,
         LargePosion,
         ReCrystal,
-        Antidote,
-        Revive
+        Antidote
     }
 
     public enum _GameState
@@ -66,34 +61,21 @@ namespace model
         MAP,
         CAMP,
         LAND,
-        FORESTSHOP
+        SECRETSHOP
     }
     public enum _ActionState
     {
         Attack,
         Defense,
         Item,
+        Rawmaterial,
+        Shop,
         Team,
         Map,
-        Cook,
-        Farm
+        Cooking,
+        Farming
     }
-
-    public enum _SubMenu
-    {
-        ManageTeam,
-        Item,
-        Alert,
-        Shop,
-        Warp,
-        GameMenu,
-        Defense,
-        BattleEnd,
-        ManageHero,
-        LoadBattleRevive,
-        GameOver
-    }
-
+    
     public enum _ConfirmNotify
     {
         NewGame,

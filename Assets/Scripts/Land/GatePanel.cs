@@ -1,25 +1,21 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using model;
+using system;
 
 namespace warp
 {
     public class GatePanel : MonoBehaviour
     {
         GameCore _core;
-        Calculate _cal;
 
         public GameObject _gateSlot;
 
         void OnEnable()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _cal = new Calculate();
             OpenGate();
+            _core.getCampCon().setAllowTouch(false);
         }
 
         void OpenGate()
@@ -35,13 +31,13 @@ namespace warp
                 GameObject slot = Instantiate(_gateSlot);
                 slot.transform.SetParent(trans);
                 slot.transform.localScale = new Vector3(1, 1, 1);
-                slot.GetComponent<GateSlot>()._dungeonLayer = data.dungeon.id;
+                slot.GetComponent<GateSlot>()._dungeonLayer = data.data.id;
                 //slot.name = data.dungeon.id.ToString();
-                slot.transform.Find("Text").GetComponent<Text>().text = data.dungeon.id.ToString();
+                slot.transform.Find("Text").GetComponent<Text>().text = data.data.id.ToString();
                 //Button b = slot.GetComponent<Button>();
                 //b.onClick.AddListener(delegate () { WarpToDungeon(data.dungeon.name); });
                 
-                if (data.roomIsPass.Count > 0)
+                if (data.blockIsPlayed.Count > 0)
                 {
                     slot.transform.Find("Lock").gameObject.SetActive(false);
                 }
@@ -56,10 +52,20 @@ namespace warp
     
         public void WarpToDungeon(string name)
         {
-            _dungeonLayerIsSelect = _cal.IntParseFast(EventSystem.current.currentSelectedGameObject.name);
+            _dungeonLayerIsSelect = Calculator.IntParseFast(EventSystem.current.currentSelectedGameObject.name);
             //Debug.Log(_dungeonLayerIsSelect);
             _core.SetTalk(name+" อันตรายมากนะ ระวังด้วยพ่อหนุ่ม");
-            _core.OpenSubMenu(_SubMenu.Warp,"เจ้าแน่ใจแล้วใช่ไหมที่จะเข้าไป");
+            _core.getSubMenuCore().OpenWarp();
+        }
+
+        public void Close()
+        {
+            this.gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            _core.getCampCon().setAllowTouch(true);
         }
     }
 }

@@ -1,21 +1,15 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using model;
 
 
     public class ShadowSlot : EventTrigger
     {
-        CharacterController _teamCon;
         GameCore _core;
 
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _teamCon = _core._CharacterPanel.GetComponent<CharacterController>();
         }
 
         public override void OnPointerClick(PointerEventData data)

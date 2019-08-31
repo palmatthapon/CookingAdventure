@@ -1,10 +1,7 @@
-﻿using Model;
-using Json;
-using System.Collections;
-using System.Collections.Generic;
+﻿using Json;
+using system;
 using System.IO;
 using UnityEngine;
-using model;
 
 public class CreateJsonFile : MonoBehaviour {
 
@@ -14,24 +11,24 @@ public class CreateJsonFile : MonoBehaviour {
 
     }
 
-    void CreateDungeon(int id,int startRoom,int lvlMin,int max)
+    void CreateDungeon(int id,int warpBlock,int lvlMin,int max)
     {
         //-------test create room in dungeon---------
         DungeonDataSet[] instance = new DungeonDataSet[100];
         for (int i = 0; i < max; i++)
         {
-            int bossRoom = Random.Range(0, 100);
+            int bossBlock = Random.Range(0, 100);
             instance[i] = new DungeonDataSet();
             instance[i].id = id;
             instance[i].name = "ชั้นที่ " + id;
-            instance[i].startRoom = startRoom;
-            instance[i].bossRoom = bossRoom;
-            instance[i].monsterSetId = 1;
-            instance[i].bossListId = "";
+            instance[i].warpBlock = warpBlock;
+            instance[i].bossBlock = bossBlock;
+            instance[i].monsterIdList = "1";
+            instance[i].bossIdList = "";
             instance[i].levelMin = lvlMin;
             instance[i].levelMax = lvlMin = lvlMin + 9;
             //instance[i].bossSecret = Random.Range(0, 100)+":";
-            startRoom = bossRoom;
+            warpBlock = bossBlock;
             id++;
             lvlMin++;
         }

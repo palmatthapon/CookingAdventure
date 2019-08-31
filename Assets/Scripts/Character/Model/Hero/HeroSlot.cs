@@ -1,24 +1,18 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using model;
 
 namespace model
 {
     public class HeroSlot : EventTrigger
     {
         public Hero _hero;
-        CharacterController _teamCon;
         GameCore _core;
         
 
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _teamCon = _core._CharacterPanel.GetComponent<CharacterController>();
         }
 
         public override void OnPointerClick(PointerEventData data)
@@ -28,8 +22,8 @@ namespace model
             
 
             _core.SetTalk(_hero.getName() + " Lv. " + _hero.getStatus().getLvl() + " <color=#01b140><hp "+ _hero.getStatus().currentHPMax + "></color>\n<color=#ff0000><attack " + _hero.getStatus().getATK() + "></color><color=#1876d2><magic attack " + _hero.getStatus().getMATK() + "></color><color=#ff0000><defense " + _hero.getStatus().getDEF() + "></color><color=#1876d2><magic defense " + _hero.getStatus().getMDEF() + "></color>"
-            + "\n[โจมตีทั่วไป] " + _hero.getStatus().attack[0].skill.name + "(" + (_hero.getStatus().attack[0].skill.type == _Attack.PHYSICAL ? "กายภาพ" : "เวทย์") + ")" + "(" + _hero.getStatus().attack[0].skill.bonusDmg * 100 + "%)"
-                + " [ท่าไม้ตาย] " + _hero.getStatus().attack[1].skill.name + "(" + (_hero.getStatus().attack[1].skill.type == _Attack.PHYSICAL ? "กายภาพ" : "เวทย์") + ")" + "(" + _hero.getStatus().attack[1].skill.bonusDmg * 100 + "%)"
+            + "\n[โจมตีทั่วไป] " + _hero.getStatus().attack[0].data.name + "(" + (_hero.getStatus().attack[0].data.type == _Attack.PHYSICAL ? "กายภาพ" : "เวทย์") + ")" + "(" + _hero.getStatus().attack[0].data.bonusDmg * 100 + "%)"
+                + " [ท่าไม้ตาย] " + _hero.getStatus().attack[1].data.name + "(" + (_hero.getStatus().attack[1].data.type == _Attack.PHYSICAL ? "กายภาพ" : "เวทย์") + ")" + "(" + _hero.getStatus().attack[1].data.bonusDmg * 100 + "%)"
                 + "\n[ความสามารถติดตัว] " + passive[0]);
             
         }

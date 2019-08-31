@@ -1,31 +1,21 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Json;
 using System.Linq;
-using Random = UnityEngine.Random;
 using model;
-using warp;
 using controller;
 using player;
+using system;
 
 public class GameCore : MonoBehaviour
 {
-
-    public BattleController _battleCon;
-    public MapController _mapCon;
-    public BuffController _buffCon;
-    public Calculate _cal;
-    public AttackController _attackCon;
-    public MenuController _menuCon;
-
-
     JsonReadWrite _json;
-    
+
+    public _GameState _gameMode;
+    public _ActionState _actionMode;
 
     ///------------All DataSet-----------------
     public DungeonDataSet[] dataDungeonList;
@@ -40,47 +30,31 @@ public class GameCore : MonoBehaviour
     /// <summary>
     /// Import Object By Scene...
     /// </summary>
-    public GameObject _mapObj;
-    public GameObject _battleObj;
-    public GameObject _campObj;
-    public GameObject _landObj;
-    public GameObject _forestShopObj;
+    public GameObject _mapSpace;
+    public GameObject _battleSpace;
+    public GameObject _campSpace;
+    public GameObject _landSpace;
+    public GameObject _SecretShopSpace;
 
     ///---Panel Zone-----
-    public GameObject _gameMenu, _miniGameMenu;
+    public GameObject _startMenu;
     public GameObject _settingPanel;
     public GameObject _menuPanel;
-    public GameObject _attackPanel, _questionPanel;
-    public Text _questionPanelTxt;
-    public GameObject _monPanel;
-    public GameObject _eventPanel;
-    public GameObject _mapPanel;
-    public GameObject _CharacterPanel;
-    public GameObject _itemPanel;
-    public GameObject _changeTeamPanel;
     public GameObject _subMenuPanel;
     public GameObject _playerLifePanel;
-    public GameObject _rewardPanel;
-    public GameObject _shopPanel;
+    
     public GameObject _talkPanel;
     public GameObject _infoPanel;
     public GameObject _monTalkPanel;
-    public GameObject _gatePanel;
-    public GameObject _buffPanel;
+    
     public GameObject _confirmNotify;
-    public GameObject _cutscenePanel;
-    public GameObject _tutorialPanel;
-    public GameObject _heroAvatar;
-    public GameObject _cookMenu;
-    public GameObject _farmMenu;
-    public GameObject _PlayerInfoPanel;
 
     /// -----End Panel Zone
 
     ///-----general----
     public GameObject _loadingScreen;
     public GameObject _loadingNotify;
-    public GameObject[] _campAvatar;
+    
     public GameObject _playerSoulBar;
     ///------ End import object by scene-----------
 
@@ -88,31 +62,33 @@ public class GameCore : MonoBehaviour
     public List<ItemStore> _itemStore;
     public List<Hero> _heroStore;
     public List<ItemShop> _landShopList;
-
-    public Hero _heroIsPlaying;
     
-    public Monster[] _currentMonsterBattle;
-    
-
     Image _loadingScreenImg;
 
-    public _GameState _gameMode;
-    Vector3 _cameraMainPosition;
-
     
+    Vector3 _cameraMainPosition;
+    Vector3 startMarker;
+    Vector3 endMarker;
+    float speed = 0.01f;
+    private float startTime;
+    private float journeyLength;
+    bool moveLeft = false;
+
+
     public string[] _passiveDatail;
-    public Sprite[] _bgList;
     public bool _loadNewGame = false;
     public GameObject[] _environment;
+    public bool IsPaused = false;
+    public bool IsPauseLock = false;
 
 
     public Sprite[] _uiSprite1;
     public Sprite[] _uiSprite2;
     public Sprite[] _mapSprite;
 
-    public GameObject _cutscene;
-    public _SubMenu _subMenuMode;
-    public _ActionState _actionMode;
+    GameObject _UI;
+
+    public Player _player;
 
 
     private void Awake()
@@ -121,93 +97,90 @@ public class GameCore : MonoBehaviour
         _uiSprite1 = Resources.LoadAll<Sprite>("Sprites/UI/ui");
         _uiSprite2 = Resources.LoadAll<Sprite>("Sprites/UI/ui2");
         _mapSprite = Resources.LoadAll<Sprite>("Sprites/UI/map2");
-
+        _UI = GameObject.Find("UICanvas");
         _passiveDatail = new string[]{"passive detail" };
 
         _player = new Player();
-        SetComponent();
-        _cal = new Calculate();
         _json = new JsonReadWrite();
         dataSetting = _json.ReadSetting(dataSetting);
         AudioListener.volume = dataSetting[0].soundValue;
-        _uiCanvas = GameObject.Find("UICanvas");
         _loadingScreenImg = _loadingScreen.GetComponent<Image>();
 
         SettingBeforeStart();
-        OpenGameMenu();
+        OpenStartMenu();
 
     }
 
     void Start()
     {
     }
-
-    public static GameCore call() {
-        return Camera.main.GetComponent<GameCore>();
-    }
-
-    void SetComponent()
+    
+    public BattleController getBattCon()
     {
-        _battleCon = _battleObj.GetComponent<BattleController>();
-        _mapCon = _mapObj.GetComponent<MapController>();
-        _buffCon = _buffPanel.GetComponent<BuffController>();
-        _attackCon = _attackPanel.GetComponent<AttackController>();
-        _menuCon = _menuPanel.GetComponent<MenuController>();
+        return _battleSpace.GetComponent<BattleController>();
+    }
+    public MapController getMapCon()
+    {
+        return _mapSpace.GetComponent<MapController>();
+    }
+    public AttackController getATKCon()
+    {
+        return getMenuCon()._attackMenu.GetComponent<AttackController>();
+    }
+    public MenuController getMenuCon()
+    {
+        return _menuPanel.GetComponent<MenuController>();
     }
 
-    public bool isPaused = false;
-    bool pauseLock = false;
+    public ItemController getItemCon()
+    {
+        return getMenuCon().gameObject.GetComponent<ItemController>();
+    }
 
-    public GameObject _campfireObj;
+    public ShopController getShopCon()
+    {
+        return getMenuCon()._shopMenu.GetComponent<ShopController>();
+    }
 
+    public CampController getCampCon()
+    {
+        return _campSpace.GetComponent<CampController>();
+    }
+
+    public CookingController getCookCon()
+    {
+        return getMenuCon()._cookMenu.GetComponent<CookingController>();
+    }
+
+    public FarmingController getFarmCon()
+    {
+        return getMenuCon()._farmMenu.GetComponent<FarmingController>();
+    }
+
+    public SubMenuPanel getSubMenuCore()
+    {
+        return _subMenuPanel.GetComponent<SubMenuPanel>();
+    }
+
+    public LandController getLandCon()
+    {
+        return _landSpace.GetComponent<LandController>();
+    }
+    
     void OnGUI()
     {
-        if (isPaused)
+        if (IsPaused)
         {
-            if (pauseLock) return;
-            pauseLock = true;
-            //Debug.Log("Pause");
+            if (IsPauseLock) return;
+            IsPauseLock = true;
             GUI.Label(new Rect(0, 0, 250, 100), "Game paused");
-            _uiCanvas.SetActive(false);
-            if (_campObj.activeSelf)
-            {
-                _campfireObj.transform.Find("Point Light").gameObject.SetActive(false);
-                foreach (Transform child in _campfireObj.transform.Find("Fire"))
-                {
-                    child.gameObject.SetActive(false);
-                }
-            }
-            if (_battleObj.activeSelf)
-            {
-                _battleCon.FocusHero().Anim(false);
-                _battleCon.FocusMonster().getAnim().enabled = false;
-            }
+            _UI.SetActive(false);
         }
         else
         {
-            if (!pauseLock) return;
-            pauseLock = false;
-            //Debug.Log("Unpause");
-            _uiCanvas.SetActive(true);
-            if (_campObj.activeSelf)
-            {
-                _campfireObj.transform.Find("Point Light").gameObject.SetActive(true);
-                foreach (Transform child in _campfireObj.transform.Find("Fire"))
-                {
-                    child.gameObject.SetActive(true);
-                }
-            }
-            if (_battleObj.activeSelf)
-            {
-                _battleCon.FocusHero().getAnim().enabled = true;
-                _battleCon.FocusMonster().getAnim().enabled = true;
-            }
-            if (_mapObj.activeSelf)
-            {
-                if (_mapCon._roomLoad != null)
-                    _mapCon._roomLoad.transform.Find("LightMask").GetComponent<MaskLight>().enabled = true;
-            }
-
+            if (!IsPauseLock) return;
+            IsPauseLock = false;
+            _UI.SetActive(true);
         }
 
 
@@ -216,14 +189,14 @@ public class GameCore : MonoBehaviour
     void OnApplicationFocus(bool hasFocus)
     {
 #if (!UNITY_EDITOR)
-            isPaused = !hasFocus;
+            IsPaused = !hasFocus;
 #endif
     }
 
     void OnApplicationPause(bool pauseStatus)
     {
 #if (!UNITY_EDITOR)
-            isPaused = pauseStatus;
+            IsPaused = pauseStatus;
 #endif
     }
 
@@ -274,29 +247,17 @@ public class GameCore : MonoBehaviour
             }
         }
     }
-
-    Vector3 startMarker;
-    Vector3 endMarker;
-    float speed = 0.01f;
-    private float startTime;
-    private float journeyLength;
-    bool moveLeft = false;
-
-    public void OpenGameMenu()
+    
+    public void OpenStartMenu()
     {
         journeyLength = Vector3.Distance(startMarker, endMarker);
         _gameMode = _GameState.GAMEMENU;
-        _gameMenu.SetActive(true);
-        OpenObjInScene(_campObj);
+        _startMenu.SetActive(true);
+        OpenObjInScene(_campSpace);
         _settingPanel.SetActive(false);
-        _miniGameMenu.SetActive(false);
         _menuPanel.SetActive(false);
-        _tutorialPanel.SetActive(false);
         _playerSoulBar.SetActive(false);
-        _cookMenu.SetActive(false);
-        OpenActionPanel();
     }
-    GameObject _uiCanvas;
 
     public void SettingBeforeStart()
     {
@@ -309,10 +270,8 @@ public class GameCore : MonoBehaviour
         startMarker = new Vector3(-0.35f, 0.2f, transform.position.z);
         endMarker = new Vector3(startMarker.x + 0.65f, startMarker.y, startMarker.z);
     }
-
-    public Player _player;
-
-    public void LoadStartScene()
+    
+    public void OpenStartScene()
     {
         _gameMode = _GameState.START;
         Camera.main.orthographicSize = 0.8f;
@@ -321,29 +280,20 @@ public class GameCore : MonoBehaviour
         ReadDataAll();
         dataPlayerLog = _json.ReadDataPlayerLog(dataPlayerLog);
         CompilePlayerLog();
-        _gameMenu.SetActive(false);
-        _miniGameMenu.SetActive(true);
+        _startMenu.SetActive(false);
         _playerSoulBar.SetActive(true);
         _menuPanel.SetActive(true);
         if (dataPlayerLog[0].landScene)
         {
-            StartCoroutine(LoadingScene(_GameState.LAND, false));
+            OpenScene(_GameState.LAND, false);
         }
         else
         {
-            StartCoroutine(LoadingScene(_GameState.CAMP, false));
+            OpenScene(_GameState.CAMP, false);
         }
         
     }
-
-    public void OpenActionPanel(GameObject obj = null)
-    {
-        _itemPanel.SetActive(obj == _itemPanel ? true : false);
-        _CharacterPanel.SetActive(obj == _CharacterPanel ? true : false);
-        _attackPanel.SetActive(obj == _attackPanel ? true : false);
-        _questionPanel.SetActive(obj == _questionPanel ? true : false);
-    }
-
+    
     void ReadDataAll()
     {
         TextAsset loadedDungeon = Resources.Load<TextAsset>("JsonDatabase/DungeonList");
@@ -374,7 +324,7 @@ public class GameCore : MonoBehaviour
         _player.currentSoul = dataPlayerLog[SaveNum].soul;
         Debug.Log("complie dungeonFloor " + dataPlayerLog[SaveNum].dungeonFloor);
         _player.currentDungeonFloor = dataPlayerLog[SaveNum].dungeonFloor;
-        _player.currentRoomPosition = dataPlayerLog[SaveNum].roomPosition;
+        _player.currentStayDunBlock = dataPlayerLog[SaveNum].stayDungeonBlock;
         _player.currentMoney = dataPlayerLog[SaveNum].money;
         ///------load itemstore------
         if (dataPlayerLog[0].itemStore != "")
@@ -388,7 +338,7 @@ public class GameCore : MonoBehaviour
 
                 foreach (ItemDataSet data in dataItemList)
                 {
-                    if (_cal.IntParseFast(itemData[1]) == data.id)
+                    if (Calculator.IntParseFast(itemData[1]) == data.id)
                     {
                         //ItemStore item = new ItemStore();
                         //item.id = _cal.IntParseFast(itemData[0]);
@@ -411,20 +361,20 @@ public class GameCore : MonoBehaviour
                 else if (dataCount < 0) dataCount = dataItemList.Length - 1;
                 string[] itemData = itemStore[itemCount].Split(':');
                 //Debug.Log(dataItemList[dataCount].id + " == " + _cal.IntParseFast(itemData[1]));
-                if (dataItemList[dataCount].id == _cal.IntParseFast(itemData[1]))
+                if (dataItemList[dataCount].id == Calculator.IntParseFast(itemData[1]))
                 {
                     //Debug.Log("add item" + row);
                     ItemStore item = new ItemStore();
-                    item.id = _cal.IntParseFast(itemData[0]);
+                    item.id = Calculator.IntParseFast(itemData[0]);
                     item.itemId = dataItemList[dataCount].id;
-                    item.amount = _cal.IntParseFast(itemData[2]);
-                    item.item = dataItemList[dataCount];
+                    item.amount = Calculator.IntParseFast(itemData[2]);
+                    item.data = dataItemList[dataCount];
                     _itemStore.Add(item);
                     itemCount++;
                 }
                 else
                 {
-                    if (dataItemList[dataCount].id >= _cal.IntParseFast(itemData[1]))
+                    if (dataItemList[dataCount].id >= Calculator.IntParseFast(itemData[1]))
                         dataCount--;
                     else
                         dataCount++;
@@ -439,60 +389,17 @@ public class GameCore : MonoBehaviour
         ///-------load herostore ------------
         _heroStore = new List<Hero>();
         string[] heroStore = dataPlayerLog[0].heroStore.Split(',');
-        for (int slot = 0; slot < heroStore.Length; slot++)
-        {
-            string[] teamData = heroStore[slot].Split(':');
-            
-            int heroId = _cal.IntParseFast(teamData[1]);
-            foreach (ModelDataSet data in dataHeroList)
-            {
-                if (heroId == data.id)
-                {
-                    Hero hero = new Hero(_cal.IntParseFast(teamData[0]),slot, double.Parse(teamData[2]),data);
-                    //_status.hp = _status.hpMax;//for test 'set hp full max'
-                    //Debug.Log("before " + data.baseSTR + " " + data.baseAGI + " " + data.baseINT + " after" + _status.STR + " " + _status.AGI + " " + _status.INT);
-                    string[] skillList = data.skillList.Split(':');
-                    for (int a = 0; a < skillList.Length; a++)
-                    {
-                        foreach (SkillDataSet skill in dataSkillList)
-                        {
-                            if (_cal.IntParseFast(skillList[a]) == skill.id)
-                            {
-                                Skill attack = new Skill();
-                                string[] buffList = skill.buffList.Split(',');
-                                for (int s = 0; s < buffList.Length; s++)
-                                {
-                                    string[] buff = buffList[s].Split(':');
-                                    Buff dataBuff = new Buff();
-                                    dataBuff.id = _cal.IntParseFast(buff[0]);
-                                    dataBuff.icon = _cal.IntParseFast(buff[1]);
-                                    dataBuff.timeCount = _cal.IntParseFast(buff[2]);
-                                    dataBuff.whoUse = _Model.PLAYER;
-                                    dataBuff.forMe = (_cal.IntParseFast(buff[3]) == 0) ? true : false;
-                                    attack.buff.Add(dataBuff);
-                                }
-                                attack.hate = (int)skill.bonusDmg * 20;
-                                attack.skill = skill;
-                                hero.getStatus().attack[a] = attack;
-                                break;
-                            }
-                        }
-                    }
-                    hero.getStatus().passive = (_Passive)data.passiveId;
-                    _heroStore.Add(hero);
-                    break;
-                }
-            }
-
-        }
+        CreateHeroFromData(heroStore);
 
         ///-----end load herostore-----
         ///-----load playerAvatar-----
         foreach (Hero hero in _heroStore)
         {
-            if (hero.getStoreId() == dataPlayerLog[SaveNum].heroIsPlay)
+            if (hero.getStoreId() == dataPlayerLog[SaveNum].heroIsPlaying)
             {
-                _heroIsPlaying = hero;
+                _player._heroIsPlaying = hero;
+                getCampCon().LoadCampAvatar();
+                Debug.Log("current hp "+_player._heroIsPlaying.getStatus().currentHP);
                 break;
             }
         }
@@ -503,22 +410,20 @@ public class GameCore : MonoBehaviour
         for (int i = 0; i < dataDungeonList.Length; i++)
         {
             Dungeon dun = new Dungeon();
-            dun.dungeon = dataDungeonList[i];
+            dun.data = dataDungeonList[i];
             _dungeon[i] = dun;
         }
-        string[] dunLevel = dataPlayerLog[SaveNum].dungeonIsPass.Split(',');
-        for (int i = 0; i < dunLevel.Length; i++)
+
+        string[] floorData = dataPlayerLog[SaveNum].floorIsPlayed.Split(',');
+        for (int i = 0; i < floorData.Length; i++)
         {
-            string[] roomData = dunLevel[i].Split('_');
-            string[] roomClear = roomData[1].Split(':');
-            for (int a = 0; a < roomClear.Length; a++)
+            string[] floor = floorData[i].Split('_');
+            string[] block = floor[1].Split(':');
+            for (int a = 0; a < block.Length; a++)
             {
-                Room room = new Room();
-                string[] r = roomClear[a].Split('-');
-                room.id = _cal.IntParseFast(r[0]);
-                room.passCount = _cal.IntParseFast(r[1]);
-                room.escapeCount = _cal.IntParseFast(r[2]);
-                _dungeon[_cal.IntParseFast(roomData[0]) - 1].roomIsPass.Add(room);
+                string[] blockData = block[a].Split('-');
+                DungeonBlock newBlock = new DungeonBlock(Calculator.IntParseFast(blockData[0]), Calculator.IntParseFast(blockData[1]), Calculator.IntParseFast(blockData[2]));
+                _dungeon[Calculator.IntParseFast(floor[0]) - 1].blockIsPlayed.Add(newBlock);
             }
 
         }
@@ -529,8 +434,8 @@ public class GameCore : MonoBehaviour
         {
             string[] shopCut = shopList[i].Split(':');
             ItemShop newShop = new ItemShop();
-            newShop.id = _cal.IntParseFast(shopCut[0]);
-            newShop.buyCount = _cal.IntParseFast(shopCut[1]);
+            newShop.id = Calculator.IntParseFast(shopCut[0]);
+            newShop.buyCount = Calculator.IntParseFast(shopCut[1]);
             foreach (ItemDataSet data in dataItemList)
             {
                 if (newShop.id == data.id)
@@ -540,6 +445,44 @@ public class GameCore : MonoBehaviour
                 }
             }
             _landShopList.Add(newShop);
+        }
+    }
+
+    void CreateHeroFromData(string[] heroStore)
+    {
+        for (int slot = 0; slot < heroStore.Length; slot++)
+        {
+            string[] teamData = heroStore[slot].Split(':');
+
+            int heroId = Calculator.IntParseFast(teamData[1]);
+            foreach (ModelDataSet data in dataHeroList)
+            {
+                if (heroId == data.id)
+                {
+                    Hero hero = new Hero(Calculator.IntParseFast(teamData[0]), slot, double.Parse(teamData[2]), data);
+                    string[] skillList = data.skillList.Split(':');
+                    for (int a = 0; a < skillList.Length; a++)
+                    {
+                        foreach (SkillDataSet skillData in dataSkillList)
+                        {
+                            if (Calculator.IntParseFast(skillList[a]) == skillData.id)
+                            {
+                                Skill attack = new Skill();
+                                attack.hate = (int)skillData.bonusDmg * 20;
+                                attack.data = skillData;
+                                hero.getStatus().attack[a] = attack;
+                                break;
+                            }
+                        }
+                    }
+                    hero.getStatus().passive = (_Passive)data.passiveId;
+                    Debug.Log("atk " + hero.getStatus().getATK());
+                    Debug.Log("current hp " + hero.getStatus().currentHP);
+                    _heroStore.Add(hero);
+                    break;
+                }
+            }
+
         }
     }
     
@@ -577,7 +520,7 @@ public class GameCore : MonoBehaviour
         }
     }
 
-    IEnumerator LoadingScene(_GameState mode, bool save = true)
+    IEnumerator LoadingScene(_GameState mode, bool savegame)
     {
         _gameMode = mode;
         FadeIn();
@@ -600,39 +543,21 @@ public class GameCore : MonoBehaviour
             case _GameState.LAND:
                 OpenLandScene();
                 break;
-            case _GameState.FORESTSHOP:
-                OpenForestShopScene();
+            case _GameState.SECRETSHOP:
+                OpenSecretShopScene();
                 break;
         }
         //yield return new WaitForSeconds(1);
-        if (save)
+        if (savegame)
             _json.WriteDataPlayerLog(dataPlayerLog);
         FadeOut();
         
         if (_loadNewGame)
         {
-            /*
-            _cutscene = Instantiate(_cutscenePanel);
-            _cutscene.transform.SetParent(_gameMenu.transform.parent.gameObject.transform);
-            _cutscene.transform.localPosition = new Vector3(0, 0, 0);
-            _cutscene.transform.localScale = new Vector3(1, 1, 1);
-            */
             _loadNewGame = false;
         }
     }
     
-    public void OpenSubMenu(_SubMenu mode)
-    {
-        OpenSubMenu(mode, "");
-    }
-    
-    public void OpenSubMenu(_SubMenu mode, string topic)
-    {
-        _subMenuMode = mode;
-        _subMenuPanel.SetActive(true);
-        _subMenuPanel.GetComponent<SubMenuPanel>().setTopic(topic);
-    }
-
     /// <summary>
     /// Event Button Zone....
     /// </summary>
@@ -640,10 +565,15 @@ public class GameCore : MonoBehaviour
     
     public void StartBtn()
     {
-        LoadStartScene();
+        OpenStartScene();
     }
 
-    
+    public void SettingBtn()
+    {
+        _settingPanel.SetActive(true);
+    }
+
+
     public void ExitGameBtn()
     {
         Application.Quit();
@@ -676,29 +606,27 @@ public class GameCore : MonoBehaviour
 #endif
     }
 
-    public void LoadScene(_GameState mode)
+    public void OpenScene(_GameState mode,bool savegame=true)
     {
-        StartCoroutine(LoadingScene(mode));
+        StartCoroutine(LoadingScene(mode, savegame));
     }
 
     void OpenMapScene()
     {
         dataPlayerLog[0].landScene = false;
-        OpenObjInScene(_mapObj);
-        //OpenActionPanel(_storyPanel);
+        OpenObjInScene(_mapSpace);
     }
 
     void OpenBattleScene()
     {
-        OpenObjInScene(_battleObj);
-        OpenActionPanel(_attackPanel);
+        OpenObjInScene(_battleSpace);
+        getMenuCon().OpenBattleMenu();
         transform.position = _cameraMainPosition;
-        //SetMenuPanel(_gameMode);
     }
 
     void OpenCampScene()
     {
-        OpenObjInScene(_campObj);
+        OpenObjInScene(_campSpace);
         transform.position = _cameraMainPosition;
         
     }
@@ -706,30 +634,31 @@ public class GameCore : MonoBehaviour
     public void OpenLandScene()
     {
         dataPlayerLog[0].landScene = true;
-        OpenObjInScene(_landObj);
+        OpenObjInScene(_landSpace);
         transform.position = _cameraMainPosition;
     }
 
-    void OpenForestShopScene()
+    void OpenSecretShopScene()
     {
-        OpenObjInScene(_forestShopObj);
-        //Camera.main.transform.position = new Vector3(-10, 0f, Camera.main.transform.position.z);
+        OpenObjInScene(_SecretShopSpace);
+        getShopCon().MoveCameraToSecretShop();
+        getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(true);
     }
 
     void OpenObjInScene(GameObject obj)
     {
-        _forestShopObj.SetActive(obj == _forestShopObj ? true : false);
-        _landObj.SetActive(obj == _landObj ? true : false);
-        if (_landObj.activeSelf)
+        _SecretShopSpace.SetActive(obj == _SecretShopSpace ? true : false);
+        _landSpace.SetActive(obj == _landSpace ? true : false);
+        if (_landSpace.activeSelf)
         {
-            _campObj.SetActive(true);
+            _campSpace.SetActive(true);
         }
         else
         {
-            _campObj.SetActive(obj == _campObj ? true : false);
+            _campSpace.SetActive(obj == _campSpace ? true : false);
         }
-        _battleObj.SetActive(obj == _battleObj ? true : false);
-        _mapObj.SetActive(obj == _mapObj ? true : false);
+        _battleSpace.SetActive(obj == _battleSpace ? true : false);
+        _mapSpace.SetActive(obj == _mapSpace ? true : false);
 
     }
 
@@ -745,7 +674,7 @@ public class GameCore : MonoBehaviour
         newPos.z = _talkPanel.transform.position.z;
         _talkPanel.transform.position = newPos;
 
-        if (_CharacterPanel.activeSelf)
+        if (getMenuCon()._playerInfoPanel.activeSelf)
         {
             parentRect.sizeDelta = new Vector2(Screen.width, 260);
         }
@@ -769,52 +698,12 @@ public class GameCore : MonoBehaviour
         talk.text = txt;
         RectTransform parentRect = _monTalkPanel.GetComponent<RectTransform>();
         parentRect.sizeDelta = new Vector2(talk.preferredWidth, talk.preferredHeight) + padding;
-        _battleCon.timeLeft = 3;
+        getBattCon().timeLeft = 3;
         _monTalkPanel.SetActive(true);
     }
-
-
-    public bool CheckCrystal(int point)
-    {
-        if (_gameMode != _GameState.BATTLE) return true;
-        if (_battleCon.Crystal - point < 0)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    public bool UseCrystal(int point)
-    {
-        if (_gameMode != _GameState.BATTLE) return true;
-        if (_battleCon.Crystal - point < 0)
-        {
-            return false;
-        }
-        _battleCon.Crystal = _battleCon.Crystal - point;
-        if (_battleCon.Crystal == 0)
-        {
-            _battleCon.EndTurnSpeed();
-        }
-        return true;
-    }
-
-    public void CalEscapeRoom()
-    {
-        foreach (Room room in _dungeon[_player.currentDungeonFloor - 1].roomIsPass)
-        {
-            if (room.id == _player.currentRoomPosition)
-            {
-                room.escapeCount++;
-                break;
-            }
-        }
-    }
     
-    public PopupText _unlockNotifyPopup;
-
+    public GameObject _unlockNotifyPopup;
     
-
     public void OpenErrorNotify(string txt)
     {
         StartCoroutine(ShowNotify(txt, false));
@@ -828,18 +717,20 @@ public class GameCore : MonoBehaviour
     IEnumerator ShowNotify(string txt, bool icon)
     {
         yield return new WaitForSeconds(0.1f);
-        PopupText unlock = Instantiate(_unlockNotifyPopup);
+        GameObject unlock = Instantiate(_unlockNotifyPopup);
         unlock.transform.SetParent(GameObject.Find("FrontCanvas").transform, false);
         unlock.transform.localScale = new Vector3(1, 1, 1);
+        Sprite img;
         if (icon)
         {
-            unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = _uiSprite2.Single(s => s.name == "confirm");
+            img = _uiSprite2.Single(s => s.name == "confirm");
         }
         else
         {
-            unlock.transform.Find("Panel").Find("Icon").GetComponent<Image>().sprite = _uiSprite2.Single(s => s.name == "cencel");
+            img = _uiSprite2.Single(s => s.name == "cancel");
         }
-        unlock.SetPopupText(txt);
+        unlock.transform.GetChild(0).Find("Icon").GetComponent<Image>().sprite = img;
+        unlock.GetComponent<PopupText>().SetPopupText(txt);
         //yield return new WaitForSeconds(1.5f);
     }
     public GameObject _healEffect;
@@ -853,32 +744,7 @@ public class GameCore : MonoBehaviour
         effect.AddComponent<ParticleDestroy>();
         return effect;
     }
-
-    public void SetColliderCamp(bool set)
-    {
-        foreach (GameObject obj in _campAvatar)
-        {
-            obj.GetComponent<CapsuleCollider2D>().enabled = set;
-        }
-    }
-
-    public bool CheckObjFromTag(string tag)
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-#if (UNITY_ANDROID || UNITY_IPHONE)
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
-        }
-#endif
-        RaycastHit2D hit = Physics2D.Raycast(ray.origin, -Vector3.up);
-        if (hit.transform != null && hit.transform.tag == tag)
-        {
-            Debug.Log("hit " + hit.transform.gameObject.name);
-            return true;
-        }
-        return false;
-    }
+    
 }
 
 

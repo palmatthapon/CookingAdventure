@@ -11,7 +11,10 @@ namespace item
 {
     public class ItemActive
     {
-       
+        GameCore getCore()
+        {
+            return Camera.main.GetComponent<GameCore>();
+        }
         
         //how to name for HeroPassiveAbility Method, Use all caps e.g. HELLOWORLD 
         public bool SmallPosion(Hero hero)
@@ -19,12 +22,12 @@ namespace item
             if (hero.getStatus().currentHP > 0)
             {
                 hero.getStatus().currentHP = hero.getStatus().currentHP + 20;
-                GameCore.call().CreateEffect(GameCore.call()._healEffect, hero.getAvatarTrans());
+                getCore().CreateEffect(getCore()._healEffect, hero.getAvatarTrans());
                 return true;
             }
             else
             {
-                GameCore.call().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
+                getCore().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
                 return false;
             }
         }
@@ -34,12 +37,12 @@ namespace item
             if (hero.getStatus().currentHP > 0)
             {
                 hero.getStatus().currentHP = hero.getStatus().currentHP + 50;
-                GameCore.call().CreateEffect(GameCore.call()._healEffect, hero.getAvatarTrans());
+                getCore().CreateEffect(getCore()._healEffect, hero.getAvatarTrans());
                 return true;
             }
             else
             {
-                GameCore.call().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
+                getCore().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
                 return false;
             }
         }
@@ -49,12 +52,12 @@ namespace item
             if (hero.getStatus().currentHP > 0)
             {
                 hero.getStatus().currentHP = hero.getStatus().currentHP + 100;
-                GameCore.call().CreateEffect(GameCore.call()._healEffect, hero.getAvatarTrans());
+                getCore().CreateEffect(getCore()._healEffect, hero.getAvatarTrans());
                 return true;
             }
             else
             {
-                GameCore.call().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
+                getCore().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
                 return false;
             }
         }

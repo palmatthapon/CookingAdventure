@@ -260,7 +260,7 @@ namespace model
                 }
                 else
                 {
-                    //_core.CallSubMenu(_SubMenu.Alert, "คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalItem);
+                    //_core.CallSubMenu(_SubMenuState.Alert, "คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalItem);
                     _core.OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalItem);
                 }
             }
@@ -272,7 +272,7 @@ namespace model
                 }
                 else
                 {
-                    //_core.CallSubMenu(_SubMenu.Alert, "คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalTeam);
+                    //_core.CallSubMenu(_SubMenuState.Alert, "คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalTeam);
                     _core.OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalTeam);
                 }
                 

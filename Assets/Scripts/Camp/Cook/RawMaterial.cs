@@ -1,7 +1,4 @@
-﻿using controller;
-using model;
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -70,16 +67,16 @@ public class RawMaterial : EventTrigger
     {
         _drag = false;
         _move = false;
-        if (_core.CheckObjFromTag("Cookware"))
+        if (_core.getCookCon().CheckTag("Cookware"))
         {
             Debug.Log("yes");
             if (_add) return;
-            _core._cookMenu.GetComponent<CookController>().AddCookList(_item.item.name,_id);
+            _core.getCookCon().AddCookList(_item.data.name,_id);
             _add = true;
         }else
         {
             _item.obj.transform.Find("Count").GetComponent<Text>().text = (++_item.amount).ToString();
-            _core._cookMenu.GetComponent<CookController>().RemoveCookList(_id);
+            _core.getCookCon().RemoveCookList(_id);
             _add = false;
             Destroy(this.gameObject);
         }
@@ -89,10 +86,10 @@ public class RawMaterial : EventTrigger
     {
         _drag = false;
         //Debug.Log("OnEndDrag");
-        if (_core.CheckObjFromTag("RawMaterial"))
+        if (_core.getCookCon().CheckTag("RawMaterial"))
         {
             _item.obj.transform.Find("Count").GetComponent<Text>().text = (++_item.amount).ToString();
-            _core._cookMenu.GetComponent<CookController>().RemoveCookList(_id);
+            _core.getCookCon().RemoveCookList(_id);
             _add = false;
             Destroy(this.gameObject);
         }

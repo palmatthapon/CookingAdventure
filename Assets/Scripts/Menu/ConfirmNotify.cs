@@ -1,6 +1,4 @@
-﻿using model;
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 
 public class ConfirmNotify : MonoBehaviour
@@ -15,12 +13,12 @@ public class ConfirmNotify : MonoBehaviour
         if (_core._confirmNotifyMode == _ConfirmNotify.NewGame)
         {
             _core.DeleteSave();
-            foreach (Transform child in _core._mapObj.transform)
+            foreach (Transform child in _core._mapSpace.transform)
             {
                 GameObject.Destroy(child.gameObject);
             }
-            _core._mapObj.transform.DetachChildren();
-            _core.LoadStartScene();
+            _core._mapSpace.transform.DetachChildren();
+            _core.OpenStartScene();
             _core._subMenuPanel.SetActive(false);
             this.gameObject.SetActive(false);
         }

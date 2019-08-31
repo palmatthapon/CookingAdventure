@@ -1,8 +1,5 @@
-﻿using controller;
-using model;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using model;
+using system;
 
 namespace character
 {

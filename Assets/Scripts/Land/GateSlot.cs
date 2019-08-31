@@ -1,11 +1,6 @@
-﻿using model;
-using Model;
-
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class GateSlot : EventTrigger
 {
@@ -28,17 +23,17 @@ public class GateSlot : EventTrigger
         float currentTimeClick = data.clickTime;
         if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
         {
-            if (_core._dungeon[_dungeonLayer - 1].roomIsPass.Count == 0)
+            if (_core._dungeon[_dungeonLayer - 1].blockIsPlayed.Count == 0)
             {
-                _core.OpenErrorNotify("วาปชั้นนี้ยังไม่ได้เปิดใช้งาน!");
+                _core.OpenErrorNotify("warp not active!");
                 return;
             }
             _core._player.currentDungeonFloor = _dungeonLayer;
-            _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
+            _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
             bool roomPass = false;
-            foreach (Room room in _core._dungeon[_core._player.currentDungeonFloor - 1].roomIsPass)
+            foreach (DungeonBlock block in _core._dungeon[_core._player.currentDungeonFloor - 1].blockIsPlayed)
             {
-                if (room.id == _core._player.currentRoomPosition)
+                if (block.getNumber() == _core._player.currentStayDunBlock)
                 {
                     roomPass = true;
                     break;
@@ -47,14 +42,11 @@ public class GateSlot : EventTrigger
 
             if (roomPass == false)
             {
-                Room newRoom = new Room();
-                newRoom.id = _core._player.currentRoomPosition;
-                newRoom.passCount = 0;
-                newRoom.escapeCount = 0;
-                _core._dungeon[_core._player.currentDungeonFloor - 1].roomIsPass.Add(newRoom);
+                DungeonBlock newRoom = new DungeonBlock(_core._player.currentStayDunBlock, 1,0);
+                _core._dungeon[_core._player.currentDungeonFloor - 1].blockIsPlayed.Add(newRoom);
             }
-            _core.LoadScene(_GameState.MAP);
-            _core._gatePanel.SetActive(false);
+            _core.OpenScene(_GameState.MAP);
+            _core.getLandCon()._gatePanel.SetActive(false);
             _core._talkPanel.SetActive(false);
         }
         lastTimeClick = currentTimeClick;

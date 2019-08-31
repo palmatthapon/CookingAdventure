@@ -1,29 +1,26 @@
-﻿using model;
-using Model;
-
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace controller
 {
-    public class FarmController : MonoBehaviour
+    public class FarmingController : MonoBehaviour
     {
         GameCore _core;
 
+        public GameObject _farmTool;
+
+        GameObject _getRawMaterial;
+        bool _putRawMaterial;
 
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
         }
 
-        public GameObject _farmTool;
-
         void OnEnable()
         {
-            _core._actionMode = _ActionState.Farm;
-            _core.SetColliderCamp(false);
+            _core._actionMode = _ActionState.Farming;
+            _core.getCampCon().setAllowTouch(false);
         }
 
         void Update()
@@ -47,10 +44,7 @@ namespace controller
 
 
         }
-
-        GameObject _getRawMaterial;
-        bool _putRawMaterial;
-
+        
         public void GetRawMaterial()
         {
             _putRawMaterial = false;
@@ -69,7 +63,7 @@ namespace controller
 
         private void OnDisable()
         {
-            _core.SetColliderCamp(true);
+            _core.getCampCon().setAllowTouch(true);
         }
 
         public void Close()

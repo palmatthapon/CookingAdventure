@@ -1,10 +1,4 @@
-﻿
-using model;
-using Model;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -47,7 +41,7 @@ namespace menu
         public void ConfirmBtn()
         {
             if (_core._gameMode == _GameState.GAMEMENU)
-                _core._gameMenu.SetActive(true);
+                _core._startMenu.SetActive(true);
             this.gameObject.SetActive(false);
             SaveSetting();
         }
@@ -55,7 +49,7 @@ namespace menu
         public void CancelBtn()
         {
             if (_core._gameMode == _GameState.GAMEMENU)
-                _core._gameMenu.SetActive(true);
+                _core._startMenu.SetActive(true);
             this.gameObject.SetActive(false);
         }
         

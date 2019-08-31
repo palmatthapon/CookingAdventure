@@ -1,29 +1,23 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using model;
-using controller;
+using system;
 
-namespace UI
+namespace battle
 {
     public class AttackSlot : EventTrigger
     {
-        public SkillBlock _skill;
+        public AttackBlock _attack;
         GameCore _core;
-        AttackController _attackCon;
 
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _attackCon = _core._attackPanel.GetComponent<AttackController>();
         }
 
         public override void OnPointerClick(PointerEventData data)
         {
             Debug.Log("attack clicked");
-            _attackCon.UseAttack(_skill);
+            _core.getATKCon().UseAttack(_attack);
         }
 
         public override void OnDeselect(BaseEventData data)

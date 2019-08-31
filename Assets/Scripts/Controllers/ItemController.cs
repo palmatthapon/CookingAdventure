@@ -1,12 +1,10 @@
-﻿
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using model;
 using item;
+using System.Reflection;
+using system;
 
 namespace controller
 {
@@ -14,70 +12,115 @@ namespace controller
     {
         GameCore _core;
         
-        public GameObject _itemSlot;
         public Text _money;
-        
+
+        public ItemStore _itemStoreIdSelect;
+
+        Sprite[] loadSprite = null;
+        string getSpriteSet = "";
 
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
         }
 
-        void OnEnable()
+        public void ViewItem(Transform panel,string type)
         {
-            //_core._storyPanelTxt.text = "ลองค้นกระเป๋าดูดีๆ อาจจะเจอของที่เจ้าตามหา!";
-            _money.text = _core._player.currentMoney.ToString();
-        }
-        
-        Sprite[] loadSprite = null;
-        string getSpriteSet = "";
-
-        public void ViewItem(GameObject obj,string group="item")
-        {
-            Transform trans = obj.transform.Find("ItemMask").Find("GridView");
+            Transform trans = panel.Find("ItemMask").Find("GridView");
+            GameObject clone = trans.GetChild(0).gameObject;
+            int count = 1;
             foreach (Transform child in trans)
             {
-                GameObject.Destroy(child.gameObject);
+                if (count > 1)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+                count++;
             }
             
-            foreach (ItemStore item in _core._itemStore)
+            foreach (ItemStore item in _core._itemStore.ToList())
             {
-                if (group == item.item.spriteSet|| group == "item")
+                if (type == item.data.spriteSet)
                 {
-                    GameObject itemSlot = Instantiate(_itemSlot);
-                    itemSlot.transform.SetParent(trans);
-                    itemSlot.transform.localScale = new Vector3(1, 1, 1);
-                    ItemSlot itemComp = itemSlot.GetComponent<ItemSlot>();
-                    itemComp._item = item;
-                    itemSlot.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                    if (_core._gameMode == _GameState.BATTLE)
-                        itemSlot.transform.Find("Select").localScale = new Vector3(1.2f, 1.2f, 1);
-                    if (getSpriteSet != item.item.spriteSet)
+                    GameObject slot = Instantiate(clone);
+                    slot.transform.SetParent(trans);
+                    slot.transform.localScale = new Vector3(1, 1, 1);
+                    ItemSlot script = slot.GetComponent<ItemSlot>();
+                    script._item = item;
+                    slot.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
+                    if (getSpriteSet != item.data.spriteSet)
                     {
-                        getSpriteSet = item.item.spriteSet;
+                        getSpriteSet = item.data.spriteSet;
 
                         loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + getSpriteSet);
                     }
-                    itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
-                    item.obj = itemSlot;
+                    slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.data.spriteName);
+                    slot.SetActive(true);
+                    foreach (Behaviour behaviour in slot.GetComponentsInChildren<Behaviour>())
+                            behaviour.enabled = true;
+                    item.obj = slot;
                 }
             }
         }
-
-        public void UseBtn()
+        
+        public void UseItem()
         {
-            UseItem();
-        }
+            Debug.Log("Use item");
+            if (_core._actionMode == _ActionState.Item)
+            {
+                if (_core.getMenuCon().CheckCrystal(Constants._crystalItem))
+                {
+                    foreach (ItemStore item in _core._itemStore.ToList())
+                    {
+                        if (_itemStoreIdSelect.id == item.id)
+                        {
+                            if (CallItemActive((_Item)_itemStoreIdSelect.itemId, _core._player._heroIsPlaying))
+                            {
 
-        public ItemStore _itemStoreIdSelect;
+                                item.amount -= 1;
+                                if (item.amount == 0)
+                                {
+                                    Destroy(item.obj);
+                                    _core._itemStore.Remove(item);
+                                    _core.getSubMenuCore().Cancel();
+                                    return;
+                                }
+                                item.obj.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
+                                _core.getBattCon()._battleMode = _BattleState.Finish;
+                                _core.getMenuCon().UseCrystal(Constants._crystalItem);
+                            }
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    _core.OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalItem);
+                }
+            }
+            else
+            {
+                if (_core.getMenuCon().UseCrystal(Constants._crystalTeam))
+                {
+                    _core._infoPanel.SetActive(false);
+                }
+                else
+                {
+                    _core.OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalTeam);
+                }
 
-        void UseItem()
-        {
-            _itemStoreIdSelect.obj.transform.Find("Select").gameObject.SetActive(true);
-            _core._subMenuPanel.GetComponent<SubMenuPanel>().Cancel();
+            }
         }
         
-        
+        bool CallItemActive(_Item methodId, params object[] args)
+        {
+            string methodName = methodId.ToString();
+
+            Type type = typeof(ItemActive);
+            MethodInfo method = type.GetMethod(methodName);
+            ItemActive c = new ItemActive();
+            return (bool)method.Invoke(c, args);
+        }
     }
 
 }

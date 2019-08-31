@@ -1,13 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using skill;
+﻿using system;
 
 namespace model
 {
     [System.Serializable]
     public class Status
     {
+        Calculator _cal;
+
         int level;
         int STR;
         int AGI;
@@ -23,12 +22,12 @@ namespace model
         Skill _currentSkill;
 
         public int currentHPMax;
-        int CurrentHP;
+        int HP;
 
         double Exp;
 
         int Hate;
-        int _damage;
+        int _damageReceived;
 
         public float _eventBonusDmg = 1;
         public float _passiveBonusATK = 1;
@@ -46,7 +45,7 @@ namespace model
         {
             Exp = exp;
 
-            Calculate _cal = GameCore.call()._cal;
+            _cal = new Calculator();
 
             level = _cal.CalculateLevel(exp);
             STR = _cal.CalculateSTR(model.baseSTR, model.baseAGI, model.baseINT, level);
@@ -59,12 +58,13 @@ namespace model
             MDEF = _cal.CalculateMDEF(STR, AGI, INT);
 
             hpMax = _cal.CalculateHpMax(STR, AGI, INT);
+            currentHPMax = hpMax;
             currentHP = hpMax;
         }
 
         public Status(int level, ModelDataSet model)
         {
-            Calculate _cal = GameCore.call()._cal;
+            _cal=new Calculator();
 
             STR = _cal.CalculateSTR(model.baseSTR, model.baseAGI, model.baseINT, level);
             AGI = _cal.CalculateAGI(model.baseSTR, model.baseAGI, model.baseINT, level);
@@ -76,6 +76,7 @@ namespace model
             MDEF = _cal.CalculateMDEF(STR, AGI, INT);
 
             hpMax = _cal.CalculateHpMax(STR, AGI, INT);
+            currentHPMax = hpMax;
             currentHP = hpMax;
         }
 
@@ -94,28 +95,25 @@ namespace model
             return level;
         }
 
-        public void setLvl(int lvl)
+        public void setLvl(double exp)
         {
-            if(lvl>level)
-                level = lvl;
+            level = _cal.CalculateLevel(exp);
         }
 
         public int currentHP
         {
             get
             {
-                return this.CurrentHP;
+                return this.HP;
             }
             set
             {
                 if (value < 0)
-                    this.CurrentHP = 0;
+                    this.HP = 0;
                 else if (value > currentHPMax)
-                    this.CurrentHP = currentHPMax;
+                    this.HP = currentHPMax;
                 else
-                    this.CurrentHP = value;
-
-                GameCore.call()._battleCon._playerLifePanel.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)CurrentHP * 1 / currentHPMax);
+                    this.HP = value;
             }
         }
 
@@ -165,7 +163,9 @@ namespace model
         public void setExp(double exp)
         {
             if (exp == 0) return;
-            Exp = exp;
+            
+            Exp = Exp + exp;
+            setLvl(Exp);
         }
 
         public int getDEF()
@@ -202,7 +202,6 @@ namespace model
             int damage = (int)(ATK * _eventBonusDmg * _passiveBonusATK * _buffBonusATK);
             int hpBefore = target.currentHP;
             target.currentHP -= damage;
-            GameCore.call()._battleCon._damage_of_each_hero[targetSlot, slot] += hpBefore - target.currentHP;
             return damage;
         }
 
@@ -222,18 +221,18 @@ namespace model
             _currentSkill = skill;
         }
 
-        public int getCurrentDmg()
+        public int getDamageReceived()
         {
-            return _damage;
+            return _damageReceived;
         }
 
-        public void setCurrentDmg(int dmg)
+        public void setDamageReceived(int dmg)
         {
             if (dmg < 0)
             {
                 dmg = 0;
             }
-            _damage = dmg;
+            _damageReceived = dmg;
         }
     }
 }

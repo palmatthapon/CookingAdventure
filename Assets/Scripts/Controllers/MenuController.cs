@@ -1,9 +1,4 @@
-﻿using controller;
-using model;
-using Model;
-
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +12,16 @@ namespace controller
         public GameObject _playerLifePanel;
         public Transform gridViewTrans;
 
+        public GameObject _itemMenu;
+        public GameObject _playerInfoPanel;
+        public GameObject _attackMenu;
+        public GameObject _shopMenu;
+        public GameObject _cookMenu;
+        public GameObject _farmMenu;
+        public GameObject _mapBtn;
+
+        float lastTimeClick;
+
         void Awake()
         {
             //Fetch the RectTransform from the GameObject
@@ -25,12 +30,47 @@ namespace controller
             gridViewTrans = transform.Find("MenuMask").Find("GridView");
         }
 
-        public GameObject _mapBtn;
-
-        private void OnEnable()
+        void Update()
         {
-            
-            transform.GetComponent<PlayerController>().LoadCampAvatar();
+            if (_core._gameMode == _GameState.SECRETSHOP)
+            {
+                OnTouchSecretShop();
+            }
+        }
+
+        void OnTouchSecretShop()
+        {
+            //-----touch collider2d room-----------
+            if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
+            {
+                if (OnTouchFindTag("Shop"))
+                {
+                    _core.getMenuCon()._shopMenu.SetActive(true);
+                }
+            }
+        }
+        
+        public bool OnTouchFindTag(string tag)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+#if (UNITY_ANDROID || UNITY_IPHONE || UNITY_WP8)
+            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            {
+                ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+            }
+#endif
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, -Vector3.up);
+            if (hit.transform != null && hit.transform.tag == tag)
+            {
+                float currentTimeClick = Time.time;
+                if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
+                {
+                    currentTimeClick = 0;
+                    return true;
+                }
+                lastTimeClick = currentTimeClick;
+            }
+            return false;
         }
 
         public void setIconMapBtn(string name)
@@ -76,40 +116,44 @@ namespace controller
         {
             Debug.Log("Open bag");
             _core._actionMode = _ActionState.Item;
-            if (_core._itemPanel.activeSelf)
+            if (_itemMenu.activeSelf)
             {
                 gridViewTrans.Find("BagButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "bagClose");
-                _core._itemPanel.SetActive(false);
+                _itemMenu.SetActive(false);
                 if (_core._gameMode == _GameState.BATTLE)
-                    _core._attackPanel.SetActive(true);
+                    _attackMenu.SetActive(true);
+                _core.getCampCon().setAllowTouch(true);
             }
             else
             {
                 gridViewTrans.Find("BagButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "bagOpen");
-                _core.OpenActionPanel(_core._itemPanel);
+                _itemMenu.SetActive(true);
+                _core.getItemCon().ViewItem(_itemMenu.transform,"item");
+                _core.getItemCon()._money.text = _core._player.currentMoney.ToString();
+                _core.getCampCon().setAllowTouch(false);
             }
         }
-
+        
         public void OpenMap()
         {
             _core._actionMode = _ActionState.Map;
             if (_core._gameMode == _GameState.BATTLE)
             {
-                if (!_core._battleCon._isEscape)
+                if (!_core.getBattCon()._isEscape)
                 {
-                    _core._battleCon._isEscape = true;
-                    if (_core.UseCrystal(2))
+                    _core.getBattCon()._isEscape = true;
+                    if (UseCrystal(2))
                     {
-                        if (Random.Range(0f, 1f) <= _core._mapCon._escapeRate)
+                        if (Random.Range(0f, 1f) <= _core.getMapCon()._escapeRate)
                         {
-                            _core.LoadScene(_GameState.MAP);
-                            _core.CalEscapeRoom();
+                            _core.OpenScene(_GameState.MAP);
+                            _core.getMapCon()._dunBlock[_core._player.currentStayDunBlock].AddEscaped(1);
                         }
                         else
                         {
-                            _core._battleCon.ShowDamage("Escape Fail!", _core._battleCon.FocusHero().getAvatarPos());
-                            _core._battleCon.EndTurnSpeed();
-                            _core._mapCon._escapeRate += 0.05f;
+                            _core.getBattCon().ShowDamage("Escape Fail!", _core.getBattCon().FocusHero().getAvatarPos());
+                            _core.getBattCon().EndTurnSpeed();
+                            _core.getMapCon()._escapeRate += 0.05f;
                         }
 
                     }
@@ -122,34 +166,102 @@ namespace controller
             }
             else if (_core._gameMode == _GameState.MAP)
             {
-                _core._mapCon.FocusPosition();
+                _core.getMapCon().FocusPosition();
             }
             else
             {
-                _core._CharacterPanel.SetActive(false);
-                _core._itemPanel.SetActive(false);
-                _core.LoadScene(_GameState.MAP);
+                _playerInfoPanel.SetActive(false);
+                _itemMenu.SetActive(false);
+                _core.OpenScene(_GameState.MAP);
             }
-
-
+            gridViewTrans.Find("ShopButton").gameObject.SetActive(false);
+            gridViewTrans.Find("GateButton").gameObject.SetActive(false);
+            gridViewTrans.Find("CookButton").gameObject.SetActive(false);
         }
         
         public void OpenSystem()
         {
-            if (_core._subMenuMode == _SubMenu.GameMenu && _core._subMenuPanel.activeSelf)
+            if (_core._subMenuPanel.activeSelf)
             {
                 if (!_core._settingPanel.activeSelf)
                     _core._subMenuPanel.SetActive(false);
             }
             else
             {
-                _core.OpenSubMenu(_SubMenu.GameMenu);
+                _core.getSubMenuCore().OpenGameMenu();
             }
         }
 
         public void OpenCook()
         {
-            _core._cookMenu.SetActive(true);
+            _cookMenu.SetActive(true);
+        }
+        
+        public void OpenShop()
+        {
+            if (_shopMenu.activeSelf)
+            {
+                _shopMenu.SetActive(false);
+            }
+            else
+            {
+                if (_core._gameMode == _GameState.LAND)
+                    _core.getLandCon().FocusShop();
+                _shopMenu.SetActive(true);
+            }
+        }
+        public void OpenGate()
+        {
+            if (_core._gameMode == _GameState.LAND)
+                _core.getLandCon().FocusWarp();
+            _core.getLandCon()._gatePanel.SetActive(true);
+        }
+
+        public void OpenBattleMenu()
+        {
+            _attackMenu.SetActive(true);
+        }
+        public void CloseBattleMenu()
+        {
+            _attackMenu.SetActive(true);
+        }
+
+        public void CloseBag()
+        {
+            gridViewTrans.Find("BagButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "bagClose");
+            _itemMenu.SetActive(false);
+            _core.getCampCon().setAllowTouch(true);
+        }
+
+        public void CloseGate()
+        {
+            _core.getLandCon()._gatePanel.SetActive(false);
+            _core.getCampCon().setAllowTouch(true);
+        }
+
+        public bool CheckCrystal(int point)
+        {
+            if (_core._gameMode != _GameState.BATTLE) return true;
+            if (_core.getBattCon().Crystal - point < 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool UseCrystal(int point)
+        {
+            if (_core._gameMode != _GameState.BATTLE) return true;
+            if (_core.getBattCon().Crystal - point < 0)
+            {
+                return false;
+            }
+            _core.getBattCon().Crystal = _core.getBattCon().Crystal - point;
+            if (_core.getBattCon().Crystal == 0)
+            {
+                _core.getBattCon().EndTurnSpeed();
+            }
+            return true;
         }
 
     }

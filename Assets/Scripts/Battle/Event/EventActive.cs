@@ -1,15 +1,15 @@
-﻿
-using controller;
-using model;
-using System.Collections;
-using System.Collections.Generic;
+﻿using controller;
+using system;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace Model
+namespace battle
 {
     public class EventActive
     {
+        BattleController getBatt()
+        {
+            return Camera.main.GetComponent<GameCore>().getBattCon();
+        }
 
         public void Event1()
         {
@@ -29,19 +29,19 @@ namespace Model
         public void Event4()
         {
             //Debug.Log("event 4");
-            GameCore.call()._battleCon.FocusHero().getStatus()._eventBonusDmg = GameCore.call()._battleCon._evenAttack;
-            GameCore.call()._battleCon.FocusMonster().getStatus()._eventBonusDmg = GameCore.call()._battleCon._evenAttack;
+            getBatt().FocusHero().getStatus()._eventBonusDmg = getBatt()._evenAttack;
+            getBatt().FocusMonster().getStatus()._eventBonusDmg = getBatt()._evenAttack;
         }
         public void Event5()
         {
             //Debug.Log("event 5");
-            GameCore.call()._battleCon._currentEvent = _Event.Wind;
+            getBatt()._currentEvent = _Event.Wind;
 		}
 
         public void Event6()
         {
             //Debug.Log("event 6");
-            GameCore.call()._battleCon._currentEvent = _Event.Rain;
+            getBatt()._currentEvent = _Event.Rain;
         }
 
     }

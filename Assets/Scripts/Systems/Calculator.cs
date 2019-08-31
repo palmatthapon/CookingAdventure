@@ -1,12 +1,9 @@
 ﻿
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-namespace model
+namespace system
 {
-    public class Calculate
+    public class Calculator
     {
         int _damageBase = 8;
         /// <summary>
@@ -93,7 +90,7 @@ namespace model
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public int IntParseFast(string value)
+        public static int IntParseFast(string value)
         {
             int result = 0;
             for (int i = 0; i < value.Length; i++)

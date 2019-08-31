@@ -1,6 +1,5 @@
-﻿using model;
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
+using System.Linq;
 using UnityEngine;
 
 namespace controller
@@ -8,35 +7,47 @@ namespace controller
     public class CampController : MonoBehaviour
     {
         GameCore _core;
-        
+        Material[] _mats;
+
+        public GameObject[] _campAvatar;
+        public GameObject _campfire;
+
+        bool _allowTouch = true;
+
+
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
+            _mats = Resources.LoadAll("Sprites/Character/Hero/", typeof(Material)).Cast<Material>().ToArray();
         }
 
         void OnEnable()
         {
             Camera.main.orthographicSize = 0.8f;
-            if (!_core.isPaused)
-            {
-                _core._campfireObj.transform.Find("Point Light").gameObject.SetActive(true);
-                foreach (Transform child in _core._campfireObj.transform.Find("Fire"))
-                {
-                    child.gameObject.SetActive(true);
-                }
-            }
-            
         }
 
         void Update()
         {
-            if (!_core.isPaused)
+            if (_core.IsPaused)
             {
+                _campfire.transform.Find("Point Light").gameObject.SetActive(false);
+                foreach (Transform child in _campfire.transform.Find("Fire"))
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                _campfire.transform.Find("Point Light").gameObject.SetActive(true);
+                foreach (Transform child in _campfire.transform.Find("Fire"))
+                {
+                    child.gameObject.SetActive(true);
+                }
+
                 if (_core._gameMode == _GameState.CAMP || _core._gameMode == _GameState.LAND)
                 {
                     OnTouch();
                 }
-                
             }
         }
 
@@ -46,72 +57,53 @@ namespace controller
             //-----touch collider2d room-----------
             if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
             {
-                if (!_find)
+                if (_allowTouch)
                 {
-                    _find = true;
-                    OnTouchFindTag("Item");
-                    OnTouchFindTag("Cook");
-                    OnTouchFindTag("Hero");
-                    OnTouchFindTag("Farm");
+                    if (_core.getMenuCon().OnTouchFindTag("Item"))
+                    {
+                        _core.getMenuCon().OpenBag();
+                    }
+                    else if (_core.getMenuCon().OnTouchFindTag("Cook"))
+                    {
+                        _core.getMenuCon()._cookMenu.SetActive(true);
+                    }
+                    else if (_core.getMenuCon().OnTouchFindTag("Hero"))
+                    {
+                        _core.getMenuCon()._playerInfoPanel.SetActive(true);
+                    }
+                    else if (_core.getMenuCon().OnTouchFindTag("Farm"))
+                    {
+                        _core.getMenuCon()._farmMenu.SetActive(true);
+                    }
                 }
             }
-            else
-            {
-                _find = false;
-            }
         }
-        bool _find = false;
-        float lastTimeClick = 0;
-
-        public void OnTouchFindTag(string tag)
+       
+        Sprite[] loadSprite = null;
+        string getSpriteSet = "";
+        public void LoadCampAvatar()
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-#if (UNITY_ANDROID || UNITY_IPHONE)
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            if (getSpriteSet != _core._player._heroIsPlaying.getSpriteSet())
             {
-                ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+                getSpriteSet = _core._player._heroIsPlaying.getSpriteSet();
+                loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
             }
-#endif
-            RaycastHit2D hit = Physics2D.Raycast(ray.origin, -Vector3.up);
-            if (hit.transform != null && hit.transform.tag == tag)
-            {
-                float currentTimeClick = Time.time;
-                //Debug.Log("Time " + currentTimeClick);
-                if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
-                {
-                    if (tag == "Item")
-                    {
-                        _core._itemPanel.SetActive(true);
-                    }
-                    else if (tag == "Cook")
-                    {
-                        _core._cookMenu.SetActive(true);
-                    }
-                    else if (tag == "Hero")
-                    {
-                        _core._PlayerInfoPanel.SetActive(true);
-                    }
-                    else if (tag == "Farm")
-                    {
-                        _core._farmMenu.SetActive(true);
-                    }
-
-                    currentTimeClick = 0;
-                }
-                lastTimeClick = currentTimeClick;
-
-            }
-
+            Debug.Log("camp avatar " + _core._player._heroIsPlaying.getSpriteName());
+            _campAvatar[0].GetComponent<SpriteRenderer>().sprite = loadSprite.Single(s => s.name == _core._player._heroIsPlaying.getSpriteName());
+            _campAvatar[0].GetComponent<SpriteRenderer>().material = _mats.Single(s => s.name == getSpriteSet);
         }
 
-        void SetPanel(bool set)
+        public void setAllowTouch(bool set)
         {
-
+            _allowTouch = set;
         }
 
+        public bool getAllowTouch()
+        {
+            return _allowTouch;
+        }
         private void OnDisable()
         {
-            SetPanel(false);
         }
 
         

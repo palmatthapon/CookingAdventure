@@ -1,21 +1,15 @@
-﻿using controller;
-using model;
-using System.Collections;
-using System.Collections.Generic;
+﻿using system;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class FarmTool : EventTrigger
 {
     GameCore _core;
-    FarmController _farmCon;
     //Vector2 padding = new Vector2(20, 20);
 
     void Start()
     {
         _core = Camera.main.GetComponent<GameCore>();
-        _farmCon = _core._farmMenu.GetComponent<FarmController>();
     }
 
     public override void OnPointerEnter(PointerEventData eventData)
@@ -37,9 +31,9 @@ public class FarmTool : EventTrigger
     public override void OnPointerDown(PointerEventData eventData)
     {
         base.OnPointerDown(eventData);
-        if (_core._actionMode == _ActionState.Farm)
+        if (_core._actionMode == _ActionState.Farming)
         {
-            _farmCon.GetRawMaterial();
+            _core.getFarmCon().GetRawMaterial();
 
         }
 
@@ -48,9 +42,9 @@ public class FarmTool : EventTrigger
     public override void OnPointerUp(PointerEventData eventData)
     {
         base.OnPointerUp(eventData);
-        if (_core._actionMode == _ActionState.Farm)
+        if (_core._actionMode == _ActionState.Farming)
         {
-            _farmCon.PutRawMaterial();
+            _core.getFarmCon().PutRawMaterial();
 
         }
 

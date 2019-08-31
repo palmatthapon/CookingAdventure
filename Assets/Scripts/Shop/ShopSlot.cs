@@ -1,10 +1,6 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using model;
+using system;
 using controller;
 
 namespace shop
@@ -12,27 +8,24 @@ namespace shop
     public class ShopSlot : EventTrigger
     {
         GameCore _core;
-        ShopController _shopCon;
 
         public ItemStore _item;
+        float lastTimeClick;
 
         void Start()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _shopCon = _core._menuPanel.GetComponent<ShopController>();
         }
-        float lastTimeClick;
-
+        
         public override void OnPointerClick(PointerEventData data)
         {
             //Debug.Log("Item id " + _item.id);
-            _shopCon._itemShopIsSelect = _item;
-            _core.SetTalk(_item.item.name + "\n<" + _item.item.detail + ">");
+            _core.getShopCon()._itemShopIsSelect = _item;
+            _core.SetTalk(_item.data.name + "\n<" + _item.data.detail + ">");
             float currentTimeClick = data.clickTime;
             if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
             {
-
-                _core.OpenSubMenu(_SubMenu.Shop);
+                _core.getSubMenuCore().OpenBuyShop();
             }
             lastTimeClick = currentTimeClick;
         }

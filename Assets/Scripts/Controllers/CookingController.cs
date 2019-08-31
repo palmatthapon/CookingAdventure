@@ -1,7 +1,4 @@
-﻿using model;
-using Model;
-
-using System.Collections;
+﻿using system;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,11 +6,10 @@ using UnityEngine.UI;
 
 namespace controller
 {
-    public class CookController : MonoBehaviour
+    public class CookingController : MonoBehaviour
     {
         GameCore _core;
-        ItemController _itemCon;
-
+        
         public GameObject _item;
         public GameObject _cookItem;
 
@@ -22,14 +18,13 @@ namespace controller
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _itemCon = _core._menuPanel.GetComponent<ItemController>();
         }
 
         private void OnEnable()
         {
-            _core._actionMode = _ActionState.Cook;
-            _itemCon.ViewItem(_item,"rawmaterial");
-            _core.SetColliderCamp(false);
+            _core._actionMode = _ActionState.Cooking;
+            _core.getItemCon().ViewItem(_item.transform,"rawmaterial");
+            _core.getCampCon().setAllowTouch(false);
         }
         
         public void Close()
@@ -82,11 +77,28 @@ namespace controller
             
         }
 
+        public bool CheckTag(string tag)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+#if (UNITY_ANDROID || UNITY_IPHONE)
+            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            {
+                ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+            }
+#endif
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, -Vector3.up);
+            if (hit.transform != null && hit.transform.tag == tag)
+            {
+                Debug.Log("hit " + hit.transform.gameObject.name);
+                return true;
+            }
+            return false;
+        }
 
 
         private void OnDisable()
         {
-            _core.SetColliderCamp(true);
+            _core.getCampCon().setAllowTouch(true);
         }
     }
 }

@@ -1,29 +1,28 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using model;
 using controller;
+using system;
+using System;
+using Random = UnityEngine.Random;
 
 namespace menu
 {
     public class RewardPanel : MonoBehaviour
     {
         GameCore _core;
-        Calculate _cal;
         BattleController _battleCon;
-        public Transform _gridViewHero;
         List<ItemStore> _itemDropList;
-        public GameObject _itemDropSlot;
         public GameObject _heroRewardSlot;
+        Transform trans;
 
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
-            _cal = new Calculate();
-            _battleCon = _core._battleObj.GetComponent<BattleController>();
+            _battleCon = _core._battleSpace.GetComponent<BattleController>();
+            trans = transform.Find("ItemDrop").Find("GridView");
         }
 
         Monster[] _monsterList;
@@ -32,52 +31,19 @@ namespace menu
         private void OnEnable()
         {
             LoadData();
-            LoadHeroIcon();
             DropItem();
             ExpDrop();
-            AddRoomIsPass();
+            _core.getMapCon()._dunBlock[_core._player.currentStayDunBlock].AddPlayed(1);
         }
 
         void LoadData()
         {
-            _monsterList = _core._currentMonsterBattle;
+            _monsterList = _core.getBattCon()._currentMonsterBattle;
             _dungeon = _core._dungeon[_core._player.currentDungeonFloor - 1];
 
         }
         
-        void AddRoomIsPass()
-        {
-            foreach (Room room in _dungeon.roomIsPass)
-            {
-                if (room.id == _core._player.currentRoomPosition)
-                {
-                    room.passCount++;
-                    break;
-                }
-            }
-        }
         int _heroCount=1;
-        GameObject _heroRewardIcon;
-
-        void LoadHeroIcon()
-        {
-            Sprite[] loadSprite = null;
-            string getSpriteSet = "";
-            
-            GameObject slot = Instantiate(_heroRewardSlot);
-            slot.transform.SetParent(_gridViewHero);
-            slot.transform.localScale = new Vector3(1, 1, 1);
-
-            if (getSpriteSet != _core._heroIsPlaying.getSpriteSet())
-            {
-                getSpriteSet = _core._heroIsPlaying.getSpriteSet();
-                loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
-            }
-            slot.transform.Find("Hero").Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Icon_" + _core._heroIsPlaying.getSpriteName());
-            slot.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + _core._heroIsPlaying.getStatus().getLvl();
-            slot.transform.Find("Name").GetComponent<Text>().text = _core._heroIsPlaying.getName();
-            _heroRewardIcon = slot;
-        }
         int moneyDropTotal;
 
         public void DropItem()
@@ -86,12 +52,12 @@ namespace menu
             
             for (int p = 0; p < _monsterList.Length; p++)
             {
-                string[] itemList = _dungeon.dungeon.itemDrop.Split(',');
+                string[] itemList = _dungeon.data.itemDrop.Split(',');
                 int count = 0;
                 for (int a = 0; a < itemList.Length; a++)
                 {
                     string[] item = itemList[a].Split(':');
-                    float droprate = _cal.IntParseFast(item[1])/100f;
+                    float droprate = Calculator.IntParseFast(item[1])/100f;
                     //Debug.Log("drop rate " + droprate);
                     if (Random.Range(0f, 1f) <= droprate)
                     {
@@ -101,7 +67,7 @@ namespace menu
                         {
                             if (count >= _core.dataItemList.Length)
                                 count = 0;
-                            if (_core.dataItemList[count].id == _cal.IntParseFast(item[0]))
+                            if (_core.dataItemList[count].id == Calculator.IntParseFast(item[0]))
                             {
                                 bool haveItem = false;
                                 foreach (ItemStore dropList in _itemDropList)
@@ -124,7 +90,7 @@ namespace menu
                                     }
                                     newItem.id = id;
                                     newItem.itemId = _core.dataItemList[count].id;
-                                    newItem.item = _core.dataItemList[count];
+                                    newItem.data = _core.dataItemList[count];
                                     newItem.amount = amount;
                                     _itemDropList.Add(newItem);
                                 }
@@ -138,7 +104,7 @@ namespace menu
                     }
                     else
                     {
-                        moneyDropTotal += Random.Range(_dungeon.dungeon.moneyDrop / 8, _dungeon.dungeon.moneyDrop + 1);
+                        moneyDropTotal += Random.Range(_dungeon.data.moneyDrop / 8, _dungeon.data.moneyDrop + 1);
                     }
                 }
             }
@@ -147,7 +113,6 @@ namespace menu
 
         public void ViewItemDrop()
         {
-            Transform trans = _core._rewardPanel.transform.Find("GridView").Find("ItemDrop").Find("GridView");
             Sprite[] loadSprite = null;
             string nameSpriteSet = "";
             
@@ -167,16 +132,19 @@ namespace menu
                 {
                     _core._itemStore.Add(item);
                 }
-                GameObject itemSlot = Instantiate(_itemDropSlot);
-                itemSlot.transform.SetParent(trans);
-                itemSlot.transform.localScale = new Vector3(1, 1, 1);
-                itemSlot.transform.Find("Count").GetComponent<Text>().text = "X "+item.amount;
-                if (nameSpriteSet != item.item.spriteSet)
+                GameObject slot = Instantiate(trans.GetChild(0).gameObject);
+                slot.transform.SetParent(trans);
+                slot.transform.localScale = new Vector3(1, 1, 1);
+                slot.transform.Find("Count").GetComponent<Text>().text = "X "+item.amount;
+                if (nameSpriteSet != item.data.spriteSet)
                 {
-                    nameSpriteSet = item.item.spriteSet;
+                    nameSpriteSet = item.data.spriteSet;
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
-                itemSlot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.item.spriteName);
+                slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == item.data.spriteName);
+                slot.SetActive(true);
+                foreach (Behaviour behaviour in slot.GetComponentsInChildren<Behaviour>())
+                    behaviour.enabled = true;
             }
 
             ViewMoneyDrop();
@@ -187,118 +155,68 @@ namespace menu
         void ViewMoneyDrop()
         {
             if (moneyDropTotal <= 0) return;
-            Transform trans = _core._rewardPanel.transform.Find("GridView").Find("ItemDrop").Find("GridView");
-            GameObject money = Instantiate(_itemDropSlot);
-            money.transform.SetParent(trans);
-            money.transform.localScale = new Vector3(1, 1, 1);
-            money.transform.Find("Count").GetComponent<Text>().text = "X " + moneyDropTotal;
+            GameObject slot = Instantiate(trans.GetChild(0).gameObject);
+            slot.transform.SetParent(trans);
+            slot.transform.localScale = new Vector3(1, 1, 1);
+            slot.transform.Find("Count").GetComponent<Text>().text = "X " + moneyDropTotal;
             Sprite[] loadMoneySprite = Resources.LoadAll<Sprite>("Sprites/UI/ui");
-            money.transform.Find("Icon").GetComponent<Image>().sprite = loadMoneySprite.Single(s => s.name == "ui_27");
+            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadMoneySprite.Single(s => s.name == "ui_27");
+            slot.SetActive(true);
+            foreach (Behaviour behaviour in slot.GetComponentsInChildren<Behaviour>())
+                behaviour.enabled = true;
             _core._player.currentMoney += moneyDropTotal;
             moneyDropTotal = 0;
         }
         
         public void ExpDrop()
         {
-            int roomPassCount=0;
-            foreach (Room room in _dungeon.roomIsPass)
+            double expDrop = 0;
+            for( int i =0; i < _battleCon._monster.Count; i++)
             {
-                if (room.id == _core._player.currentRoomPosition)
-                {
-                    roomPassCount = room.passCount;
-                    break;
-                }
+                expDrop += _battleCon._monster[i].getStatus().getExpDrop();
             }
-            double[] expForHero = new double[_battleCon._damage_of_each_hero.GetLength(1)];
-            for(int monCount=0; monCount < _battleCon._damage_of_each_hero.GetLength(0); monCount++)
-            {
-                int total_damage = 0;
-                for(int h = 0;h< _battleCon._damage_of_each_hero.GetLength(1); h++)
-                {
-                    total_damage += _battleCon._damage_of_each_hero[monCount, h];
-                }
-                
-                for (int heroCount=0; heroCount < _battleCon._damage_of_each_hero.GetLength(1); heroCount++)
-                {
-                    int betweenLvl = Mathf.Abs(_core._heroIsPlaying.getStatus().getLvl() - _monsterList[monCount].getStatus().getLvl());
-                    //Debug.Log("betweenLvl" + betweenLvl);
-                    if (betweenLvl < 6)
-                    {
-                        expForHero[heroCount] += ((_battleCon._damage_of_each_hero[monCount, heroCount] / 100.00) * (_monsterList[monCount].getStatus().getExpDrop() + roomPassCount) / (total_damage / 100.00))* ((6-betweenLvl)/6.00);
-                        Debug.Log("hero "+ heroCount + " exp A "+ expForHero[heroCount]);
-                    }
-                    else
-                    {
-                        expForHero[heroCount] += 1;
-                        Debug.Log("hero " + heroCount + " exp B " + expForHero[heroCount]);
-                    }
-                    
-                }
-            }
-
-            _heroRewardIcon.transform.Find("ExpAdd").GetComponent<Text>().text = "+" + expForHero[0];
-            double expAdd = _core._heroIsPlaying.getStatus().getExp() + expForHero[0];
-            int levelAdd = _cal.CalculateLevel(expAdd);
-            double expMin = _cal.CalculateExp(levelAdd);
-            double expMax = _cal.CalculateExp(levelAdd + 1);
-            int newLevel = _cal.CalculateLevel(expAdd);
-
-            double expBetween = _core._heroIsPlaying.getStatus().getExp() - expMin;
-            double expExcess = expAdd - expMin;
-
-            float fillExp = levelAdd > _core._heroIsPlaying.getStatus().getLvl() ? 0 : (float)(expBetween / (expMax - expMin));
-            float fillExpAdd = (float)(expExcess / (expMax - expMin));
-            _heroRewardIcon.transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExp(fillExp);
-            _heroRewardIcon.transform.Find("Slider").GetComponent<ExpSlider>().controlFillRectExpAdd(fillExpAdd);
-
-            _core._heroIsPlaying.getStatus().setExp(expAdd);
-            if (_core._heroIsPlaying.getStatus().getLvl() != newLevel)
-            {
-                _core._heroIsPlaying.getStatus().setLvl(newLevel);
-                _heroRewardIcon.transform.Find("Hero").Find("Level").GetComponent<Text>().text = "Lv. " + newLevel;
-            }
+            _core._player._heroIsPlaying.getStatus().setExp(expDrop);
         }
 
         public void ConfirmBtn()
         {
             this.gameObject.SetActive(false);
-            Transform trans = _core._rewardPanel.transform.Find("GridView").Find("ItemDrop").Find("GridView");
             foreach (Transform child in trans)
             {
                 GameObject.Destroy(child.gameObject);
             }
-            if (_core._player.currentRoomPosition == _core._dungeon[_core._player.currentDungeonFloor-1].dungeon.bossRoom)
+            if (_core._player.currentStayDunBlock == _core._dungeon[_core._player.currentDungeonFloor-1].data.bossBlock)
             {
                 _core._player.currentDungeonFloor = _core._player.currentDungeonFloor + 1;
                 if(_core._player.currentDungeonFloor > _core._dungeon.Length)
                 {
                     _core._player.currentDungeonFloor = 1;
-                    _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
-                    _core.LoadScene(_GameState.LAND);
+                    _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
+                    _core.OpenScene(_GameState.LAND);
                 }
                 else
                 {
-                    Room newRoom = new Room();
-                    newRoom.id = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
-                    newRoom.passCount = 1;
-                    _core._dungeon[_core._player.currentDungeonFloor - 1].roomIsPass.Add(newRoom);
-                    _core._player.currentRoomPosition = _core._dungeon[_core._player.currentDungeonFloor - 1].dungeon.startRoom;
-                    _core.LoadScene(_GameState.MAP);
+                    DungeonBlock newBlock = new DungeonBlock(_core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock,
+                        1,0);
+                    _core._dungeon[_core._player.currentDungeonFloor - 1].blockIsPlayed.Add(newBlock);
+                    _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
+                    _core.OpenScene(_GameState.MAP);
                 }
             }
             else
             {
-                _core.LoadScene(_GameState.MAP);
+                _core.OpenScene(_GameState.MAP);
             }
+        }
+
+        public int getLevel(double exp)
+        {
+            return (int)((Math.Sqrt(100 * ((2 * exp) + 25)) + 50) / 100);
         }
 
 
         public void OnDisable()
         {
-            foreach(Transform child in _gridViewHero)
-            {
-                Destroy(child.gameObject);
-            }
         }
     }
 }
