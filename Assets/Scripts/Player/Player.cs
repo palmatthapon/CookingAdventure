@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using model;
+using UnityEngine.UI;
 
 namespace player
 {
     [System.Serializable]
     public class Player
     {
+
         string Name;
         int Money;
         int Soul;
@@ -44,9 +46,14 @@ namespace player
                     value = 100;
                 }
                 this.Soul = value;
-                //_playerSoulBar.GetComponent<PlayerSoul>().AddFill(playerHP);
-                //_playerSoulBar.transform.Find("SoulText").GetComponent<Text>().text = playerHP + "/100";
+                getCore()._playerSoulBar.GetComponent<PlayerSoul>().AddFill(this.Soul);
+                getCore()._playerSoulBar.transform.Find("SoulText").GetComponent<Text>().text = this.Soul + "/100";
             }
+        }
+
+        GameCore getCore()
+        {
+            return Camera.main.GetComponent<GameCore>();
         }
 
         public int currentMoney

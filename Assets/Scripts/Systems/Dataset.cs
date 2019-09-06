@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using model;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace system
@@ -62,12 +63,15 @@ namespace system
     {
         public int id;
         public string name;
-        public string detail;
         public float bonusDmg;
         public _Attack type;
         public string effect;
         public float delay;
         public int crystal;
+        public int getHate()
+        {
+            return (int)(bonusDmg * 20);
+        }
     }
     
     [System.Serializable]
@@ -96,26 +100,7 @@ namespace system
         public bool landScene;
         public string shopList;
     }
-
-    public class Skill
-    {
-        public int hate;
-        public SkillDataSet data;
-    }
-
-    public class AttackBlock
-    {
-        public int slotId;
-        public int heroStoreId;
-        public int color;
-        public int defCrystal;
-        public int crystal;
-        public bool isAttack;
-        public bool isUltimate;
-        public int blockStack;
-        public GameObject obj;
-    }
-
+    
     public class ItemStore
     {
         public int id;
@@ -181,6 +166,34 @@ namespace system
         public int id;
         public int buyCount;
         public ItemDataSet item;
+    }
+
+    public class Character
+    {
+        Hero _hero = null;
+        Monster _monster = null;
+
+        _Model _type;
+
+        public Character(Hero hero)
+        {
+            _type = _Model.PLAYER;
+            _hero = hero;
+        }
+        public Character(Monster monster)
+        {
+            _type = _Model.MONSTER;
+            _monster = monster;
+        }
+
+        public Status getStatus()
+        {
+            if (_type == _Model.PLAYER)
+                return _hero.getStatus();
+            else
+                return _monster.getStatus();
+        }
+
     }
 }
 

@@ -45,7 +45,6 @@ public class GameCore : MonoBehaviour
     
     public GameObject _talkPanel;
     public GameObject _infoPanel;
-    public GameObject _monTalkPanel;
     
     public GameObject _confirmNotify;
 
@@ -312,8 +311,8 @@ public class GameCore : MonoBehaviour
         dataItemList = JsonHelper.FromJson<ItemDataSet>(loadedItem.text);
         print("load " + dataItemList.Length + " items.");
 
-        TextAsset loadedUlti = Resources.Load<TextAsset>("JsonDatabase/SkillList");
-        dataSkillList = JsonHelper.FromJson<SkillDataSet>(loadedUlti.text);
+        TextAsset loadedSkill = Resources.Load<TextAsset>("JsonDatabase/SkillList");
+        dataSkillList = JsonHelper.FromJson<SkillDataSet>(loadedSkill.text);
         print("load " + dataSkillList.Length + " skills.");
 
     }
@@ -467,10 +466,7 @@ public class GameCore : MonoBehaviour
                         {
                             if (Calculator.IntParseFast(skillList[a]) == skillData.id)
                             {
-                                Skill attack = new Skill();
-                                attack.hate = (int)skillData.bonusDmg * 20;
-                                attack.data = skillData;
-                                hero.getStatus().attack[a] = attack;
+                                hero.getStatus().attack[a] = skillData;
                                 break;
                             }
                         }
@@ -615,12 +611,15 @@ public class GameCore : MonoBehaviour
     {
         dataPlayerLog[0].landScene = false;
         OpenObjInScene(_mapSpace);
+        getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(false);
+        getMenuCon().gridViewTrans.Find("GateButton").gameObject.SetActive(false);
+        getMenuCon().gridViewTrans.Find("CookButton").gameObject.SetActive(false);
+        getMenuCon().gridViewTrans.Find("CampButton").gameObject.SetActive(true);
     }
 
     void OpenBattleScene()
     {
         OpenObjInScene(_battleSpace);
-        getMenuCon().OpenBattleMenu();
         transform.position = _cameraMainPosition;
     }
 
@@ -628,7 +627,10 @@ public class GameCore : MonoBehaviour
     {
         OpenObjInScene(_campSpace);
         transform.position = _cameraMainPosition;
-        
+        getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(false);
+        getMenuCon().gridViewTrans.Find("GateButton").gameObject.SetActive(false);
+        getMenuCon().gridViewTrans.Find("CookButton").gameObject.SetActive(true);
+
     }
 
     public void OpenLandScene()
@@ -636,6 +638,8 @@ public class GameCore : MonoBehaviour
         dataPlayerLog[0].landScene = true;
         OpenObjInScene(_landSpace);
         transform.position = _cameraMainPosition;
+        getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(true);
+        getMenuCon().gridViewTrans.Find("GateButton").gameObject.SetActive(true);
     }
 
     void OpenSecretShopScene()
@@ -690,16 +694,6 @@ public class GameCore : MonoBehaviour
         RectTransform parentRect = _infoPanel.GetComponent<RectTransform>();
         parentRect.sizeDelta = new Vector2(talk.preferredWidth, talk.preferredHeight) + padding;
         _infoPanel.SetActive(true);
-    }
-
-    public void SetMonTalk(string txt)
-    {
-        Text talk = _monTalkPanel.GetComponentInChildren<Text>();
-        talk.text = txt;
-        RectTransform parentRect = _monTalkPanel.GetComponent<RectTransform>();
-        parentRect.sizeDelta = new Vector2(talk.preferredWidth, talk.preferredHeight) + padding;
-        getBattCon().timeLeft = 3;
-        _monTalkPanel.SetActive(true);
     }
     
     public GameObject _unlockNotifyPopup;

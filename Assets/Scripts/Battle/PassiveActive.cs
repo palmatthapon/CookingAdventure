@@ -16,11 +16,10 @@ namespace battle
 
         public void Passive2(_Model type)
         {
-            if (getBattCon().GetTargetFocus().getStatus().currentHP < getBattCon().GetTargetFocus().getStatus().currentHPMax / 2)
+            if (getBattCon().getTarget().getStatus().currentHP < getBattCon().getTarget().getStatus().currentHPMax / 2)
             {
-                getBattCon().GetTargetFocus().getStatus()._passiveBonusATK = 1.25f;
+                getBattCon().getTarget().getStatus()._passiveBonusATK = 1.25f;
             }
-            Debug.Log("Passive2...");
         }
         
 

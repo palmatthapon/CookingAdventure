@@ -6,7 +6,6 @@ using system;
 
 namespace model
 {
-
     public class Model
     {
         GameCore _core = Camera.main.GetComponent<GameCore>();
@@ -22,8 +21,7 @@ namespace model
         Sprite[] _spriteListloaded = null;
         string _spriteSetLoaded = "";
 
-        GameObject[] loadEffectPlayer;
-        GameObject[] loadEffectMonster;
+        GameObject[] loadEffect;
 
         Vector3 endPosition;
         Vector3 originalPos;
@@ -35,6 +33,10 @@ namespace model
         public void setModel(ModelDataSet data)
         {
             _data = data;
+        }
+        protected ModelDataSet getData()
+        {
+            return _data;
         }
 
         public int getId()
@@ -72,6 +74,10 @@ namespace model
         {
             _avatar = avatar;
             _anim = _avatar.GetComponent<Animator>();
+            if(getId()>1000)
+                _avatar.transform.parent.localScale = new Vector3(1.5f, 1.5f, 1f);
+            else
+                _avatar.transform.parent.localScale = new Vector3(1f, 1f, 1f);
         }
         
         public Animator getAnim()
@@ -82,16 +88,6 @@ namespace model
         public Transform getAvatarTrans()
         {
             return _avatar.transform;
-        }
-
-        public Vector3 getAvatarPos()
-        {
-            return getAvatarTrans().position;
-        }
-
-        public void setAvatarPos(Vector3 pos)
-        {
-            getAvatarTrans().position = pos;
         }
 
         public void setAvatarSprite(Sprite sprite)
@@ -166,7 +162,7 @@ namespace model
                 method.Invoke(PassiveFunction, parameter);
         }
 
-        public void LoadSprite()
+        protected void LoadAvatar()
         {
             if (_spriteSetLoaded != getSpriteSet())
             {
@@ -189,14 +185,14 @@ namespace model
         {
             if (target == _Model.MONSTER)
             {
-                if (loadEffectPlayer == null)
-                    loadEffectPlayer = Resources.LoadAll<GameObject>("Effects/Effect_Player/");
+                if (loadEffect == null)
+                    loadEffect = Resources.LoadAll<GameObject>("Effects/Effect_Player/");
 
-                for (int i = 0; i < loadEffectPlayer.Length; i++)
+                for (int i = 0; i < loadEffect.Length; i++)
                 {
-                    if (skill.effect == loadEffectPlayer[i].name)
+                    if (skill.effect == loadEffect[i].name)
                     {
-                        getBattCon().CloneAttackEffect(skill, loadEffectPlayer[i], getBattCon().FocusMonster().getAvatarTrans(), target);
+                        getBattCon().CloneAttackEffect(skill, loadEffect[i], getBattCon().getTargetOfHero().getAvatarTrans(), target);
                         break;
                     }
                 }
@@ -205,14 +201,14 @@ namespace model
             else
             {
 
-                if (loadEffectMonster == null)
-                    loadEffectMonster = Resources.LoadAll<GameObject>("Effects/Effect_Monster/");
+                if (loadEffect == null)
+                    loadEffect = Resources.LoadAll<GameObject>("Effects/Effect_Monster/");
 
-                for (int i = 0; i < loadEffectMonster.Length; i++)
+                for (int i = 0; i < loadEffect.Length; i++)
                 {
-                    if (skill.effect == loadEffectMonster[i].name)
+                    if (skill.effect == loadEffect[i].name)
                     {
-                        getBattCon().CloneAttackEffect(skill, loadEffectMonster[i], getBattCon().FocusHero().getAvatarTrans(), target);
+                        getBattCon().CloneAttackEffect(skill, loadEffect[i], getBattCon().getTargetOfMonster().getAvatarTrans(), target);
                         break;
                     }
                 }
@@ -220,10 +216,10 @@ namespace model
 
         }
 
-        public void RunInjury(Vector3 pos)
+        protected void RunInjury(Vector3 pos)
         {
             injur = true;
-            originalPos = getAvatarPos();
+            originalPos = getAvatarTrans().position;
 
             endPosition = pos;
 
@@ -238,9 +234,9 @@ namespace model
         public bool CheckInjury()
         {
             if (getAnim() == null) return false;
-            if (startInjur && getAvatarPos() != endPosition)
+            if (startInjur && getAvatarTrans().position != endPosition)
             {
-                setAvatarPos(Vector3.MoveTowards(getAvatarPos(), endPosition, speed * Time.deltaTime));
+                getAvatarTrans().position = Vector3.MoveTowards(getAvatarTrans().position, endPosition, speed * Time.deltaTime);
                 return true;
             }
             else if (injur)
@@ -251,12 +247,17 @@ namespace model
             }
             if (startInjur)
             {
-                Debug.Log("check injury");
                 setAvatarMat(getOriginalMat());
             }
             startInjur = false;
             return false;
         }
-        
+
+        protected virtual void Dead()
+        {
+            getAnim().SetTrigger("IsDead");
+            getAvatarTrans().parent.localScale = getOriginalSize();
+        }
+
     }
 }

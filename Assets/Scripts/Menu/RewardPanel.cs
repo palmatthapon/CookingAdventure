@@ -38,7 +38,7 @@ namespace menu
 
         void LoadData()
         {
-            _monsterList = _core.getBattCon()._currentMonsterBattle;
+            _monsterList = _core.getBattCon()._currentMonBatt;
             _dungeon = _core._dungeon[_core._player.currentDungeonFloor - 1];
 
         }
@@ -171,9 +171,9 @@ namespace menu
         public void ExpDrop()
         {
             double expDrop = 0;
-            for( int i =0; i < _battleCon._monster.Count; i++)
+            for( int i =0; i < _battleCon._currentMonBatt.Length; i++)
             {
-                expDrop += _battleCon._monster[i].getStatus().getExpDrop();
+                expDrop += _battleCon._currentMonBatt[i].getStatus().getExpDrop();
             }
             _core._player._heroIsPlaying.getStatus().setExp(expDrop);
         }
@@ -181,9 +181,14 @@ namespace menu
         public void ConfirmBtn()
         {
             this.gameObject.SetActive(false);
+            int count = 1;
             foreach (Transform child in trans)
             {
-                GameObject.Destroy(child.gameObject);
+                if (count > 1)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+                count++;
             }
             if (_core._player.currentStayDunBlock == _core._dungeon[_core._player.currentDungeonFloor-1].data.bossBlock)
             {

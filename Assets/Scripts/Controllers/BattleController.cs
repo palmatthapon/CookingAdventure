@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using Random = UnityEngine.Random;
 using UI;
-using character;
 using model;
 using system;
 
@@ -28,29 +27,35 @@ namespace controller
         public GameObject[] _heroAvatar;
         public GameObject[] _monAvatar;
 
+        public bool _waitEndTurn = false;
+        public bool _isEscape;
+
         _RoundBattle _roundBattle;
 
         public int _turnAround;
-
-        public List<Monster> _monster;
-        public List<Hero> _hero;
-        public Monster[] _monCache;
-        public Hero[] _heroCache;
-
+        
         int _crystalTotal = 4;
         public _BattleState _battleMode;
         
-        public GameObject _monHpBar;
-        int IsFocusMonster, IsFocusHero;
         public GameObject _hitEffect;
         public Sprite[] _eventIcon;
         public GameObject _playerLifePanel;
-        public GameObject _monsterInfoPanel;
-
-        public Monster[] _currentMonsterBattle;
+        public GameObject _monsterHPPanel;
+        
+        public Monster[] _currentMonBatt;
+        public Hero _currentHeroBatt;
 
         public Material _injuryMat;
         float lastTimeClick;
+
+        int _eventStart = 0;
+        int _eventAround = 0;
+        public _Event _currentEvent;
+        int eventRan;
+        public float _evenAttack;
+        string[] _eventNamePlay;
+
+        public int[] _monsterSlot;
 
         private void Awake()
         {
@@ -66,28 +71,16 @@ namespace controller
             {
                 _monAvatar[i].SetActive(false);
             }
-            _monster = new List<Monster>();
-            _monCache = new Monster[_currentMonsterBattle.Length];
-            for (int i = 0; i < _currentMonsterBattle.Length; i++)
+            _monsterSlot = new int[_currentMonBatt.Length];
+            for (int i = 0; i < _currentMonBatt.Length; i++)
             {
-                _currentMonsterBattle[i].LoadAvatar(i);
-                _monster.Add(_currentMonsterBattle[i]);
-                _monCache[i] = _currentMonsterBattle[i];
+                _monsterSlot[i] = i;
+                _currentMonBatt[i].CreateAvatar(i);
             }
-            _hero = new List<Hero>();
-            _hero.Add(_core._player._heroIsPlaying);
-            _heroCache = new Hero[1];
-            for (int i = 0; i < _hero.Count; i++)
-            {
-                _hero[i].LoadAvatar(i);
-                _heroCache[i] = _hero[i];
-            }
-
-            _focusHero = 0;
-            _focusMonster = 0;
+            _currentHeroBatt = _core._player._heroIsPlaying;
+            _currentHeroBatt.CreateAvatar(0);
             
-            _core._playerLifePanel.transform.Find("Crystal").gameObject.SetActive(true);
-            UpdateMonsterHP();
+            
             _battleMode = _BattleState.Start;
             _isEscape = false;
             _roundBattle = _RoundBattle.PLAYER;
@@ -96,16 +89,20 @@ namespace controller
             _core.getATKCon()._blockCount = 0;
             Crystal = 1;
             _crystalMon = 1;
-            SetPanel(true);
             _core.getATKCon().UpdateAttackSlot();
             
             LoadEvent();
-            CreateFocusEffect(FocusMonster().getAvatarTrans());
+
             ShowTurnBattleNotify();
+
             _core.getMenuCon().setIconMapBtn("escape");
 
+            getTargetOfHero().UpdateHPBar();
+            _currentHeroBatt.UpdateHPBar();
+            OpenFocusTargetOfHero(true);
+            OpenPanelOnStartBattle(true);
         }
-        public float timeLeft = 3;
+        
 
         void Update()
         {
@@ -113,39 +110,26 @@ namespace controller
             {
                 if (!_core.IsPauseLock)
                 {
-                    FocusHero().getAnim().enabled = false;
-                    FocusMonster().getAnim().enabled = false;
+                    OpenFocusTargetOfHero(false);
                 }
             }
             else
             {
                 if (_core.IsPauseLock)
                 {
-                    FocusHero().getAnim().enabled = true;
-                    FocusMonster().getAnim().enabled = true;
+                    OpenFocusTargetOfHero(true);
                 }
 
                 WaitEndTurn();
 
-                foreach(Monster mon in _monster)
+                foreach(Monster mon in _currentMonBatt)
                 {
-                    mon.CheckInjury();
+                    if(mon.getStatus().currentHP>0)
+                        mon.CheckInjury();
                 }
-                foreach (Hero hero in _hero)
-                {
-                    hero.CheckInjury();
-                }
+                if (_currentHeroBatt.getStatus().currentHP > 0)
+                    _currentHeroBatt.CheckInjury();
 
-                if (_core._monTalkPanel.activeSelf)
-                {
-                    timeLeft -= Time.deltaTime;
-                    if(timeLeft < 0)
-                    {
-                        _core._monTalkPanel.SetActive(false);
-                    }
-                }
-
-                OnTouchMonster();
             }
         }
         
@@ -154,84 +138,64 @@ namespace controller
             
         }
 
-        void OnTouchMonster()
+        void OpenPanelOnStartBattle(bool input)
         {
-            //-----touch collider2d room-----------
-            if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
-            {
-                if (OnTouchFindTag("Monster"))
-                {
-                    _monsterInfoPanel.SetActive(true);
-                }else
-                    _monsterInfoPanel.SetActive(false);
-            }
+            _eventPanel.SetActive(input);
+            _core._playerLifePanel.transform.Find("Crystal").gameObject.SetActive(input);
+            _monsterHPPanel.SetActive(input);
+            _core.getMenuCon().gridViewTrans.Find("EndTurnButton").gameObject.SetActive(input);
+            _core.getMenuCon()._attackMenu.SetActive(input);
         }
 
-        public bool OnTouchFindTag(string tag)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-#if (UNITY_ANDROID || UNITY_IPHONE || UNITY_WP8)
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-            {
-                ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
-            }
-#endif
-            RaycastHit2D hit = Physics2D.Raycast(ray.origin, -Vector3.up);
-            if (hit.transform != null && hit.transform.tag == tag)
-            {
-                float currentTimeClick = Time.time;
-                if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
-                {
-                    currentTimeClick = 0;
-                    return true;
-                }
-                lastTimeClick = currentTimeClick;
-            }
-            return false;
-        }
+        int IsTargetOfHero = 0;
 
-        public int _focusMonster
+        public int targetOfHero
         {
             get
             {
-                return this.IsFocusMonster;
+                return IsTargetOfHero;
             }
             set
             {
-                
-                if (value >= _monster.ToList().Count)
-                    this.IsFocusMonster = 0;
+                if (value < 5)
+                    IsTargetOfHero = value;
                 else
-                    this.IsFocusMonster = value;
-                CreateFocusEffect(FocusMonster().getAvatarTrans());
+                    IsTargetOfHero = 0;
             }
         }
 
-        public int _focusHero
+        public void OnNextTargetOfHero()
         {
-            get
-            {
-                return this.IsFocusHero;
+            Debug.Log("before target " + targetOfHero);
+            if (_monsterSlot.Length <= 0) return;
+            OpenFocusTargetOfHero(false);
+            int count = 0;
+            targetOfHero++;
+            while (!_monsterSlot.Contains(targetOfHero)){
+                count++;
+                targetOfHero++;
+                Debug.Log(targetOfHero + " check " + _monsterSlot.Contains(targetOfHero));
+                if (count > 4) break;
             }
-            set
-            {
-                if (value >= _hero.ToList().Count)
-                    this.IsFocusHero = 0;
-                else
-                    this.IsFocusHero = value;
-            }
+            Debug.Log("after target " + targetOfHero);
+            OpenFocusTargetOfHero(true);
+        }
+        
+        public Monster getTargetOfHero()
+        {
+            return _currentMonBatt[targetOfHero];
         }
 
-        public void UpdateMonsterHP()
+        public Hero getTargetOfMonster()
         {
-            int hp = 0;
-            int hpMax = 0;
-            for (int i =0;i< _monCache.Length; i++)
-            {
-                hp += _monCache[i].getStatus().currentHP;
-                hpMax+= _monCache[i].getStatus().currentHPMax;
-            }
-            _monHpBar.GetComponent<ControlSlider>().AddFill((float)hp * 1 / hpMax);
+            return _currentHeroBatt;
+        }
+
+        public void OpenFocusTargetOfHero(bool input)
+        {
+            getTargetOfHero().getAvatarTrans().Find("FocusEffect").gameObject.SetActive(input);
+            if(input)
+                getTargetOfHero().UpdateHPBar();
         }
 
         public void RunMonAI(int delay = 1)
@@ -246,28 +210,16 @@ namespace controller
                 _battleMode = _BattleState.Wait;
             }
             yield return new WaitForSeconds(delay);
-            //Debug.Log("hero count " + _hero.Count+" focus "+_heroFocus);
-            if(_monster.ToList().Count > 0 && _hero.ToList().Count > 0)
+            if(_currentMonBatt.ToList().Count > 0 && _currentHeroBatt.getStatus().currentHP > 0)
             {
-                _focusMonster = Random.Range(0, _monster.ToList().Count);
-                FocusMonster().Attack(FocusHero());
+                targetOfHero = _monsterSlot[Random.Range(0, _monsterSlot.ToList().Count)];
+                getTargetOfHero().Attack(getTargetOfMonster());
             }
-            
+
         }
 
-        void SetPanel(bool set)
-        {
-            _eventPanel.SetActive(set);
-            _core._menuPanel.transform.Find("MenuMask").Find("GridView").Find("EndTurnButton").gameObject.SetActive(true);
-        }
         
-        int _eventStart=0;
-        int _eventAround=0;
-        public _Event _currentEvent;
-        int eventRan;
-        public float _evenAttack;
-        string[] _eventNamePlay;
-
+        
         void LoadEvent()
         {
             //Debug.Log(_turnBattleCount + " - " + _eventStart + " == " + _eventAround);
@@ -380,18 +332,18 @@ namespace controller
             yield return new WaitForSeconds(delay);
             if (target == _Model.PLAYER)
             {
-                FocusHero().PlayInjury();
+                getTargetOfMonster().PlayInjury();
             }
             else
             {
-                FocusMonster().PlayInjury();
+                getTargetOfHero().PlayInjury();
             }
         }
-        public bool _waitEndTurn = false;
+        
 
         void WaitEndTurn()
         {
-            if ((_battleMode == _BattleState.Start|| _battleMode == _BattleState.Finish) && _waitEndTurn && _monster.ToList().Count > 0 && _hero.ToList().Count > 0)
+            if ((_battleMode == _BattleState.Start|| _battleMode == _BattleState.Finish) && _waitEndTurn && _currentMonBatt.ToList().Count > 0 && _currentHeroBatt.getStatus().currentHP > 0)
             {
                 _waitEndTurn = false;
                 _battleMode = _BattleState.Start;
@@ -402,18 +354,18 @@ namespace controller
         IEnumerator EndTurn(int dalay=1)
         {
             yield return new WaitForSeconds(dalay);
-            _focusMonster = 0;
-            _focusHero = 0;
             if (_roundBattle == _RoundBattle.ENEMY)
             {
                 _roundBattle = _RoundBattle.PLAYER;
-                _effectFocus.SetActive(true);
+                OpenFocusTargetOfHero(false);
+                targetOfHero = _monsterSlot[0];
+                OpenFocusTargetOfHero(true);
                 LoadEvent();
                 _core.getATKCon().UpdateAttackSlot();
                 yield return new WaitForSeconds(1);
                 ShowTurnBattleNotify();
-                _core._menuPanel.transform.Find("MenuMask").Find("GridView").Find("EndTurnButton").gameObject.SetActive(true);
-                _core.getMenuCon().OpenBattleMenu();
+                _core.getMenuCon().gridViewTrans.Find("EndTurnButton").gameObject.SetActive(true);
+                _core.getMenuCon()._attackMenu.SetActive(true);
                 _isEscape = false;
                 Crystal = _turnAround;
                 _crystalMon = _turnAround;
@@ -422,7 +374,7 @@ namespace controller
             else
             {
                 _roundBattle = _RoundBattle.ENEMY;
-                _effectFocus.SetActive(false);
+                OpenFocusTargetOfHero(false);
                 yield return new WaitForSeconds(1);
                 ShowTurnBattleNotify();
                 //Debug.Log("runAI 1");
@@ -430,12 +382,11 @@ namespace controller
             }
         }
         
-        public bool _isEscape;
 
         public void EndTurnSpeed()
         {
             Crystal = 0;
-            _core._menuPanel.transform.Find("MenuMask").Find("GridView").Find("EndTurnButton").gameObject.SetActive(false);
+            _core.getMenuCon().gridViewTrans.Find("EndTurnButton").gameObject.SetActive(false);
             Debug.Log("end 5");
             _waitEndTurn = true;
         }
@@ -443,24 +394,24 @@ namespace controller
         IEnumerator BattleWin(int delay=1)
         {
             yield return new WaitForSeconds(delay);
-            _core.getMenuCon().CloseBattleMenu();
+            _core.getMenuCon()._attackMenu.SetActive(false);
             _rewardPanel.SetActive(true);
         }
 
         IEnumerator BattleLose(int delay=1)
         {
             yield return new WaitForSeconds(delay);
-            for(int i = 0; i < _monster.Count; i++)
+            for(int i = 0; i < _currentMonBatt.Length; i++)
             {
                 int damage = 1;
-                if (_monster[i].getSpriteSet().Contains("hero"))
+                if (_currentMonBatt[i].getSpriteSet().Contains("hero"))
                 {
                     damage = 5;
                 }
                 for(int a=0; a< damage; a++)
                 {
                     GameObject effect = Instantiate(_hitEffect);
-                    effect.transform.SetParent(_monster[i].getAvatarTrans());
+                    effect.transform.SetParent(_currentMonBatt[i].getAvatarTrans());
                     effect.transform.localScale = new Vector3(1, 1, 1);
                     effect.transform.localPosition = new Vector3(0, 0.5f, 0);
                     yield return new WaitForSeconds(1.5f);
@@ -491,7 +442,6 @@ namespace controller
             else
             {
                 StartCoroutine(BattleLose());
-                //_core.CallSubMenu(_SubMenuState.BattleEnd, "ทีมของคุณพ้ายแพ้ คุณต้องการต่อสู้อีกรอบหรือไม่?");
 
             } 
         }
@@ -525,70 +475,26 @@ namespace controller
             }
         }
 
-        public Character GetTargetFocus()
+        public Character getTarget()
         {
             Character _char;
             if (_roundBattle == _RoundBattle.PLAYER)
             {
-                _char = new Character(FocusMonster());
+                _char = new Character(getTargetOfHero());
             }
             else
             {
-                _char = new Character(FocusHero());
+                _char = new Character(getTargetOfMonster());
             }
             return _char;
-        }
-
-        public Hero FocusHero()
-        {
-            try
-            {
-                return _hero[_focusHero];
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                Debug.Log(e);
-                _waitEndTurn = false;
-                return _heroCache[_focusHero];
-            }
-        }
-
-        public Monster FocusMonster()
-        {
-            try
-            {
-                return _monster[_focusMonster];
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                Debug.Log(e);
-                _waitEndTurn = false;
-                return _monCache[_focusMonster];
-            }
-        }
-        public GameObject _focusEffect;
-        GameObject _effectFocus;
-
-        public void CreateFocusEffect(Transform tran)
-        {
-            if(_effectFocus == null)
-                _effectFocus = Instantiate(_focusEffect);
-            _effectFocus.transform.SetParent(tran);
-            _effectFocus.transform.localPosition = Vector3.zero;
-            _effectFocus.transform.localScale = new Vector3(1, 1, 1);
-
         }
         
         public void OnDisable()
         {
-            
             _waitEndTurn = false;
-            SetPanel(false);
             _core.getATKCon().ClearAttackList();
-            _core.getMenuCon().CloseBattleMenu();
-            _core._playerLifePanel.transform.Find("Crystal").gameObject.SetActive(false);
             _core.getMenuCon().setIconMapBtn("mapOpen");
-
+            OpenPanelOnStartBattle(false);
         }
 
     }

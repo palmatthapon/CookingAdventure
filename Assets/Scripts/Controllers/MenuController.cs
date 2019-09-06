@@ -133,6 +133,29 @@ namespace controller
                 _core.getCampCon().setAllowTouch(false);
             }
         }
+        public void BagViewItem()
+        {
+            _itemMenu.transform.Find("RawMaterialButton").GetComponent<Image>().sprite = _itemMenu.transform.Find("ItemButton").GetComponent<Image>().sprite;
+            _itemMenu.transform.Find("ItemButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "HeadPanel");
+            _itemMenu.transform.Find("RawMaterialButton").GetComponent<Button>().enabled = true;
+            _itemMenu.transform.Find("ItemButton").GetComponent<Button>().enabled = false;
+            _core.getItemCon().ViewItem(_itemMenu.transform, "item");
+        }
+
+        public void BagViewRawMaterial()
+        {
+            _itemMenu.transform.Find("ItemButton").GetComponent<Image>().sprite = _itemMenu.transform.Find("RawMaterialButton").GetComponent<Image>().sprite;
+            _itemMenu.transform.Find("RawMaterialButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "HeadPanel");
+            _itemMenu.transform.Find("RawMaterialButton").GetComponent<Button>().enabled = false;
+            _itemMenu.transform.Find("ItemButton").GetComponent<Button>().enabled = true;
+            _core.getItemCon().ViewItem(_itemMenu.transform, "rawmaterial");
+
+        }
+
+        public void OpenCamp()
+        {
+            _core.OpenScene(_GameState.CAMP);
+        }
         
         public void OpenMap()
         {
@@ -151,7 +174,7 @@ namespace controller
                         }
                         else
                         {
-                            _core.getBattCon().ShowDamage("Escape Fail!", _core.getBattCon().FocusHero().getAvatarPos());
+                            _core.getBattCon().ShowDamage("Escape Fail!", _core.getBattCon().getTargetOfMonster().getAvatarTrans().position);
                             _core.getBattCon().EndTurnSpeed();
                             _core.getMapCon()._escapeRate += 0.05f;
                         }
@@ -174,9 +197,7 @@ namespace controller
                 _itemMenu.SetActive(false);
                 _core.OpenScene(_GameState.MAP);
             }
-            gridViewTrans.Find("ShopButton").gameObject.SetActive(false);
-            gridViewTrans.Find("GateButton").gameObject.SetActive(false);
-            gridViewTrans.Find("CookButton").gameObject.SetActive(false);
+            
         }
         
         public void OpenSystem()
@@ -216,16 +237,7 @@ namespace controller
                 _core.getLandCon().FocusWarp();
             _core.getLandCon()._gatePanel.SetActive(true);
         }
-
-        public void OpenBattleMenu()
-        {
-            _attackMenu.SetActive(true);
-        }
-        public void CloseBattleMenu()
-        {
-            _attackMenu.SetActive(true);
-        }
-
+        
         public void CloseBag()
         {
             gridViewTrans.Find("BagButton").GetComponent<Image>().sprite = _core._uiSprite2.Single(s => s.name == "bagClose");
@@ -263,7 +275,7 @@ namespace controller
             }
             return true;
         }
-
+        
     }
 }
 

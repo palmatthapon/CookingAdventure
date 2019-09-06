@@ -29,8 +29,8 @@ namespace battle
         public void Event4()
         {
             //Debug.Log("event 4");
-            getBatt().FocusHero().getStatus()._eventBonusDmg = getBatt()._evenAttack;
-            getBatt().FocusMonster().getStatus()._eventBonusDmg = getBatt()._evenAttack;
+            //getBatt().FocusHero().getStatus()._eventBonusDmg = getBatt()._evenAttack;
+            //getBatt().FocusMonster().getStatus()._eventBonusDmg = getBatt()._evenAttack;
         }
         public void Event5()
         {

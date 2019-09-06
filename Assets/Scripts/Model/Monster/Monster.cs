@@ -6,7 +6,6 @@ using Random = UnityEngine.Random;
 
 namespace model
 {
-    [System.Serializable]
     public class Monster : Model
     {
         Status _status;
@@ -18,37 +17,43 @@ namespace model
             setModel(data);
             _status = new Status(level, data);
         }
-        
+
+        public Monster Copy()
+        {
+            Monster copy = new Monster(getStatus().getLvl(),getData());
+            copy._status = this._status;
+            return copy;
+        }
+
         public Status getStatus()
         {
             return _status;
         }
-        
-        public void HPActive()
+
+        public void setStatus(Status sts)
         {
-            getBattCon().UpdateMonsterHP();
+            _status = sts;
+        }
+        
+        public void UpdateHPBar()
+        {
+            getBattCon()._monsterHPPanel.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)_status.currentHP * 1 / _status.currentHPMax);
+            getBattCon()._monsterHPPanel.transform.Find("HatePanel").Find("HateValue").GetComponent<Image>().fillAmount = (float)_status.hate * 1 / 100;
+
         }
 
-       
-        public void HateActive()
+        protected override void Dead()
         {
-            //_icon.transform.Find("UltimateSlider").GetComponent<ControlSlider>().AddFill((float)_status.hate * 1 / 100);
-            
-        }
-        
-        public void Dead()
-        {
-            getAvatarTrans().parent.localScale = getOriginalSize();
+            base.Dead();
             _status.hate = 0;
-            getBattCon()._monster.Remove(this);
-            if (getBattCon()._monster.ToList().Count == 0)
+            getBattCon()._monsterSlot = getBattCon()._monsterSlot.Where(val => val != getSlot()).ToArray();
+            if (getBattCon()._monsterSlot.Length == 0)
             {
                 getBattCon()._waitEndTurn = false;
                 getBattCon().OnBattleEnd(true);
             }
-            else
-            {
-                getBattCon()._focusMonster++;
+            else {
+                getBattCon().OnNextTargetOfHero();
             }
             
         }
@@ -70,25 +75,32 @@ namespace model
                 if (Random.Range(0f, 1f) > 0.5f)
                 {
                     _status.hate = 0;
-                    useCrystal = _status.attack[1].data.crystal;
+                    useCrystal = _status.attack[1].crystal;
                     _status.setCurrentSkill(_status.attack[1]);
                 }
             }
             int crtBefore = getBattCon()._crystalMon;
             getBattCon()._crystalMon -= useCrystal;
 
-            target.getStatus().setDamageReceived(_status.CalDmgSkill(_status.getCurrentSkill().data.type, _status.getCurrentSkill().data.bonusDmg, target.getStatus(), 1));
+            target.getStatus().setDamageReceived(_status.CalDmgSkill(_status.getCurrentSkill().type, _status.getCurrentSkill().bonusDmg, target.getStatus(), 1));
 
-            target.getStatus().hate += _status.getCurrentSkill().hate;
-            CreateAttackEffect(_status.getCurrentSkill().data, _Model.PLAYER);
+            target.getStatus().hate += _status.getCurrentSkill().getHate();
+            CreateAttackEffect(_status.getCurrentSkill(), _Model.PLAYER);
 
-            _status.hate += _status.getCurrentSkill().hate / 3;
+            _status.hate += _status.getCurrentSkill().getHate() / 3;
         }
-        public void LoadAvatar(int slot)
+
+        public string getAvatatName()
+        {
+            return getBattCon()._monAvatar[getSlot()].name;
+        }
+
+        public void CreateAvatar(int slot)
         {
             setSlot(slot);
+            Debug.Log("avatar slot " + slot + " " + getBattCon()._monAvatar[slot].name);
             setAvatar(getBattCon()._monAvatar[slot]);
-            LoadSprite();
+            LoadAvatar();
             _status.hate = 0;
             OnPassiveWorking(getStatus().passive.ToString(), _Model.MONSTER);
             getBattCon()._battleMode = _BattleState.Finish;
@@ -97,18 +109,19 @@ namespace model
         public void PlayInjury()
         {
             
-            RunInjury(new Vector3(getAvatarPos().x - 0.8f, getAvatarPos().y, getAvatarPos().z));
+            RunInjury(new Vector3(getAvatarTrans().position.x - 0.8f, getAvatarTrans().position.y, getAvatarTrans().position.z));
             
             OnPassiveWorking(getStatus().passive.ToString(), _Model.MONSTER);
-            getBattCon().ShowDamage(_status.getDamageReceived(), getAvatarPos());
+            getBattCon().ShowDamage(_status.getDamageReceived(), getAvatarTrans().position);
+            _status.currentHP = _status.currentHP - _status.getDamageReceived();
+            UpdateHPBar();
             if (_status.currentHP <= 0)
             {
-                getAnim().SetTrigger("IsDead");
                 Dead();
             }
             else
             {
-                getBattCon()._focusMonster++;
+                getBattCon().OnNextTargetOfHero();
             }
         }
     }

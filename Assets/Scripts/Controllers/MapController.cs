@@ -460,11 +460,11 @@ namespace controller
 
         void Navigate(int pos,bool open)
         {
-            if (pos + 1 < _dunBlockCount && pos % _dgColumnCount != 2)
+            if (pos%_dgColumnCount != _dgColumnCount-1)
             {
                 _dunBlock[pos + 1].obj.transform.Find("ParticleRoom").gameObject.SetActive(open);
             }
-            if (pos - 1 >= 0 && pos % _dgColumnCount != 0)
+            if (pos % _dgColumnCount != 0)
                 _dunBlock[pos - 1].obj.transform.Find("ParticleRoom").gameObject.SetActive(open);
             if (pos + _dgColumnCount < _dunBlockCount)
                 _dunBlock[pos + _dgColumnCount].obj.transform.Find("ParticleRoom").gameObject.SetActive(open);
@@ -491,15 +491,15 @@ namespace controller
 
                 _escapeRate = 0.5f;
 
-                _core.getBattCon()._currentMonsterBattle = new Monster[1 + (Random.Range(0, max: Random.Range(0f, 1f) < 0.5 ? 5 : 5 / maxPos))];
+                _core.getBattCon()._currentMonBatt = new Monster[1 + (Random.Range(0, max: Random.Range(0f, 1f) < 0.5 ? 5 : 5 / maxPos))];
 
                 int MaxLevel = maxPos * _dungeon.data.levelMax / _dgRowCount;
-                Debug.Log("Monster have " + _core.getBattCon()._currentMonsterBattle.Length + " lvl max " + MaxLevel + " dun lvl max " + _dungeon.data.levelMax);
+                Debug.Log("Monster have " + _core.getBattCon()._currentMonBatt.Length + " lvl max " + MaxLevel + " dun lvl max " + _dungeon.data.levelMax);
 
-                for(int i=0;i< _core.getBattCon()._currentMonsterBattle.Length; i++)
+                for(int i=0;i< _core.getBattCon()._currentMonBatt.Length; i++)
                 {
-                    _core.getBattCon()._currentMonsterBattle[i] = _monsInCurrentdgFloor[Random.Range(0, _monsInCurrentdgFloor.Count)];
-                    _core.getBattCon()._monAvatar[i].transform.parent.localScale = new Vector3(1f, 1f, 1f);
+                   
+                    _core.getBattCon()._currentMonBatt[i] = _monsInCurrentdgFloor[Random.Range(0, _monsInCurrentdgFloor.Count)].Copy();
                 }
                 
             }
@@ -510,19 +510,18 @@ namespace controller
         {
                 _escapeRate = 0.4f;
 
-                _core.getBattCon()._currentMonsterBattle = new Monster[_bossInCurrentdgFloor.Count];
-                Debug.Log("Boss have " + _core.getBattCon()._currentMonsterBattle.Length);
+                _core.getBattCon()._currentMonBatt = new Monster[_bossInCurrentdgFloor.Count];
+                Debug.Log("Boss have " + _core.getBattCon()._currentMonBatt.Length);
 
                 for (int i = 0; i < _bossInCurrentdgFloor.Count; i++)
                 {
-                    _core.getBattCon()._currentMonsterBattle[i] = _bossInCurrentdgFloor[i];
-                    _core.getBattCon()._monAvatar[i].transform.parent.localScale = new Vector3(1.5f, 1.5f, 1f);
+                    _core.getBattCon()._currentMonBatt[i] = _bossInCurrentdgFloor[i];
                 }
 
             
             _core.OpenScene(_GameState.BATTLE);
         }
-
+        
         void CrateMonsterFromData(string monstype, string[] monsterList)
         {
             for (int a = 0; a < monsterList.Length; a++)
@@ -560,11 +559,7 @@ namespace controller
                                 {
                                     if (Calculator.IntParseFast(skillList[c]) == skillData.id)
                                     {
-                                        Skill attack = new Skill();
-
-                                        attack.hate = (int)skillData.bonusDmg * 20;
-                                        attack.data = skillData;
-                                        monster.getStatus().attack[c] = attack;
+                                        monster.getStatus().attack[c] = skillData;
                                         break;
                                     }
                                 }

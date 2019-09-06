@@ -16,10 +16,10 @@ namespace model
         int MATK;
         int DEF;
         int MDEF;
-        public Skill[] attack = new Skill[2];
+        public SkillDataSet[] attack = new SkillDataSet[4];
         public _Passive passive;
 
-        Skill _currentSkill;
+        SkillDataSet _currentSkill;
 
         public int currentHPMax;
         int HP;
@@ -211,12 +211,12 @@ namespace model
             currentHP = hpMax;
         }
 
-        public Skill getCurrentSkill()
+        public SkillDataSet getCurrentSkill()
         {
             return _currentSkill;
         }
 
-        public void setCurrentSkill(Skill skill)
+        public void setCurrentSkill(SkillDataSet skill)
         {
             _currentSkill = skill;
         }

@@ -6,8 +6,14 @@ namespace battle
 {
     public class AttackSlot : EventTrigger
     {
-        public AttackBlock _attack;
         GameCore _core;
+        public int number;
+        public int skillSlot;
+        public int color;
+        public int defCrystal;
+        public int crystal;
+        public int blockStack;
+        public GameObject obj;
 
         void Start()
         {
@@ -16,8 +22,7 @@ namespace battle
 
         public override void OnPointerClick(PointerEventData data)
         {
-            Debug.Log("attack clicked");
-            _core.getATKCon().UseAttack(_attack);
+            _core.getATKCon().UseAttack(this);
         }
 
         public override void OnDeselect(BaseEventData data)

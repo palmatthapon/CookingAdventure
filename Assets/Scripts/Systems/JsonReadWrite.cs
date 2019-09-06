@@ -54,7 +54,6 @@ namespace system
             GameCore _core = Camera.main.GetComponent<GameCore>();
             int logNumber = 0;
             dataPlayerLog[logNumber].soul = _core._player.currentSoul;
-            Debug.Log("WriteDataPlayerLog " + _core._player.currentDungeonFloor);
             dataPlayerLog[logNumber].dungeonFloor = _core._player.currentDungeonFloor;
             dataPlayerLog[logNumber].stayDungeonBlock = _core._player.currentStayDunBlock;
             dataPlayerLog[logNumber].money = _core._player.currentMoney;
