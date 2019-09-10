@@ -40,7 +40,7 @@ namespace menu
 
         public void ConfirmBtn()
         {
-            if (_core._gameMode == _GameState.GAMEMENU)
+            if (_core._gameMode == GAMESTATE.GAMEMENU)
                 _core._startMenu.SetActive(true);
             this.gameObject.SetActive(false);
             SaveSetting();
@@ -48,7 +48,7 @@ namespace menu
 
         public void CancelBtn()
         {
-            if (_core._gameMode == _GameState.GAMEMENU)
+            if (_core._gameMode == GAMESTATE.GAMEMENU)
                 _core._startMenu.SetActive(true);
             this.gameObject.SetActive(false);
         }
@@ -59,7 +59,7 @@ namespace menu
             te.text = "";
             te.SelectAll();
             te.Copy();
-            _core.OpenTrueNotify("คัดลอกเรียบร้อย");
+            //_core.OpenTrueNotify("คัดลอกเรียบร้อย");
         }
         
         public void TestConnectLinkBtn()

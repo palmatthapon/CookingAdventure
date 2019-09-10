@@ -47,56 +47,38 @@ public class RawMaterial : EventTrigger
     public override void OnPointerDown(PointerEventData eventData)
     {
         base.OnPointerDown(eventData);
-        _drag = true;
-        _move = true;
+        Debug.Log("OnPointerDown");
     }
 
     public override void OnPointerUp(PointerEventData eventData)
     {
         base.OnPointerUp(eventData);
-        _drag = false;
-    }
-    
-    public override void OnDrag(PointerEventData data)
-    {
-        _drag = true;
-        //Debug.Log("OnDrag");
-    }
-
-    public override void OnDrop(PointerEventData data)
-    {
-        _drag = false;
-        _move = false;
-        if (_core.getCookCon().CheckTag("Cookware"))
+        Debug.Log("OnPointerUp");
+        _drag = !_drag;
+        _move = true;
+        if (!_drag)
         {
-            Debug.Log("yes");
-            if (_add) return;
-            _core.getCookCon().AddCookList(_item.data.name,_id);
-            _add = true;
-        }else
-        {
-            _item.obj.transform.Find("Count").GetComponent<Text>().text = (++_item.amount).ToString();
-            _core.getCookCon().RemoveCookList(_id);
-            _add = false;
-            Destroy(this.gameObject);
+            if (_core.getCookCon().CheckTag("Cookware"))
+            {
+                Debug.Log("yes");
+                if (_add) return;
+                _core.getCookCon().AddCookList(_item.data.name, _id);
+                _add = true;
+            }
+            else
+            {
+                _item.obj.transform.Find("Count").GetComponent<Text>().text = (++_item.amount).ToString();
+                _core.getCookCon().RemoveCookList(_id);
+                _add = false;
+                Destroy(this.gameObject);
+            }
         }
-    }
 
-    public override void OnEndDrag(PointerEventData data)
-    {
-        _drag = false;
-        //Debug.Log("OnEndDrag");
-        if (_core.getCookCon().CheckTag("RawMaterial"))
-        {
-            _item.obj.transform.Find("Count").GetComponent<Text>().text = (++_item.amount).ToString();
-            _core.getCookCon().RemoveCookList(_id);
-            _add = false;
-            Destroy(this.gameObject);
-        }
     }
     
     public override void OnPointerEnter(PointerEventData data)
     {
+        //Debug.Log("OnPointerEnter");
         _move = true;
     }
     

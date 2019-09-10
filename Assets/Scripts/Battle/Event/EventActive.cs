@@ -35,13 +35,13 @@ namespace battle
         public void Event5()
         {
             //Debug.Log("event 5");
-            getBatt()._currentEvent = _Event.Wind;
+            getBatt()._currentEvent = EVENT.Wind;
 		}
 
         public void Event6()
         {
             //Debug.Log("event 6");
-            getBatt()._currentEvent = _Event.Rain;
+            getBatt()._currentEvent = EVENT.Rain;
         }
 
     }

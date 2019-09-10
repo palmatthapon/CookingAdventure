@@ -106,7 +106,7 @@ public class SubMenuPanel : MonoBehaviour
         //_battleCon.IsRevive = true;
         _core.getMapCon()._dunBlock[_core._player.currentStayDunBlock].AddEscaped(1);
         this.gameObject.SetActive(false);
-        _core.OpenScene(_GameState.LAND);
+        _core.OpenScene(GAMESTATE.LAND);
     }
 
     public void Save()
@@ -116,7 +116,7 @@ public class SubMenuPanel : MonoBehaviour
 
     public void NewGame()
     {
-        _core.OpenConfirmNotify("เจ้าแน่ใจว่าต้องการเริ่มเกมใหม่?", _ConfirmNotify.NewGame);
+        _core.OpenConfirmNotify("เจ้าแน่ใจว่าต้องการเริ่มเกมใหม่?", CONFIRMNOTIFY.NewGame);
     }
 
     public void OpenSetting()
@@ -127,7 +127,7 @@ public class SubMenuPanel : MonoBehaviour
 
     public void ExitGame()
     {
-        _core.OpenConfirmNotify("เจ้าแน่ใจว่าต้องการออกจากเกม?", _ConfirmNotify.ExitGame);
+        _core.OpenConfirmNotify("เจ้าแน่ใจว่าต้องการออกจากเกม?", CONFIRMNOTIFY.ExitGame);
     }
 
     public void UseItem()
@@ -146,13 +146,13 @@ public class SubMenuPanel : MonoBehaviour
         {
             _core._player.currentDungeonFloor = _core.getLandCon()._gatePanel.GetComponent<GatePanel>()._dungeonLayerIsSelect;
             _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
-            _core.OpenScene(_GameState.MAP);
+            _core.OpenScene(GAMESTATE.MAP);
             _core.getLandCon()._gatePanel.SetActive(false);
-            _core._talkPanel.SetActive(false);
+            _core.getMenuCon()._itemDetail.SetActive(false);
         }
         else if (_subMenuMode == "battleend")
         {
-            _core.OpenScene(_GameState.MAP);
+            _core.OpenScene(GAMESTATE.MAP);
         }
         else if (_subMenuMode == "gameover")
         {

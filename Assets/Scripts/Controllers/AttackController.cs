@@ -75,7 +75,7 @@ namespace controller
             }
 
         }
-        Sprite[] loadSprite = null;
+        Sprite[] loadSkillIcons = null;
         string getSpriteSet = "";
 
         public void LoadAttack()
@@ -98,9 +98,9 @@ namespace controller
             if (getSpriteSet != hero.getSpriteSet())
             {
                 getSpriteSet = hero.getSpriteSet();
-                loadSprite = Resources.LoadAll<Sprite>("Sprites/Character/Hero/" + getSpriteSet);
+                loadSkillIcons = Resources.LoadAll<Sprite>("Sprites/IconSkill/");
             }
-            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == "Skill_" + hero.getSpriteName() + "_" + skillSlot);
+            slot.transform.Find("Image").GetComponent<Image>().sprite = loadSkillIcons.Single(s => s.name == "Skill_" + hero.getSpriteName() + "_" + skillSlot);
             AttackSlot script = slot.GetComponent<AttackSlot>();
 
             script.skillSlot = skillSlot;
@@ -119,12 +119,9 @@ namespace controller
 
         public void UseAttack(AttackSlot attack)
         {
-            getCore()._actionMode = attack.number < 3?_ActionState.Attack: _ActionState.Defense;
             
             if (getCore().getMenuCon().UseCrystal(attack.crystal))
             {
-                getCore().getBattCon()._battleMode = _BattleState.Wait;
-
                 getCore().getBattCon()._currentHeroBatt.Attack(attack.skillSlot, attack.blockStack);
 
                 DeleteBlock(attack);
@@ -133,7 +130,7 @@ namespace controller
             }
             else
             {
-                getCore().OpenErrorNotify("คริสตัลของคุณไม่พอ!");
+                getCore().NotifyCrystal("Not enough crystal!");
             }
         }
 

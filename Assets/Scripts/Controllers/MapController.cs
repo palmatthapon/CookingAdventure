@@ -50,7 +50,6 @@ namespace controller
 
         void OnEnable() {
             Camera.main.orthographicSize = 0.9f;
-            _core.getMenuCon().setIconMapBtn("mapOpen");
             LoadData();
             SetPanel(true);
             LoadMap();
@@ -78,7 +77,7 @@ namespace controller
                     if (_dunBlock[_core._player.currentStayDunBlock].obj != null)
                         _dunBlock[_core._player.currentStayDunBlock].obj.transform.Find("LightMask").GetComponent<MaskLight>().enabled = true;
                 }
-                if (_core._gameMode == _GameState.MAP && !_core._subMenuPanel.activeSelf)
+                if (_core._gameMode == GAMESTATE.MAP && !_core._subMenuPanel.activeSelf)
                 {
                     CameraMove();
                     CheckTouchBlock();
@@ -381,7 +380,7 @@ namespace controller
 
                         if (newPosition == _dungeon.data.warpBlock)
                         {
-                            _core.OpenScene(_GameState.LAND);
+                            _core.OpenScene(GAMESTATE.LAND);
                         }
                         else if (newPosition == _dungeon.data.bossBlock)
                         {
@@ -396,7 +395,7 @@ namespace controller
                             Debug.Log(shopRan + "<=" + shoprate + "mod " + shopRan % 2);
                             if (newPosition != _dungeon.data.bossBlock && shopRan <= shoprate && shopRan % 2 == 0)
                             {
-                                _core.OpenScene(_GameState.SECRETSHOP);
+                                _core.OpenScene(GAMESTATE.SECRETSHOP);
                             }
                             else
                             {
@@ -498,12 +497,12 @@ namespace controller
 
                 for(int i=0;i< _core.getBattCon()._currentMonBatt.Length; i++)
                 {
-                   
                     _core.getBattCon()._currentMonBatt[i] = _monsInCurrentdgFloor[Random.Range(0, _monsInCurrentdgFloor.Count)].Copy();
+                    _core.getBattCon()._currentMonBatt[i].getStatus().setLvl(Random.Range(_dungeon.data.levelMin, MaxLevel));
                 }
                 
             }
-            _core.OpenScene(_GameState.BATTLE);
+            _core.OpenScene(GAMESTATE.BATTLE);
         }
 
         void LoadBossInBattle()
@@ -519,7 +518,7 @@ namespace controller
                 }
 
             
-            _core.OpenScene(_GameState.BATTLE);
+            _core.OpenScene(GAMESTATE.BATTLE);
         }
         
         void CrateMonsterFromData(string monstype, string[] monsterList)
@@ -590,6 +589,7 @@ namespace controller
             }
             _core.getMenuCon()._mapBtn.SetActive(true);
             SetPanel(false);
+            _core.getMenuCon().setIconMapBtn("map24x24");
         }
     }
 }

@@ -19,7 +19,7 @@ namespace controller
 
         void OnEnable()
         {
-            _core._actionMode = _ActionState.Farming;
+            _core._actionMode = ACTIONSTATE.Farming;
             _core.getCampCon().setAllowTouch(false);
         }
 

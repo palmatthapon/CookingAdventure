@@ -22,7 +22,7 @@ namespace controller
 
         private void OnEnable()
         {
-            _core._actionMode = _ActionState.Cooking;
+            _core._actionMode = ACTIONSTATE.Cooking;
             _core.getItemCon().ViewItem(_item.transform,"rawmaterial");
             _core.getCampCon().setAllowTouch(false);
         }

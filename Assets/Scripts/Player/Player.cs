@@ -69,6 +69,10 @@ namespace player
                     value = 0;
                 }
                 this.Money = value;
+                if(getCore().getMenuCon()._shopMenu.activeSelf)
+                {
+                    getCore().getShopCon()._moneyText.text = this.Money.ToString();
+                }
             }
         }
     }

@@ -10,7 +10,7 @@ public class ConfirmNotify : MonoBehaviour
     }
     public void OkayBtn()
     {
-        if (_core._confirmNotifyMode == _ConfirmNotify.NewGame)
+        if (_core._confirmNotifyMode == CONFIRMNOTIFY.NewGame)
         {
             _core.DeleteSave();
             foreach (Transform child in _core._mapSpace.transform)
@@ -22,12 +22,12 @@ public class ConfirmNotify : MonoBehaviour
             _core._subMenuPanel.SetActive(false);
             this.gameObject.SetActive(false);
         }
-        else if (_core._confirmNotifyMode == _ConfirmNotify.ExitGame)
+        else if (_core._confirmNotifyMode == CONFIRMNOTIFY.ExitGame)
         {
-            _core.OpenConfirmNotify("เจ้าต้องการเซฟเกมหรือไม่?", _ConfirmNotify.SaveAndExit);
+            _core.OpenConfirmNotify("เจ้าต้องการเซฟเกมหรือไม่?", CONFIRMNOTIFY.SaveAndExit);
 
         }
-        else if (_core._confirmNotifyMode == _ConfirmNotify.SaveAndExit)
+        else if (_core._confirmNotifyMode == CONFIRMNOTIFY.SaveAndExit)
         {
             StartCoroutine(_core.SavePlayerData(true));
             this.gameObject.SetActive(false);
@@ -36,11 +36,11 @@ public class ConfirmNotify : MonoBehaviour
 
     public void CancelBtn()
     {
-        if (_core._confirmNotifyMode == _ConfirmNotify.NewGame|| _core._confirmNotifyMode == _ConfirmNotify.ExitGame)
+        if (_core._confirmNotifyMode == CONFIRMNOTIFY.NewGame|| _core._confirmNotifyMode == CONFIRMNOTIFY.ExitGame)
         {
             this.gameObject.SetActive(false);
         }
-        else if (_core._confirmNotifyMode == _ConfirmNotify.SaveAndExit)
+        else if (_core._confirmNotifyMode == CONFIRMNOTIFY.SaveAndExit)
         {
             this.gameObject.SetActive(false);
             Application.Quit();

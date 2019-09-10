@@ -17,12 +17,14 @@ namespace menu
         List<ItemStore> _itemDropList;
         public GameObject _heroRewardSlot;
         Transform trans;
+        Sprite loadMoneyIcon;
 
         private void Awake()
         {
             _core = Camera.main.GetComponent<GameCore>();
             _battleCon = _core._battleSpace.GetComponent<BattleController>();
             trans = transform.Find("ItemDrop").Find("GridView");
+            loadMoneyIcon = Resources.Load<Sprite>("Sprites/Icon16x16/coin16x16");
         }
 
         Monster[] _monsterList;
@@ -110,12 +112,11 @@ namespace menu
             }
             ViewItemDrop();
         }
+        Sprite[] loadSprite = null;
+        string nameSpriteSet = "";
 
         public void ViewItemDrop()
         {
-            Sprite[] loadSprite = null;
-            string nameSpriteSet = "";
-            
             foreach (ItemStore item in _itemDropList)
             {
                 bool haveItem = false;
@@ -159,8 +160,8 @@ namespace menu
             slot.transform.SetParent(trans);
             slot.transform.localScale = new Vector3(1, 1, 1);
             slot.transform.Find("Count").GetComponent<Text>().text = "X " + moneyDropTotal;
-            Sprite[] loadMoneySprite = Resources.LoadAll<Sprite>("Sprites/UI/ui");
-            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadMoneySprite.Single(s => s.name == "ui_27");
+            
+            slot.transform.Find("Icon").GetComponent<Image>().sprite = loadMoneyIcon;
             slot.SetActive(true);
             foreach (Behaviour behaviour in slot.GetComponentsInChildren<Behaviour>())
                 behaviour.enabled = true;
@@ -197,7 +198,7 @@ namespace menu
                 {
                     _core._player.currentDungeonFloor = 1;
                     _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
-                    _core.OpenScene(_GameState.LAND);
+                    _core.OpenScene(GAMESTATE.LAND);
                 }
                 else
                 {
@@ -205,12 +206,12 @@ namespace menu
                         1,0);
                     _core._dungeon[_core._player.currentDungeonFloor - 1].blockIsPlayed.Add(newBlock);
                     _core._player.currentStayDunBlock = _core._dungeon[_core._player.currentDungeonFloor - 1].data.warpBlock;
-                    _core.OpenScene(_GameState.MAP);
+                    _core.OpenScene(GAMESTATE.MAP);
                 }
             }
             else
             {
-                _core.OpenScene(_GameState.MAP);
+                _core.OpenScene(GAMESTATE.MAP);
             }
         }
 

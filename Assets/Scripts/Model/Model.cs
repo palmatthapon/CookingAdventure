@@ -147,7 +147,7 @@ namespace model
         }
         
 
-        public void OnPassiveWorking(string passive,_Model model)
+        public void OnPassiveWorking(string passive, MODEL model)
         {
             OnPassiveFunction(passive, model);
         }
@@ -181,9 +181,9 @@ namespace model
             setOriginalSize(getAvatarTrans().parent.localScale);
         }
 
-        public void CreateAttackEffect(SkillDataSet skill, _Model target)
+        public void CreateAttackEffect(SkillDataSet skill, MODEL target)
         {
-            if (target == _Model.MONSTER)
+            if (target == MODEL.MONSTER)
             {
                 if (loadEffect == null)
                     loadEffect = Resources.LoadAll<GameObject>("Effects/Effect_Player/");
@@ -257,6 +257,7 @@ namespace model
         {
             getAnim().SetTrigger("IsDead");
             getAvatarTrans().parent.localScale = getOriginalSize();
+            setAvatarMat(getOriginalMat());
         }
 
     }

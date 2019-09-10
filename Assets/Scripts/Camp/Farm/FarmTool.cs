@@ -20,7 +20,7 @@ public class FarmTool : EventTrigger
     public override void OnPointerExit(PointerEventData eventData)
     {
         base.OnPointerExit(eventData);
-        _core._talkPanel.SetActive(false);
+        _core.getMenuCon()._itemDetail.SetActive(false);
     }
 
     public override void OnPointerClick(PointerEventData data)
@@ -31,7 +31,7 @@ public class FarmTool : EventTrigger
     public override void OnPointerDown(PointerEventData eventData)
     {
         base.OnPointerDown(eventData);
-        if (_core._actionMode == _ActionState.Farming)
+        if (_core._actionMode == ACTIONSTATE.Farming)
         {
             _core.getFarmCon().GetRawMaterial();
 
@@ -42,7 +42,7 @@ public class FarmTool : EventTrigger
     public override void OnPointerUp(PointerEventData eventData)
     {
         base.OnPointerUp(eventData);
-        if (_core._actionMode == _ActionState.Farming)
+        if (_core._actionMode == ACTIONSTATE.Farming)
         {
             _core.getFarmCon().PutRawMaterial();
 

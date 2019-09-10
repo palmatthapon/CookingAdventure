@@ -64,7 +64,7 @@ namespace system
         public int id;
         public string name;
         public float bonusDmg;
-        public _Attack type;
+        public ATTACK type;
         public string effect;
         public float delay;
         public int crystal;
@@ -97,7 +97,6 @@ namespace system
         public string heroStore;
         public int heroIsPlaying;
         public string floorIsPlayed;
-        public bool landScene;
         public string shopList;
     }
     
@@ -173,22 +172,22 @@ namespace system
         Hero _hero = null;
         Monster _monster = null;
 
-        _Model _type;
+        MODEL _type;
 
         public Character(Hero hero)
         {
-            _type = _Model.PLAYER;
+            _type = MODEL.PLAYER;
             _hero = hero;
         }
         public Character(Monster monster)
         {
-            _type = _Model.MONSTER;
+            _type = MODEL.MONSTER;
             _monster = monster;
         }
 
         public Status getStatus()
         {
-            if (_type == _Model.PLAYER)
+            if (_type == MODEL.PLAYER)
                 return _hero.getStatus();
             else
                 return _monster.getStatus();

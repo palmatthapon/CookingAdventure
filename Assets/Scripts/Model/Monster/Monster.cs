@@ -38,6 +38,7 @@ namespace model
         public void UpdateHPBar()
         {
             getBattCon()._monsterHPPanel.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)_status.currentHP * 1 / _status.currentHPMax);
+            getBattCon()._monsterHPPanel.transform.Find("NameText").GetComponent<Text>().text = getName()+" Lv."+getStatus().getLvl();
             getBattCon()._monsterHPPanel.transform.Find("HatePanel").Find("HateValue").GetComponent<Image>().fillAmount = (float)_status.hate * 1 / 100;
 
         }
@@ -49,7 +50,6 @@ namespace model
             getBattCon()._monsterSlot = getBattCon()._monsterSlot.Where(val => val != getSlot()).ToArray();
             if (getBattCon()._monsterSlot.Length == 0)
             {
-                getBattCon()._waitEndTurn = false;
                 getBattCon().OnBattleEnd(true);
             }
             else {
@@ -60,13 +60,9 @@ namespace model
 
         public void Attack(Hero target)
         {
-            if (getBattCon()._crystalMon <= 0)
-            {
-                getBattCon()._waitEndTurn = true;
-                return;
-            }
+            
             getAnim().SetTrigger("IsAttack");
-            OnPassiveWorking(getStatus().passive.ToString(), _Model.MONSTER);
+            OnPassiveWorking(getStatus().passive.ToString(), MODEL.MONSTER);
             int useCrystal = Random.Range(1, 11);
             _status.setCurrentSkill(_status.attack[0]);
             
@@ -79,13 +75,12 @@ namespace model
                     _status.setCurrentSkill(_status.attack[1]);
                 }
             }
-            int crtBefore = getBattCon()._crystalMon;
             getBattCon()._crystalMon -= useCrystal;
 
             target.getStatus().setDamageReceived(_status.CalDmgSkill(_status.getCurrentSkill().type, _status.getCurrentSkill().bonusDmg, target.getStatus(), 1));
 
             target.getStatus().hate += _status.getCurrentSkill().getHate();
-            CreateAttackEffect(_status.getCurrentSkill(), _Model.PLAYER);
+            CreateAttackEffect(_status.getCurrentSkill(), MODEL.PLAYER);
 
             _status.hate += _status.getCurrentSkill().getHate() / 3;
         }
@@ -102,8 +97,7 @@ namespace model
             setAvatar(getBattCon()._monAvatar[slot]);
             LoadAvatar();
             _status.hate = 0;
-            OnPassiveWorking(getStatus().passive.ToString(), _Model.MONSTER);
-            getBattCon()._battleMode = _BattleState.Finish;
+            OnPassiveWorking(getStatus().passive.ToString(), MODEL.MONSTER);
         }
 
         public void PlayInjury()
@@ -111,7 +105,7 @@ namespace model
             
             RunInjury(new Vector3(getAvatarTrans().position.x - 0.8f, getAvatarTrans().position.y, getAvatarTrans().position.z));
             
-            OnPassiveWorking(getStatus().passive.ToString(), _Model.MONSTER);
+            OnPassiveWorking(getStatus().passive.ToString(), MODEL.MONSTER);
             getBattCon().ShowDamage(_status.getDamageReceived(), getAvatarTrans().position);
             _status.currentHP = _status.currentHP - _status.getDamageReceived();
             UpdateHPBar();
@@ -121,7 +115,8 @@ namespace model
             }
             else
             {
-                getBattCon().OnNextTargetOfHero();
+                if(getBattCon().Crystal >0)
+                    getBattCon().OnNextTargetOfHero();
             }
         }
     }

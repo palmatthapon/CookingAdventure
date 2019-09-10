@@ -54,7 +54,6 @@ namespace warp
         {
             _dungeonLayerIsSelect = Calculator.IntParseFast(EventSystem.current.currentSelectedGameObject.name);
             //Debug.Log(_dungeonLayerIsSelect);
-            _core.SetTalk(name+" อันตรายมากนะ ระวังด้วยพ่อหนุ่ม");
             _core.getSubMenuCore().OpenWarp();
         }
 

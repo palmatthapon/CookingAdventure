@@ -44,7 +44,7 @@ namespace controller
                     child.gameObject.SetActive(true);
                 }
 
-                if (_core._gameMode == _GameState.CAMP || _core._gameMode == _GameState.LAND)
+                if (_core._gameMode == GAMESTATE.CAMP || _core._gameMode == GAMESTATE.LAND)
                 {
                     OnTouch();
                 }

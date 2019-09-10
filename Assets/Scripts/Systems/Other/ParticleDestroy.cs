@@ -6,7 +6,6 @@ public class ParticleDestroy : MonoBehaviour
 {
     private void OnEnable()
     {
-        getBattCon()._battleMode = _BattleState.Wait;
     }
 
     BattleController getBattCon()
@@ -19,7 +18,6 @@ public class ParticleDestroy : MonoBehaviour
         if (!this.GetComponent<ParticleSystem>().IsAlive())
         {
             Destroy(this.gameObject);
-            getBattCon()._battleMode = _BattleState.Finish;
         }
     }
 }

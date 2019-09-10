@@ -66,15 +66,15 @@ namespace controller
         public void UseItem()
         {
             Debug.Log("Use item");
-            if (_core._actionMode == _ActionState.Item)
+            if (_core._actionMode == ACTIONSTATE.Item)
             {
-                if (_core.getMenuCon().CheckCrystal(Constants._crystalItem))
+                if (_core.getMenuCon().CheckCrystal(GameCore._crystalItem))
                 {
                     foreach (ItemStore item in _core._itemStore.ToList())
                     {
                         if (_itemStoreIdSelect.id == item.id)
                         {
-                            if (CallItemActive((_Item)_itemStoreIdSelect.itemId, _core._player._heroIsPlaying))
+                            if (CallItemActive((ITEMS)_itemStoreIdSelect.itemId, _core._player._heroIsPlaying))
                             {
 
                                 item.amount -= 1;
@@ -86,8 +86,11 @@ namespace controller
                                     return;
                                 }
                                 item.obj.transform.Find("Count").GetComponent<Text>().text = item.amount.ToString();
-                                _core.getBattCon()._battleMode = _BattleState.Finish;
-                                _core.getMenuCon().UseCrystal(Constants._crystalItem);
+                                _core.getMenuCon().UseCrystal(GameCore._crystalItem);
+                            }
+                            else
+                            {
+                                _core.Notify(_itemStoreIdSelect.obj.transform.Find("Icon").GetComponent<Image>().sprite, "Can use in battle mode only!");
                             }
                             break;
                         }
@@ -95,24 +98,24 @@ namespace controller
                 }
                 else
                 {
-                    _core.OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalItem);
+                    _core.NotifyCrystal("Not enough crystal!");
                 }
             }
             else
             {
-                if (_core.getMenuCon().UseCrystal(Constants._crystalTeam))
+                if (_core.getMenuCon().UseCrystal(GameCore._crystalTeam))
                 {
                     _core._infoPanel.SetActive(false);
                 }
                 else
                 {
-                    _core.OpenErrorNotify("คริสตัลของคุณไม่เพียงพอ จำเป็นต้องมีอย่างน้อย " + Constants._crystalTeam);
+                    _core.NotifyCrystal("Not enough crystal!");
                 }
 
             }
         }
         
-        bool CallItemActive(_Item methodId, params object[] args)
+        bool CallItemActive(ITEMS methodId, params object[] args)
         {
             string methodName = methodId.ToString();
 

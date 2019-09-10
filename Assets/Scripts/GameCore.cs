@@ -14,8 +14,8 @@ public class GameCore : MonoBehaviour
 {
     JsonReadWrite _json;
 
-    public _GameState _gameMode;
-    public _ActionState _actionMode;
+    public GAMESTATE _gameMode;
+    public ACTIONSTATE _actionMode;
 
     ///------------All DataSet-----------------
     public DungeonDataSet[] dataDungeonList;
@@ -43,7 +43,6 @@ public class GameCore : MonoBehaviour
     public GameObject _subMenuPanel;
     public GameObject _playerLifePanel;
     
-    public GameObject _talkPanel;
     public GameObject _infoPanel;
     
     public GameObject _confirmNotify;
@@ -80,25 +79,25 @@ public class GameCore : MonoBehaviour
     public bool IsPaused = false;
     public bool IsPauseLock = false;
 
-
-    public Sprite[] _uiSprite1;
+    
     public Sprite[] _uiSprite2;
     public Sprite[] _mapSprite;
 
     GameObject _UI;
 
     public Player _player;
+    public Text _startBtnText;
+    public const int _crystalAttack = 3, _crystalDefense = 3, _crystalItem = 2, _crystalTeam = 4, _crystalBase = 4;
+    public Transform _notifyGroup;
 
 
     private void Awake()
     {
-        Caching.ClearCache();
-        _uiSprite1 = Resources.LoadAll<Sprite>("Sprites/UI/ui");
+        //Caching.ClearCache();
         _uiSprite2 = Resources.LoadAll<Sprite>("Sprites/UI/ui2");
         _mapSprite = Resources.LoadAll<Sprite>("Sprites/UI/map2");
         _UI = GameObject.Find("UICanvas");
         _passiveDatail = new string[]{"passive detail" };
-
         _player = new Player();
         _json = new JsonReadWrite();
         dataSetting = _json.ReadSetting(dataSetting);
@@ -112,8 +111,31 @@ public class GameCore : MonoBehaviour
 
     void Start()
     {
+        ReadDataAll();
+        dataPlayerLog = _json.ReadDataPlayerLog(dataPlayerLog);
+        LoadIconMenu();
+        if (!_loadNewGame)
+            _startBtnText.text = "Continue";
+        else
+            _startBtnText.text = "Start";
+
     }
-    
+
+    public Sprite[] _iconMenu;
+    void LoadIconMenu()
+    {
+        object[] loadedIcons = Resources.LoadAll("Sprites/IconMenu", typeof(Sprite));
+        _iconMenu = new Sprite[loadedIcons.Length];
+        //this
+        for (int x = 0; x < loadedIcons.Length; x++)
+        {
+            _iconMenu[x] = (Sprite)loadedIcons[x];
+        }
+        //or this
+        //loadedIcons.CopyTo (Icons,0);
+
+    }
+
     public BattleController getBattCon()
     {
         return _battleSpace.GetComponent<BattleController>();
@@ -218,7 +240,7 @@ public class GameCore : MonoBehaviour
                     _loadingScreen.SetActive(false);
             }
         }
-        if (_gameMode == _GameState.GAMEMENU)
+        if (_gameMode == GAMESTATE.GAMEMENU)
         {
             float distCovered = (Time.time - startTime) * speed;
             float fracJourney = distCovered / journeyLength;
@@ -250,7 +272,7 @@ public class GameCore : MonoBehaviour
     public void OpenStartMenu()
     {
         journeyLength = Vector3.Distance(startMarker, endMarker);
-        _gameMode = _GameState.GAMEMENU;
+        _gameMode = GAMESTATE.GAMEMENU;
         _startMenu.SetActive(true);
         OpenObjInScene(_campSpace);
         _settingPanel.SetActive(false);
@@ -272,23 +294,21 @@ public class GameCore : MonoBehaviour
     
     public void OpenStartScene()
     {
-        _gameMode = _GameState.START;
+        _gameMode = GAMESTATE.START;
         Camera.main.orthographicSize = 0.8f;
         Camera.main.transform.position = new Vector3(0, 0f, Camera.main.transform.position.z);
         _cameraMainPosition = transform.position;
-        ReadDataAll();
-        dataPlayerLog = _json.ReadDataPlayerLog(dataPlayerLog);
         CompilePlayerLog();
         _startMenu.SetActive(false);
         _playerSoulBar.SetActive(true);
         _menuPanel.SetActive(true);
-        if (dataPlayerLog[0].landScene)
+        if (_player.currentStayDunBlock == _dungeon[_player.currentDungeonFloor - 1].data.warpBlock)
         {
-            OpenScene(_GameState.LAND, false);
+            OpenScene(GAMESTATE.LAND, false);
         }
         else
         {
-            OpenScene(_GameState.CAMP, false);
+            OpenScene(GAMESTATE.CAMP, false);
         }
         
     }
@@ -471,7 +491,7 @@ public class GameCore : MonoBehaviour
                             }
                         }
                     }
-                    hero.getStatus().passive = (_Passive)data.passiveId;
+                    hero.getStatus().passive = (PASSIVE)data.passiveId;
                     Debug.Log("atk " + hero.getStatus().getATK());
                     Debug.Log("current hp " + hero.getStatus().currentHP);
                     _heroStore.Add(hero);
@@ -516,7 +536,7 @@ public class GameCore : MonoBehaviour
         }
     }
 
-    IEnumerator LoadingScene(_GameState mode, bool savegame)
+    IEnumerator LoadingScene(GAMESTATE mode, bool savegame)
     {
         _gameMode = mode;
         FadeIn();
@@ -526,20 +546,20 @@ public class GameCore : MonoBehaviour
         coll.enabled = false;
         switch (mode)
         {
-            case _GameState.BATTLE:
+            case GAMESTATE.BATTLE:
                 OpenBattleScene();
                 coll.enabled = true;
                 break;
-            case _GameState.CAMP:
+            case GAMESTATE.CAMP:
                 OpenCampScene();
                 break;
-            case _GameState.MAP:
+            case GAMESTATE.MAP:
                 OpenMapScene();
                 break;
-            case _GameState.LAND:
+            case GAMESTATE.LAND:
                 OpenLandScene();
                 break;
-            case _GameState.SECRETSHOP:
+            case GAMESTATE.SECRETSHOP:
                 OpenSecretShopScene();
                 break;
         }
@@ -578,9 +598,9 @@ public class GameCore : MonoBehaviour
 
     /// End Event button zone.
     /// 
-    public _ConfirmNotify _confirmNotifyMode;
+    public CONFIRMNOTIFY _confirmNotifyMode;
 
-    public void OpenConfirmNotify(string txt, _ConfirmNotify mode)
+    public void OpenConfirmNotify(string txt, CONFIRMNOTIFY mode)
     {
         _confirmNotifyMode = mode;
         _confirmNotify.SetActive(true);
@@ -602,25 +622,29 @@ public class GameCore : MonoBehaviour
 #endif
     }
 
-    public void OpenScene(_GameState mode,bool savegame=true)
+    public void OpenScene(GAMESTATE mode,bool savegame=true)
     {
         StartCoroutine(LoadingScene(mode, savegame));
     }
 
     void OpenMapScene()
     {
-        dataPlayerLog[0].landScene = false;
         OpenObjInScene(_mapSpace);
+        getMenuCon().setIconMapBtn("mapOpen24x24");
         getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(false);
         getMenuCon().gridViewTrans.Find("GateButton").gameObject.SetActive(false);
         getMenuCon().gridViewTrans.Find("CookButton").gameObject.SetActive(false);
         getMenuCon().gridViewTrans.Find("CampButton").gameObject.SetActive(true);
+        getMenuCon().gridViewTrans.Find("AttackButton").gameObject.SetActive(false);
     }
 
     void OpenBattleScene()
     {
         OpenObjInScene(_battleSpace);
         transform.position = _cameraMainPosition;
+        getMenuCon().gridViewTrans.Find("CampButton").gameObject.SetActive(false);
+        getMenuCon().gridViewTrans.Find("AttackButton").gameObject.SetActive(true);
+        getMenuCon().setIconMapBtn("giveup24x24");
     }
 
     void OpenCampScene()
@@ -630,16 +654,16 @@ public class GameCore : MonoBehaviour
         getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(false);
         getMenuCon().gridViewTrans.Find("GateButton").gameObject.SetActive(false);
         getMenuCon().gridViewTrans.Find("CookButton").gameObject.SetActive(true);
-
+        getMenuCon().gridViewTrans.Find("CampButton").gameObject.SetActive(false);
     }
 
     public void OpenLandScene()
     {
-        dataPlayerLog[0].landScene = true;
         OpenObjInScene(_landSpace);
         transform.position = _cameraMainPosition;
         getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(true);
         getMenuCon().gridViewTrans.Find("GateButton").gameObject.SetActive(true);
+        getMenuCon().gridViewTrans.Find("CampButton").gameObject.SetActive(false);
     }
 
     void OpenSecretShopScene()
@@ -647,6 +671,7 @@ public class GameCore : MonoBehaviour
         OpenObjInScene(_SecretShopSpace);
         getShopCon().MoveCameraToSecretShop();
         getMenuCon().gridViewTrans.Find("ShopButton").gameObject.SetActive(true);
+        getMenuCon().gridViewTrans.Find("CampButton").gameObject.SetActive(false);
     }
 
     void OpenObjInScene(GameObject obj)
@@ -665,67 +690,30 @@ public class GameCore : MonoBehaviour
         _mapSpace.SetActive(obj == _mapSpace ? true : false);
 
     }
-
-    Vector2 padding = new Vector2(20, 20);
-
-    public void SetTalk(string txt)
-    {
-        Text talk = _talkPanel.GetComponentInChildren<Text>();
-        talk.text = txt;
-        RectTransform parentRect = _talkPanel.GetComponent<RectTransform>();
-
-        Vector3 newPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y - 200));
-        newPos.z = _talkPanel.transform.position.z;
-        _talkPanel.transform.position = newPos;
-
-        if (getMenuCon()._playerInfoPanel.activeSelf)
-        {
-            parentRect.sizeDelta = new Vector2(Screen.width, 260);
-        }
-        else
-            parentRect.sizeDelta = new Vector2(talk.preferredWidth, talk.preferredHeight) + padding;
-        _talkPanel.SetActive(true);
-    }
-
-    public void SetInfo(string txt)
-    {
-        Text talk = _infoPanel.GetComponentInChildren<Text>();
-        talk.text = txt;
-        RectTransform parentRect = _infoPanel.GetComponent<RectTransform>();
-        parentRect.sizeDelta = new Vector2(talk.preferredWidth, talk.preferredHeight) + padding;
-        _infoPanel.SetActive(true);
-    }
     
-    public GameObject _unlockNotifyPopup;
+    public GameObject _notifyPopup;
     
-    public void OpenErrorNotify(string txt)
+    Sprite iconCrystal;
+
+    public void NotifyCrystal(string txt)
     {
-        StartCoroutine(ShowNotify(txt, false));
+        if (iconCrystal == null)
+            iconCrystal = Resources.Load<Sprite>("Sprites/Icon16x16/crystal16x16");
+        Notify(iconCrystal, txt);
     }
 
-    public void OpenTrueNotify(string txt)
+    public void Notify(Sprite icon,string txt)
     {
-        StartCoroutine(ShowNotify(txt, true));
-    }
-
-    IEnumerator ShowNotify(string txt, bool icon)
-    {
-        yield return new WaitForSeconds(0.1f);
-        GameObject unlock = Instantiate(_unlockNotifyPopup);
-        unlock.transform.SetParent(GameObject.Find("FrontCanvas").transform, false);
-        unlock.transform.localScale = new Vector3(1, 1, 1);
-        Sprite img;
-        if (icon)
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (_notifyGroup.GetChildCount() > 1)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
-            img = _uiSprite2.Single(s => s.name == "confirm");
+            return;
         }
-        else
-        {
-            img = _uiSprite2.Single(s => s.name == "cancel");
-        }
-        unlock.transform.GetChild(0).Find("Icon").GetComponent<Image>().sprite = img;
-        unlock.GetComponent<PopupText>().SetPopupText(txt);
-        //yield return new WaitForSeconds(1.5f);
+        GameObject notify = Instantiate(_notifyPopup, _notifyGroup);
+        notify.GetComponent<PopupText>().SetIcon(icon);
+        notify.GetComponent<PopupText>().SetPopupText(txt);
+        notify.SetActive(true);
     }
     public GameObject _healEffect;
 

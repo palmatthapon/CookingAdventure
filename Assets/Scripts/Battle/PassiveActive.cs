@@ -10,11 +10,11 @@ namespace battle
         {
             return Camera.main.GetComponent<GameCore>().getBattCon();
         }
-        public void Passive1(_Model type)
+        public void Passive1(MODEL type)
         {
         }
 
-        public void Passive2(_Model type)
+        public void Passive2(MODEL type)
         {
             if (getBattCon().getTarget().getStatus().currentHP < getBattCon().getTarget().getStatus().currentHPMax / 2)
             {

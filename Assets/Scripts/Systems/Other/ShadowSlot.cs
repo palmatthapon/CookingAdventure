@@ -16,7 +16,7 @@ using UnityEngine.EventSystems;
         {
             //_teamCon._heroSwapIsSelect = _hero;
             //Debug.Log("hero is " + mHeroId);
-            if (_core._gameMode == _GameState.LAND)
+            if (_core._gameMode == GAMESTATE.LAND)
             {
                 //_core.SetTalk("");
             }

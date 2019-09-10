@@ -17,6 +17,7 @@ namespace controller
         public GameObject _shopList, _itemList;
 
         public GameObject _secretShopNpc;
+        public Text _moneyText;
         
         private void Awake()
         {
@@ -25,8 +26,8 @@ namespace controller
 
         private void OnEnable()
         {
-            _core._actionMode = _ActionState.Shop;
-            if (_core._gameMode == _GameState.SECRETSHOP)
+            _core._actionMode = ACTIONSTATE.Shop;
+            if (_core._gameMode == GAMESTATE.SECRETSHOP)
             {
                 _headName.text = "Secret Shop";
             }
@@ -37,7 +38,7 @@ namespace controller
             LoadShop();
             _core.getItemCon().ViewItem(_itemList.transform, "item");
             _core.getCampCon().setAllowTouch(false);
-
+            _moneyText.text = _core._player.currentMoney.ToString();
         }
         
         public void MoveCameraToSecretShop()
@@ -82,7 +83,7 @@ namespace controller
 
         public void LoadShop()
         {
-            if (_core._gameMode == _GameState.LAND)
+            if (_core._gameMode == GAMESTATE.LAND)
             {
                 _itemShopList = _core._landShopList;
             }
@@ -134,7 +135,7 @@ namespace controller
                 item.data = _itemShopList[a].item;
                 item.itemId = _itemShopList[a].item.id;
                 script._item = item;
-                if (_core._gameMode == _GameState.LAND)
+                if (_core._gameMode == GAMESTATE.LAND)
                 {
                     slot.transform.Find("Price").GetComponent<Text>().text = (_itemShopList[a].item.price + (_itemShopList[a].buyCount / 10) * 5).ToString();
                 }
@@ -148,6 +149,7 @@ namespace controller
                     loadSprite = Resources.LoadAll<Sprite>("Sprites/Item/" + nameSpriteSet);
                 }
                 slot.transform.Find("Icon").GetComponent<Image>().sprite = loadSprite.Single(s => s.name == _itemShopList[a].item.spriteName);
+                slot.GetComponentInChildren<Text>().text = _itemShopList[a].item.name;
                 slot.SetActive(true);
                 foreach (Behaviour behaviour in slot.GetComponentsInChildren<Behaviour>())
                     behaviour.enabled = true;
@@ -187,6 +189,7 @@ namespace controller
             }
 
         }
+        Sprite iconCoin;
 
         public void BuyItem()
         {
@@ -195,7 +198,7 @@ namespace controller
             {
                 if (itemShop.item.id == _itemShopIsSelect.itemId)
                 {
-                    if (_core._gameMode == _GameState.LAND)
+                    if (_core._gameMode == GAMESTATE.LAND)
                     {
                         totalPrice = _itemShopIsSelect.data.price + (itemShop.buyCount / 10) * 5;
                     }
@@ -206,8 +209,7 @@ namespace controller
 
                     if (_core._player.currentMoney < totalPrice)
                     {
-                        //_core.CallSubMenu(_SubMenuState.Alert, "จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
-                        _core.OpenErrorNotify("จำนวนเงินของเจ้าไม่พอใช้ง่าย!");
+                        _core.Notify(iconCoin == null ? Resources.Load<Sprite>("Sprites/Icon16x16/coin16x16") : iconCoin, "not enough money!");
                         return;
                     }
                     _core._player.currentMoney += -totalPrice;

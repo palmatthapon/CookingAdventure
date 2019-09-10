@@ -1,6 +1,7 @@
 ﻿
 using controller;
 using model;
+using system;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace item
         //how to name for HeroPassiveAbility Method, Use all caps e.g. HELLOWORLD 
         public bool SmallPosion(Hero hero)
         {
+            if (getCore()._gameMode != GAMESTATE.BATTLE) return false;
             if (hero.getStatus().currentHP > 0)
             {
                 hero.getStatus().currentHP = hero.getStatus().currentHP + 20;
@@ -27,13 +29,13 @@ namespace item
             }
             else
             {
-                getCore().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
                 return false;
             }
         }
 
         public bool MediumPosion(Hero hero)
         {
+            if (getCore()._gameMode != GAMESTATE.BATTLE) return false;
             if (hero.getStatus().currentHP > 0)
             {
                 hero.getStatus().currentHP = hero.getStatus().currentHP + 50;
@@ -42,13 +44,13 @@ namespace item
             }
             else
             {
-                getCore().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
                 return false;
             }
         }
 
         public bool LargePosion(Hero hero)
         {
+            if (getCore()._gameMode != GAMESTATE.BATTLE) return false;
             if (hero.getStatus().currentHP > 0)
             {
                 hero.getStatus().currentHP = hero.getStatus().currentHP + 100;
@@ -57,7 +59,6 @@ namespace item
             }
             else
             {
-                getCore().OpenErrorNotify("ใช้กับฮีโร่ที่ตายไม่ได้!");
                 return false;
             }
         }

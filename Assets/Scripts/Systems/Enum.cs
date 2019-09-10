@@ -1,37 +1,21 @@
 ﻿
 namespace system
 {
-    static class Constants
-    {
-        public const int _crystalAttack = 3, _crystalDefense = 3, _crystalItem = 2, _crystalTeam = 4, _crystalBase = 4;
-    }
 
-    public enum _Model
+    public enum MODEL
     {
         PLAYER,
         MONSTER,
         NPC
     }
     
-    public enum _Attack
+    public enum ATTACK
     {
         PHYSICAL = 1,
         MAGICAL
     }
     
-    public enum _Buff
-    {
-        Buff1 = 1,
-        Buff2,
-        Buff3,
-        Buff4,
-        Buff5,
-        Buff6,
-        Buff7,
-        Buff8
-    }
-
-    public enum _Passive
+    public enum PASSIVE
     {
         Passive1 = 1,
         Passive2,
@@ -44,7 +28,7 @@ namespace system
         Passive9
     }
 
-    public enum _Item
+    public enum ITEMS
     {
         SmallPosion = 1,
         MediumPosion,
@@ -53,7 +37,7 @@ namespace system
         Antidote
     }
 
-    public enum _GameState
+    public enum GAMESTATE
     {
         GAMEMENU,
         START,
@@ -63,10 +47,9 @@ namespace system
         LAND,
         SECRETSHOP
     }
-    public enum _ActionState
+    public enum ACTIONSTATE
     {
         Attack,
-        Defense,
         Item,
         Rawmaterial,
         Shop,
@@ -76,36 +59,28 @@ namespace system
         Farming
     }
     
-    public enum _ConfirmNotify
+    public enum CONFIRMNOTIFY
     {
         NewGame,
         ExitGame,
         SaveAndExit
     }
 
-    public enum _RoundBattle
+    public enum BATTLEROUND
     {
         PLAYER,
         ENEMY
 
     }
 
-    public enum _BattleState
+    public enum BATTLESTATE
     {
         Start,
         Wait,
         Finish
     }
     
-    public enum Sorting
-    {
-        None,
-        Level,
-        HP,
-        Type
-    }
-
-    public enum _Event
+    public enum EVENT
     {
         Wind,
         Rain,

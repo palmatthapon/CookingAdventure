@@ -8,6 +8,9 @@ namespace model
         Calculator _cal;
 
         int level;
+        int BaseSTR;
+        int BaseAGI;
+        int BaseINT;
         int STR;
         int AGI;
         int INT;
@@ -17,7 +20,7 @@ namespace model
         int DEF;
         int MDEF;
         public SkillDataSet[] attack = new SkillDataSet[4];
-        public _Passive passive;
+        public PASSIVE passive;
 
         SkillDataSet _currentSkill;
 
@@ -46,38 +49,23 @@ namespace model
             Exp = exp;
 
             _cal = new Calculator();
+            
+            BaseSTR = model.baseSTR;
+            BaseAGI = model.baseAGI;
+            BaseINT = model.baseINT;
 
-            level = _cal.CalculateLevel(exp);
-            STR = _cal.CalculateSTR(model.baseSTR, model.baseAGI, model.baseINT, level);
-            AGI = _cal.CalculateAGI(model.baseSTR, model.baseAGI, model.baseINT, level);
-            INT = _cal.CalculateINT(model.baseSTR, model.baseAGI, model.baseINT, level);
-
-            ATK = _cal.CalculateATK(STR,AGI,INT);
-            MATK = _cal.CalculateMATK(STR, AGI, INT);
-            DEF = _cal.CalculateDEF(STR, AGI, INT);
-            MDEF = _cal.CalculateMDEF(STR, AGI, INT);
-
-            hpMax = _cal.CalculateHpMax(STR, AGI, INT);
-            currentHPMax = hpMax;
-            currentHP = hpMax;
+            setExp(exp);
         }
 
         public Status(int level, ModelDataSet model)
         {
-            _cal=new Calculator();
+            _cal = new Calculator();
 
-            STR = _cal.CalculateSTR(model.baseSTR, model.baseAGI, model.baseINT, level);
-            AGI = _cal.CalculateAGI(model.baseSTR, model.baseAGI, model.baseINT, level);
-            INT = _cal.CalculateINT(model.baseSTR, model.baseAGI, model.baseINT, level);
+            BaseSTR = model.baseSTR;
+            BaseAGI = model.baseAGI;
+            BaseINT = model.baseINT;
 
-            ATK = _cal.CalculateATK(STR, AGI, INT);
-            MATK = _cal.CalculateMATK(STR, AGI, INT);
-            DEF = _cal.CalculateDEF(STR, AGI, INT);
-            MDEF = _cal.CalculateMDEF(STR, AGI, INT);
-
-            hpMax = _cal.CalculateHpMax(STR, AGI, INT);
-            currentHPMax = hpMax;
-            currentHP = hpMax;
+            setLvl(level);
         }
 
         public int getATK()
@@ -95,9 +83,21 @@ namespace model
             return level;
         }
 
-        public void setLvl(double exp)
+        public void setLvl(int lvl)
         {
-            level = _cal.CalculateLevel(exp);
+            level = lvl;
+            STR = _cal.CalculateSTR(BaseSTR, BaseAGI, BaseINT, level);
+            AGI = _cal.CalculateAGI(BaseSTR, BaseAGI, BaseINT, level);
+            INT = _cal.CalculateINT(BaseSTR, BaseAGI, BaseINT, level);
+
+            ATK = _cal.CalculateATK(STR, AGI, INT);
+            MATK = _cal.CalculateMATK(STR, AGI, INT);
+            DEF = _cal.CalculateDEF(STR, AGI, INT);
+            MDEF = _cal.CalculateMDEF(STR, AGI, INT);
+
+            hpMax = _cal.CalculateHpMax(STR, AGI, INT);
+            currentHPMax = hpMax;
+            currentHP = hpMax;
         }
 
         public int currentHP
@@ -162,10 +162,9 @@ namespace model
 
         public void setExp(double exp)
         {
-            if (exp == 0) return;
-            
             Exp = Exp + exp;
-            setLvl(Exp);
+            int lvl =_cal.CalculateLevel(Exp);
+            setLvl(lvl);
         }
 
         public int getDEF()
@@ -178,9 +177,9 @@ namespace model
             return MDEF;
         }
 
-        public int CalDmgSkill(_Attack type,double skillBonus,Status target,int skillStack)
+        public int CalDmgSkill(ATTACK type,double skillBonus,Status target,int skillStack)
         {
-            if (type == _Attack.PHYSICAL)
+            if (type == ATTACK.PHYSICAL)
             {
 
                 return((int)(ATK * skillBonus * _passiveBonusATK * _eventBonusDmg *_buffBonusATK * skillStack - target.getDEF() * _buffBonusDEF * _passiveBonusDEF));

@@ -2,6 +2,7 @@
 using UnityEngine.EventSystems;
 using system;
 using controller;
+using UnityEngine.UI;
 
 namespace shop
 {
@@ -21,7 +22,7 @@ namespace shop
         {
             //Debug.Log("Item id " + _item.id);
             _core.getShopCon()._itemShopIsSelect = _item;
-            _core.SetTalk(_item.data.name + "\n<" + _item.data.detail + ">");
+            _core.getMenuCon().ViewItemDetail(this.transform.Find("Icon").GetComponent<Image>().sprite,_item.data.name + "\n<" + _item.data.detail + ">");
             float currentTimeClick = data.clickTime;
             if (Mathf.Abs(currentTimeClick - lastTimeClick) < 0.75f)
             {
@@ -31,9 +32,9 @@ namespace shop
         }
         public override void OnDeselect(BaseEventData data)
         {
-            if (_core._talkPanel.activeSelf)
+            if (_core.getMenuCon()._itemDetail.activeSelf)
             {
-                _core._talkPanel.SetActive(false);
+                _core.getMenuCon()._itemDetail.SetActive(false);
             }
         }
     }

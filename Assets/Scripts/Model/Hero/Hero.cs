@@ -26,7 +26,7 @@ namespace model
         {
             return _status;
         }
-
+        
         public void UpdateHPBar()
         {
             getCore()._playerLifePanel.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)_status.currentHP * 1 / _status.currentHPMax);
@@ -37,7 +37,6 @@ namespace model
         {
             base.Dead();
             _status.hate = 0;
-            getBattCon()._waitEndTurn = false;
             getBattCon().OnBattleEnd(false);
         }
         
@@ -49,7 +48,7 @@ namespace model
             _status.setCurrentSkill(_status.attack[slot]);
 
             Monster target = getBattCon().getTargetOfHero();
-            OnPassiveWorking(getStatus().passive.ToString(), _Model.PLAYER);
+            OnPassiveWorking(getStatus().passive.ToString(), MODEL.PLAYER);
 
             Debug.Log("bonusdmg skill " + _status.getCurrentSkill().bonusDmg);
 
@@ -59,7 +58,7 @@ namespace model
 
             _status.hate += (_status.getCurrentSkill().getHate() / 3)* skillStack;
 
-            CreateAttackEffect(_status.getCurrentSkill(), _Model.MONSTER);
+            CreateAttackEffect(_status.getCurrentSkill(), MODEL.MONSTER);
             
         }
 
@@ -71,8 +70,7 @@ namespace model
             _status.ResetHP();
             _status.hate = 0;
             getCore()._playerLifePanel.transform.Find("HPSlider").GetComponent<ControlSlider>().AddFill((float)_status.currentHP * 1 / _status.currentHPMax);
-            OnPassiveWorking(getStatus().passive.ToString(), _Model.PLAYER);
-            getBattCon()._battleMode = _BattleState.Finish;
+            OnPassiveWorking(getStatus().passive.ToString(), MODEL.PLAYER);
         }
 
         public void PlayInjury()
@@ -80,7 +78,7 @@ namespace model
 
             RunInjury( new Vector3(getAvatarTrans().position.x + 0.8f, getAvatarTrans().position.y, getAvatarTrans().position.z));
             
-            OnPassiveWorking(getStatus().passive.ToString(),_Model.PLAYER);
+            OnPassiveWorking(getStatus().passive.ToString(), MODEL.PLAYER);
 
             getBattCon().ShowDamage(_status.getDamageReceived(), getAvatarTrans().position);
             _status.currentHP = _status.currentHP - _status.getDamageReceived();
@@ -91,7 +89,16 @@ namespace model
             }
             else
             {
-                getBattCon().RunMonAI();
+                if (getBattCon()._crystalMon>0)
+                {
+                    Debug.Log("runAI 3");
+                    getBattCon().RunMonsterAI();
+                }
+                else
+                {
+                    getBattCon()._battleState = BATTLESTATE.Finish;
+                }
+                
             }
         }
     }

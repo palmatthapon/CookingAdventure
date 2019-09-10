@@ -27,7 +27,7 @@ namespace controller
         {
             if (!_core.IsPaused)
             {
-                if (_core._gameMode == _GameState.LAND)
+                if (_core._gameMode == GAMESTATE.LAND)
                 {
                     if (_core.getCampCon().getAllowTouch())
                     {

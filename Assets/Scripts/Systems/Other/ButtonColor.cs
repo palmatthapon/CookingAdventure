@@ -20,23 +20,27 @@ public class ButtonColor : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        Debug.Log("1");
         theText.color = Color.white;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        Debug.Log("2");
         theText.color = Color.white;
         _btnPressed = true;
     }
 
     public void OnDeselect(BaseEventData eventData)
     {
+        Debug.Log("3");
         _btnPressed = false;
         theText.color = oldColor;
     }
     
     public void OnPointerExit(PointerEventData eventData)
     {
+        Debug.Log("4");
         if (_btnPressed)
         {
             theText.color = Color.white;
@@ -49,7 +53,9 @@ public class ButtonColor : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     public void OnDisable()
     {
+        Debug.Log("5");
         theText.color = oldColor;
+        _btnPressed = false;
     }
 
 
